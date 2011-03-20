@@ -1,8 +1,0 @@
-function SolveHF(obj,eps)
-
-[obj.orb,obj.Eorb,obj.Ehf] = Model1.hartreeFock(obj,0,eps);
-
-for
-
-end
-
