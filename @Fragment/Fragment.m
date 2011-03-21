@@ -34,8 +34,8 @@ classdef Fragment < handle
    end
    properties
       % TODO Need to do something about these
-      gaussianPath = 'c:\g03w';
-      gaussianExe  = 'g03.exe';
+      gaussianPath = 'c:\g09w';
+      gaussianExe  = 'g09.exe';
    end
    methods (Access = private)
       initializeData(obj);

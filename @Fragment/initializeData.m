@@ -50,6 +50,7 @@ fid1 = fopen(gjf_file,'w');
 fwrite(fid1, ctext, 'char');
 fclose(fid1);
 
+setenv('GAUSS_EXEDIR', obj.gaussianPath);
 system([gaussianPath,'\',gaussianExe,' ',gjf_file]);
 % convert checkpoint file to a formatted checkpoint file
 system([gaussianPath,'\formchk.exe temp.chk temp.fch']);
