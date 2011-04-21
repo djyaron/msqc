@@ -50,7 +50,6 @@ fid1 = fopen(gjf_file,'w');
 fwrite(fid1, ctext, 'char');
 fclose(fid1);
 
-setenv('GAUSS_EXEDIR', obj.gaussianPath);
 system([gaussianPath,'\',gaussianExe,' ',gjf_file]);
 % convert checkpoint file to a formatted checkpoint file
 system([gaussianPath,'\formchk.exe temp.chk temp.fch']);
@@ -61,8 +60,10 @@ try
    if (fid1 == -1)
       error('could not find fch file');
    end
-   [obj.Eorb, obj.orb, obj.basisAtom, obj.nelec, obj.Ehf] = ...
-      Fragment.readfchk(fid1);
+   [obj.Ehf, obj.Eorb, obj.orb, obj.nelec,  obj.Z, obj.rcart, ...
+    obj.dipole, obj.mulliken, obj.basisAtom, obj.basisType, ...
+    obj.basisSubType, obj.basisNprims, obj.basisPrims ] = ...
+    Fragment.readfchk(fid1);
    fclose(fid1);
 catch
    fclose(fid1);
@@ -82,6 +83,8 @@ catch
 end
 obj.nbasis = size(obj.H1,1);
 
+
+%system(['copy ', dataPath,'\temp.fch ', dataPath,'\test.fch']);
 % cleanup files
 delete([dataPath,'\fort.32'], [dataPath,'\full.gjf'], ...
    [dataPath,'\full.out'], [dataPath,'\temp.chk'], ...

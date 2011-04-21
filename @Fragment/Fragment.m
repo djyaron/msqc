@@ -7,21 +7,25 @@ classdef Fragment < handle
       fileprefix;    % prefix for files, without environment numbers
       
       natom   % number of atoms in fragment
-      npar    % number of parameters in template file
-      nbasis  % number of atomic basis functions
       nelec   % number of electrons in the fragment
+      Z       % (1,natom) atomic numbers of the molecules
+      rcart   % (3,natom) cartesian coordinates of the atoms
+      npar    % number of parameters in template file
+
+      nbasis  % number of atomic (and molecular) basis functions
       H1      % (nbasis,nbasis) full H1 operator of fragment
       H1en;   % (nbasis,nbasis,natom) electron-nuclear interaction
       KE;   % (nbasis,nbasis) kinetic energy
       H2;     % (nbasis,nbasis,nbasis,nbasis) 2-elec interactions
       S;      % (nbasis,nbasis) overlap
       Hnuc;   % nuclear-nuclear interaction energy
-      basisAtom % (nbasis,1) basisAtom(ibasis) = atom on which ibasis resides
-      
+            
       Ehf     % Hartree Fock energy
       Eorb    % (nbasis,1)      molecular orbital energies
       orb     % (nbasis,nbasis) molecular orbital coefficients
-      
+      dipole  % (3,1)   dipole moment of molecule
+      mulliken % (1,natom)  mulliken charge on the atoms
+
       nenv    %  numer of environments
       env     % (1,nenv)             environments
       H1Env   % (nbasis,nbasis,nenv) H1 due to environment
@@ -31,6 +35,15 @@ classdef Fragment < handle
       EhfEnv   % (1,nenv)        Hartree-Fock energy in env
       EorbEnv; % (nbasis,nenv)   molecular orbital energies in env
       orbEnv;  % (nbasis,nbasis,nenv) molecular orbitals in env  
+      
+      basisAtom  % (nbasis,1) atom # on which the function is centered 
+      basisType  % (nbasis,1) l quantum number: 0=s 1=p 2=d 3=d etc
+      basisSubType % (nbasis,1) m quantum number: 1..(2*l+1)
+      basisNprims  % number of primitives in this function
+      basisPrims   % {nbasis,1} cell array of matrices of size (2,nprims)
+                   %    with (1,:) being contraction coefficients and
+                   %         (2,:) being primimitive exponents
+
    end
    properties
       % TODO Need to do something about these
@@ -59,7 +72,9 @@ classdef Fragment < handle
          res.par      = [];
       end
       [found,fileprefix] = findCalc(dataPath,config)
-      [Eorb, orb, atom, Nelectrons, Ehf] = readfchk(fid1)
+      [Ehf, Eorb, orb, Nelectrons,  Z, rcart, ...
+         dipole, mulliken, ...
+       atom, type, subtype, nprims, prims ] = readfchk(fid1)
       [S, H1, KE, H2, Enuc] = readpolyatom(fid1)
    end
    methods

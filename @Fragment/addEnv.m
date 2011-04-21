@@ -55,8 +55,8 @@ else
       fid1 = fopen([dataPath,'\temp.fch'],'r');
       if (fid1 == -1)
          error('could not find fch file');
-      end
-      [Eorbe, orbe, ~, ~,Ehfe] = Fragment.readfchk(fid1);
+      end       
+      [Ehfe, Eorbe, orbe] = Fragment.readfchk(fid1);
       fclose(fid1);
    catch
       disp('caught some stupid error');
