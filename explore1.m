@@ -44,8 +44,8 @@ end
 %% Compare Hnuc to make sure things are ok
 plot(frag1.HnucEnv-frag1.Hnuc, frag2.HnucEnv-frag2.Hnuc, 'r.');
 
-%% The difference in the energy on an is related to the density on that
-%  atom
+%% The difference in the energy on an atom is related to the density on 
+%  that atom
 nenv = 25;
 x = zeros(nenv,1);
 y = zeros(nenv,1);
@@ -57,10 +57,10 @@ for iatom = 1:2
       %   y(i) = sum(sum(frag2.partitionE1(i)));
       t1 = frag1.partitionE1(i);
       t2 = frag2.partitionE1(i);
-      %x(i) = t1(iatom,iatom);
-      %y(i) = t2(iatom,iatom);
-      x(i) = sum(sum(t1));
-      y(i) = sum(sum(t2));
+      x(i) = t1(iatom,iatom);
+      y(i) = t2(iatom,iatom);
+      %x(i) = sum(sum(t1));
+      %y(i) = sum(sum(t2));
       t3 = frag1.density(i);
       z(i) = t3(iatom,iatom);
       if (iatom == 1)
@@ -105,10 +105,10 @@ c2 = c1;
 c2.basisSet = '6-31G**';
 
 frag1 = Fragment('data1',c1);
+frag1.loadAllEnv();
 frag2 = Fragment('data1',c2);
-for i=1:25
-   frag1.addEnv(env(i));
-   frag2.addEnv(env(i));
+for i=1:frag1.nenv
+   frag2.addEnv(frag1.env(i));
 end
 %%
 m1 = Model1(frag1);

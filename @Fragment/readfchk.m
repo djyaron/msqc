@@ -1,139 +1,183 @@
-function [Eorb, orb, atom, Nelectrons, Ehf] = readfchk(fid1)
-% This is probably all nonoptimal, and I did it pretty much by trial and
-% error. The following makes a cell array of strings, holding each word in
-% the input file.
-%fid1 = fopen('try8.fch');
+function [Ehf, Eorb, orb, Nelectrons,  Z, rcart, ...
+         dipole, mulliken, ...
+          atom, type, subtype, nprims, prims ] = readfchk(fid1)
+% reads contents of a formatted checkpoint file from Gaussian
+% Input
+%   fid1:   file handle
+% Output
+%   Ehf:   total SCF energy of the molecule
+%   Eorb: (nbasis,1) molecular orbital energies
+%   orb:  (nbasis,nbasis) molecular orbital coefficients
+%   Nelectrons: number of electrons in the molecule
+%   Z:     (1,natom) atomic numbers of the molecules
+%   rcart: (3,natom) cartesian coordinates of the atoms
+%   dipole: (3,1)   dipole moment of molecule
+%   mulliken:  (1,natom)  mulliken charge on the atoms
+%
+%   The following are (nbasis,1) arrays with info on the atomic basis 
+%   atom: atom # on which the function is centered 
+%   type: l quantum number: 0=s 1=p 2=d 3=d etc
+%   subtype: 1..(2*type+1)
+%   nprims:  number of primitives in this function
+%   prims: {nbasis,1} cell array of matrices of size (2,nprims)
+%          with (1,:) being contraction coefficients and
+%               (2,:) being primimitive exponents
+
+%fid1 = fopen('data\temp.fch');
 t1 = textscan(fid1,'%s');
 text = t1{1};
+%fclose(fid1);
 
+% Will have findText() issue errors for us as appropriate
+issueErrors = true;
 
-% the energies are after "Alpha Orbital Energies" 
-% This returns the indices of all occurences of the word Alpha
-% (stolen from: http://arstechnica.com/civis/viewtopic.php?f=20&t=296197)
-alpha = find(ismember(text,'Alpha')==1);
-[nfound,junk] = size(alpha);
-success = 0;
-
-for i=1:nfound
-   if (strcmp(text(alpha(i)+1),'Orbital') && ...%if this, then text contains the energies
-         strcmp(text(alpha(i)+2),'Energies'))
-      success = alpha(i);
-   end
-end
-
-if (success == 0) 
-   error('readchk: Alpha Orbital Energies not found');
-end
-
+% Orbital energies
+phrase = {'Alpha','Orbital','Energies'};
+loc = findText(text,phrase, issueErrors);
 % The fifth word after alpha is the number of energies
-Nenergies = str2num(cell2mat(text(success+5)));
+Nenergies = str2num( text{loc+5} );
 Eorb = zeros(Nenergies,1);
 
 for i=1:Nenergies
-   Eorb(i) = str2double(cell2mat(text(success + 5 + i)));%Reads the energies into an array
+   Eorb(i) = str2double(text{loc + 5 + i});
 end
 
+% Number of electrons
+phrase = {'Number','of','electrons'};
+loc = findText(text,phrase);
+%The fourth word after number is the number of electrons
+Nelectrons = str2num(text{loc + 4});
 
-%returns all occurrences of the word Shell
-shell = find(ismember(text,'Shell')==1);
-[nfound,junk] = size(shell);
-shellTypes = 0;  % location of text "Shell types"
-shellToAtom = 0; % location of text "Shell to atom map"
-for i = 1:nfound
-   if (strcmp(text(shell(i) + 1),'types'))
-      shellTypes = shell(i);
+% Orbital coefficients
+phrase = {'Alpha','MO','coefficients'};
+loc = findText(text,phrase);
+% The fifth word after alpha is the number of energies
+Nvalues = str2num(text{loc+5});
+temp = zeros(Nvalues,1);
+
+for i=1:Nvalues
+   temp(i) = str2double(text{loc + 5 + i});
+end
+
+orb = reshape(temp,Nenergies,Nenergies);
+
+% The hartree fock energy is after SCF Energy R
+phrase = {'SCF','Energy','R'};
+loc = findText(text,phrase);
+
+Ehf = str2double(text{loc+3});
+
+% the atomic numbers (Z) are after 'Atomic numbers'
+phrase = {'Atomic','numbers'};
+loc = findText(text,phrase);
+natom = str2num(text{loc+4});
+Z = zeros(1,natom);
+for iatom=1:natom
+   Z(1,iatom) = str2num(text{loc+4+iatom});
+end
+
+% Cartesian coordinates
+phrase = {'Current','cartesian','coordinates'};
+loc = findText(text,phrase);
+rcart = zeros(3,natom);
+icurr = loc + 6;
+for iatom=1:natom
+   for ix= 1:3
+   rcart(ix,iatom) = str2double(text{icurr});
+   icurr = icurr+1;
    end
-   if (strcmp(text(shell(i) + 1),'to')&&...
-         strcmp(text(shell(i) + 2), 'atom') && ...
-         strcmp(text(shell(i) + 3),'map'))
-      shellToAtom = shell(i);
-   end
 end
 
-if (shellTypes == 0)
-    error ('readchk.m: Shell types not found');
-end
-if (shellToAtom == 0)
-    error ('readchk.m: Shell to atom map not found');
+% Dipole moment
+phrase = {'Dipole','Moment'};
+loc = findText(text,phrase);
+n1 = str2num(text{loc+4});
+dipole = zeros(n1,1);
+for i=1:n1
+   dipole(i,1) = str2num(text{loc+4+i});
 end
 
-nshells = str2num(cell2mat(text(shellTypes + 4)));
+% Mulliken charges
+phrase = {'Mulliken','Charges'};
+loc = findText(text,phrase);
+n1 = str2num(text{loc+4});
+mulliken = zeros(1,n1);
+for i=1:n1
+   mulliken(1,i) = str2num(text{loc+4+i});
+end
+
+% Basis set information
+% First, read in the data as it is defined in the fchk file
+phrase = {'Shell','types'};
+loc = findText(text,phrase);
+nshells = str2num(text{loc+4});
+shellTypes = zeros(nshells,1);
+for i=1:nshells
+   shellTypes(i,1) = str2num(text{loc+4+i});
+end
+
+phrase = {'Number','of','primitives','per','shell'};
+loc = findText(text,phrase);
+nshells = str2num(text{loc+7});
+primsPerShell = zeros(nshells,1);
+for i=1:nshells
+   primsPerShell(i,1) = str2num(text{loc+7+i});
+end
+
+phrase = {'Shell','to','atom','map'};
+loc = findText(text,phrase);
+nshells = str2num(text{loc+6});
+shellToAtom = zeros(nshells,1);
+for i=1:nshells
+   shellToAtom(i,1) = str2num(text{loc+6+i});
+end
+
+phrase = {'Primitive','exponents'};
+loc = findText(text,phrase);
+n1 = str2num(text{loc+4});
+primExp = zeros(n1,1);
+for i=1:n1
+   primExp(i,1) = str2num(text{loc+4+i});
+end
+
+phrase = {'Contraction','coefficients'};
+loc = findText(text,phrase);
+n1 = str2num(text{loc+4});
+contCoef = zeros(n1,1);
+for i=1:n1
+   contCoef(i,1) = str2num(text{loc+4+i});
+end
+
+% shellTypes, primsPerShell, shellToAtom, primExp, contCoef
+
 atom = zeros(Nenergies, 1);
+type = zeros(Nenergies, 1);
+subtype = zeros(Nenergies, 1);
+nprims = zeros(Nenergies, 1);
+% prims{ibasis) = (2,nprims) matrix
+%                 (1,:) = cont coefficients; (2,:) = prim exponents
+prims = cell(Nenergies,1);
+
 ibasis = 0;
+iprim = 0;
 for ishell = 1:nshells
    % stype = 0(s) 1(p) 2(d) etc.
-   stype = str2num(cell2mat(text(shellTypes + 4 + ishell)));
-   satom = str2num(cell2mat(text(shellToAtom + 6+ ishell)));
+   stype = abs(shellTypes(ishell));
+   primTemp = zeros(2, primsPerShell(ishell));
+   for ip = 1:primsPerShell(ishell)
+      iprim = iprim+1;
+      primTemp(1,ip) = contCoef(iprim);
+      primTemp(2,ip) = primExp(iprim);
+   end
    for itemp = 1:(2*stype + 1)
       ibasis = ibasis + 1;
-      atom(ibasis) = satom;
+      atom(ibasis) = shellToAtom(ishell);
+      type(ibasis) = stype;
+      subtype(ibasis) = itemp;
+      nprims(ibasis) = primsPerShell(ishell);
+      prims{ibasis} = primTemp;
    end
 end
 if (ibasis ~= Nenergies)
    error('readchk.m: bookkeeping error in creation of atom()');
 end
-
-
-%returns the indices of all occurrences of the word "Number"
-number = find(ismember(text,'Number')==1);
-[nfound, junk] = size(number);
-success = 0;
-for i=1:nfound
-    if (strcmp(text(number(i) + 1), 'of') && strcmp(text(number(i)+2),'electrons'))
-        success = number(i);
-    end
-end
-
-if (success == 0)
-    error ('readchk: Number of electrons not found');
-end
-
-%The fourth word after number is the number of electrons
-Nelectrons = str2num(cell2mat(text(success + 4)));
-
-
-%%
-% the energies are after "Alpha Orbital Energies" 
-% This returns the indices of all occurences of the word Alpha
-% (stolen from: http://arstechnica.com/civis/viewtopic.php?f=20&t=296197)
-alpha = find(ismember(text,'Alpha')==1);
-[nfound,junk] = size(alpha);
-success = 0;
-
-for i=1:nfound
-   if (strcmp(text(alpha(i)+1),'MO') && ...
-         strcmp(text(alpha(i)+2),'coefficients'))
-      success = alpha(i);
-   end
-end
-
-if (success == 0)
-   error('readchk: Alpha MO coefficients not found');
-end
-
-% The fifth word after alpha is the number of energies
-Nvalues = str2num(cell2mat(text(success+5)));
-temp = zeros(Nvalues,1);
-
-for i=1:Nvalues
-   temp(i) = str2double(cell2mat(text(success + 5 + i)));
-end
-
-orb = reshape(temp,Nenergies,Nenergies);
-
-% the hartree fock energy is after SCF Energy R
-scf = find(ismember(text,'SCF')==1);
-nfound = size(scf,1);
-success = 0;
-
-for i=1:nfound
-   if (strcmp(text(scf(i)+1),'Energy') && ...
-         strcmp(text(scf(i)+2),'R'))
-      success = scf(i);
-   end
-end
-
-if (success == 0)
-   error('readchk: SCF Energy R not found');
-end
-Ehf = str2double(cell2mat(text(success+3)));
