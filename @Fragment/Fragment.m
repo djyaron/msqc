@@ -75,6 +75,7 @@ classdef Fragment < handle
       [Ehf, Eorb, orb, Nelectrons,  Z, rcart, ...
          dipole, mulliken, ...
        atom, type, subtype, nprims, prims ] = readfchk(fid1)
+      [Eorb, orb, atom, Nelectrons, Ehf] = oldreadfchk(fid1)
       [S, H1, KE, H2, Enuc] = readpolyatom(fid1)
    end
    methods

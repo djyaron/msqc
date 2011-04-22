@@ -5,12 +5,34 @@ classdef AggregateFragment < handle
     end
     
     methods(Static)
-        function af = train(frag_cfg, fraghat_cfgs, tplpath, experiments)
-            fraghats = cellfun(@(c) {tmpfrag(c, tplpath)}, fraghat_cfgs);
-            m = size(fraghats, 2);
-            % FIXME: memoization
-            w = repmat(1/m, m); 
-            af = AggregateFragment(w, fraghats);
+        function af = train(frag, fraghats, ep_indices, A, B)
+            p = size(fraghats, 2);
+            rate = 0.1;
+            T = len(ep_indices);
+            w = repmat(1/p, T, p); 
+            x = zeros(p);
+            
+            for t=1:T
+                i0 = ep_indices{t}{1};
+                i1 = ep_indices{t}{2};
+                
+                y = Delta(frag, i0, i1, A, B);
+                for j=1:p
+                  x(j) = Delta(fraghats{j}, i0, i1, A, B);
+                end
+                yhat = w(t) . x;
+                % Absolute loss
+                sgn = sign(y - yhat);
+                g = rate * sgn * x; 
+                
+                % Gradient descent
+                % w(t+1) = w(t) - g;
+                % Exponentiated gradient descent (Warmuth 97)
+                r = exp(g);
+                w(t+1) = r .* w(t) / (r.w(t));  
+            end
+            
+            af = AggregateFragment(sum(w), fraghats);
         end
     end
     

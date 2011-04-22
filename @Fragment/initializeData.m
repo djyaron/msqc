@@ -50,6 +50,7 @@ fid1 = fopen(gjf_file,'w');
 fwrite(fid1, ctext, 'char');
 fclose(fid1);
 
+setenv('GAUSS_EXEDIR', obj.gaussianPath);
 system([gaussianPath,'\',gaussianExe,' ',gjf_file]);
 % convert checkpoint file to a formatted checkpoint file
 system([gaussianPath,'\formchk.exe temp.chk temp.fch']);
@@ -60,10 +61,17 @@ try
    if (fid1 == -1)
       error('could not find fch file');
    end
+   % FIXME: unify readfchk's
+   if strcmp(basisSet, 'GEN')
    [obj.Ehf, obj.Eorb, obj.orb, obj.nelec,  obj.Z, obj.rcart, ...
     obj.dipole, obj.mulliken, obj.basisAtom, obj.basisType, ...
     obj.basisSubType, obj.basisNprims, obj.basisPrims ] = ...
     Fragment.readfchk(fid1);
+   else
+   [obj.Eorb, obj.orb, obj.basisAtom, obj.nelec, obj.Ehf] = ...
+      Fragment.oldreadfchk(fid1);
+   end
+   
    fclose(fid1);
 catch
    fclose(fid1);
