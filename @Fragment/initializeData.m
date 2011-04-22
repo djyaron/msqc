@@ -47,7 +47,7 @@ jobname = 'full';
 gjf_file = [jobname,'.gjf'];
 origdir = cd(obj.dataPath);
 fid1 = fopen(gjf_file,'w');
-fwrite(fid1, ctext, 'char');
+fwrite(fid1, [ctext,newline,newline], 'char');
 fclose(fid1);
 
 setenv('GAUSS_EXEDIR', obj.gaussianPath);
@@ -62,15 +62,15 @@ try
       error('could not find fch file');
    end
    % FIXME: unify readfchk's
-   if strcmp(basisSet, 'GEN')
+   %if strcmp(basisSet, 'GEN')
    [obj.Ehf, obj.Eorb, obj.orb, obj.nelec,  obj.Z, obj.rcart, ...
     obj.dipole, obj.mulliken, obj.basisAtom, obj.basisType, ...
     obj.basisSubType, obj.basisNprims, obj.basisPrims ] = ...
     Fragment.readfchk(fid1);
-   else
-   [obj.Eorb, obj.orb, obj.basisAtom, obj.nelec, obj.Ehf] = ...
-      Fragment.oldreadfchk(fid1);
-   end
+   %else
+   %[obj.Eorb, obj.orb, obj.basisAtom, obj.nelec, obj.Ehf] = ...
+   %   Fragment.oldreadfchk(fid1);
+   %end
    
    fclose(fid1);
 catch

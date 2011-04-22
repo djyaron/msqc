@@ -162,20 +162,46 @@ ibasis = 0;
 iprim = 0;
 for ishell = 1:nshells
    % stype = 0(s) 1(p) 2(d) etc.
-   stype = abs(shellTypes(ishell));
-   primTemp = zeros(2, primsPerShell(ishell));
-   for ip = 1:primsPerShell(ishell)
-      iprim = iprim+1;
-      primTemp(1,ip) = contCoef(iprim);
-      primTemp(2,ip) = primExp(iprim);
-   end
-   for itemp = 1:(2*stype + 1)
-      ibasis = ibasis + 1;
-      atom(ibasis) = shellToAtom(ishell);
-      type(ibasis) = stype;
-      subtype(ibasis) = itemp;
-      nprims(ibasis) = primsPerShell(ishell);
-      prims{ibasis} = primTemp;
+   % if stype < 0, then it means we have shells up to that stype here
+   % i.e. stype = -1, means we have both an s and p shell with identical
+   % contractions
+   stypeFile = shellTypes(ishell);
+   if (stypeFile >= 0)
+       stype = stypeFile;
+       primTemp = zeros(2, primsPerShell(ishell));
+       for ip = 1:primsPerShell(ishell)
+           iprim = iprim+1;
+           primTemp(1,ip) = contCoef(iprim);
+           primTemp(2,ip) = primExp(iprim);
+       end
+       for itemp = 1:(2*stype + 1)
+           ibasis = ibasis + 1;
+           atom(ibasis) = shellToAtom(ishell);
+           type(ibasis) = stype;
+           subtype(ibasis) = itemp;
+           nprims(ibasis) = primsPerShell(ishell);
+           prims{ibasis} = primTemp;
+       end
+   else
+       for stype = 0:abs(stypeFile)
+           primTemp = zeros(2, primsPerShell(ishell));
+           for ip = 1:primsPerShell(ishell)
+               iprim = iprim+1;
+               primTemp(1,ip) = contCoef(iprim);
+               primTemp(2,ip) = primExp(iprim);
+           end
+           if (stype < abs(stypeFile))
+               iprim = iprim - primsPerShell(ishell);
+           end
+           for itemp = 1:(2*stype + 1)
+               ibasis = ibasis + 1;
+               atom(ibasis) = shellToAtom(ishell);
+               type(ibasis) = stype;
+               subtype(ibasis) = itemp;
+               nprims(ibasis) = primsPerShell(ishell);
+               prims{ibasis} = primTemp;
+           end
+       end
    end
 end
 if (ibasis ~= Nenergies)

@@ -38,7 +38,10 @@ else
    % Do the calculation and read in data
    jobname = 'env';
    newline = char(10);
-   ctext = [obj.gaussianFile, newline, envTarget.gaussianText(), newline];
+   
+   % Need to put charge spec before environment, but gaussianFile has
+   % header and environment.
+   ctext = strrep(obj.gaussianFile, '!BASIS', [envTarget.gaussianText()]);
    gjf_file = [jobname,'.gjf'];
    origdir = cd(obj.dataPath);
    fid1 = fopen(gjf_file,'w');
@@ -57,15 +60,15 @@ else
          error('could not find fch file');
       end
     % FIXME: unify readfchk's
-   if strcmp(obj.config.basisSet, 'GEN')
+   %if strcmp(obj.config.basisSet, 'GEN')
    [Ehfe, Eorbe, orbe, ~,  ~, ~, ...
     ~, ~, ~, ~, ...
     ~, ~, ~] = ...
     Fragment.readfchk(fid1);
-   else
-   [Eorbe, orbe, ~, ~, Ehfe] = ...
-      Fragment.oldreadfchk(fid1);
-   end
+   %else
+   %[Eorbe, orbe, ~, ~, Ehfe] = ...
+   %   Fragment.oldreadfchk(fid1);
+   %end
       fclose(fid1);
    catch
       disp('caught some stupid error');

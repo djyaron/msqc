@@ -15,7 +15,7 @@ function experiment_gen(exp_path, orig_hl_tpl_path, hl_basis, orig_tpl_path, n, 
     frag_cfg = Fragment.defaultConfig();
     frag_cfg.template = hl_tpl_name;
     frag_cfg.basisSet = hl_basis;
-    frag_cfg.par = 1.0;
+    frag_cfg.par = [1.0 1.0 1.0 1.0 1.0];
     frag = Fragment(exp_path, frag_cfg);
     save([exp_path, '\\', 'frag.mat'], 'frag');
 
@@ -24,7 +24,7 @@ function experiment_gen(exp_path, orig_hl_tpl_path, hl_basis, orig_tpl_path, n, 
     for i=1:p
         fraghat_cfg = Fragment.defaultConfig();
         fraghat_cfg.template = tpl_name;
-        fraghat_cfg.basisSet = 'STO-3G'; %'GEN';
+        fraghat_cfg.basisSet = 'GEN';
         r = normrnd(1.0, 0.02, 1,3);
         fraghat_cfg.par = [r(1) r(2) r(2) r(3) r(3)];
 
