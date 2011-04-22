@@ -1,4 +1,4 @@
-function experiment_gen(exp_path, orig_hl_tpl_path, orig_tpl_path, n, p)
+function experiment_gen(exp_path, orig_hl_tpl_path, hl_basis, orig_tpl_path, n, p)
     mkdir(exp_path);
     tpl_name = 'tpl';
     tpl_path = [exp_path, '\\', tpl_name, '.tpl'];
@@ -14,7 +14,7 @@ function experiment_gen(exp_path, orig_hl_tpl_path, orig_tpl_path, n, p)
 
     frag_cfg = Fragment.defaultConfig();
     frag_cfg.template = hl_tpl_name;
-    frag_cfg.basisSet = '6-31G'; %'CEP-121G';
+    frag_cfg.basisSet = hl_basis;
     frag_cfg.par = 1.0;
     frag = Fragment(exp_path, frag_cfg);
     save([exp_path, '\\', 'frag.mat'], 'frag');
@@ -24,7 +24,7 @@ function experiment_gen(exp_path, orig_hl_tpl_path, orig_tpl_path, n, p)
     for i=1:p
         fraghat_cfg = Fragment.defaultConfig();
         fraghat_cfg.template = tpl_name;
-        fraghat_cfg.basisSet = 'GEN';
+        fraghat_cfg.basisSet = 'STO-3G'; %'GEN';
         r = normrnd(1.0, 0.02, 1,3);
         fraghat_cfg.par = [r(1) r(2) r(2) r(3) r(3)];
 

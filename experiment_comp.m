@@ -1,9 +1,8 @@
 function experiment_comp(exp_path)
     load([exp_path, '/', 'frag.mat']);
     load([exp_path, '/', 'fraghats.mat']);
+    p = size(fraghats, 2);
     load([exp_path, '/', 'env_pairs.mat']);
-     
-    p = size(fraghats, 1);
     n = size(env_pairs, 1);
 
     % Perform all computations with Gaussian
