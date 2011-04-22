@@ -1,9 +1,9 @@
 %% Generate some environments
-size = [6,6,6];
+boxSize = [6,6,6];
 nenv = 10;
 env(1,nenv) = Environment;
 for i = 1:nenv
-   env(1,i) = Environment.newCube(size,10);
+   env(1,i) = Environment.newCube(boxSize,3);
 end
 save('data2/env.mat', 'env');
 
@@ -12,10 +12,23 @@ datapath = 'data2';
 c1 = Fragment.defaultConfig();
 c1.template = 'fhydeGen';
 c1.basisSet = 'GEN';
-c1.par = [0.9 0.9 0.9 1.1 1.1];
+c1.par = [1.0 1.1 1.1 0.9 0.9];
 
 frag1 = Fragment(datapath,c1);
 %%
+load('data2/env.mat', 'env');
 for i=1:nenv
    frag1.addEnv(env(i));
 end
+
+%% To recover all the environments currently calculated for a fragment
+datapath = 'data2';
+c1 = Fragment.defaultConfig();
+c1.template = 'fhydeGen';
+c1.basisSet = 'GEN';
+c1.par = [1.0 1.1 1.1 0.9 0.9];
+
+frag1 = Fragment(datapath,c1);
+frag1.loadAllEnv;
+
+
