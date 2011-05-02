@@ -31,10 +31,10 @@ classdef AggregateFragment < handle
                 g = rate * sgn * x; 
                 
                 % Gradient descent
-                % w(t+1,:,) = w(t,:) - g;
+                w(t+1,:) = w(t,:) - g;
                 % Exponentiated gradient descent (Warmuth 97)
-                r = exp(g);
-                w(t+1,:) = r .* w(t) / dot(r, w(t,:)');  
+                % r = exp(g);
+                % w(t+1,:) = r .* w(t) / dot(r, w(t,:)');  
             end
             
             wbar = sum(w(2:T+1,:)) / T;

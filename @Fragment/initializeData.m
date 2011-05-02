@@ -61,16 +61,10 @@ try
    if (fid1 == -1)
       error('could not find fch file');
    end
-   % FIXME: unify readfchk's
-   %if strcmp(basisSet, 'GEN')
    [obj.Ehf, obj.Eorb, obj.orb, obj.nelec,  obj.Z, obj.rcart, ...
     obj.dipole, obj.mulliken, obj.basisAtom, obj.basisType, ...
     obj.basisSubType, obj.basisNprims, obj.basisPrims ] = ...
     Fragment.readfchk(fid1);
-   %else
-   %[obj.Eorb, obj.orb, obj.basisAtom, obj.nelec, obj.Ehf] = ...
-   %   Fragment.oldreadfchk(fid1);
-   %end
    
    fclose(fid1);
 catch

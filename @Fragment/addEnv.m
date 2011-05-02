@@ -59,16 +59,10 @@ else
       if (fid1 == -1)
          error('could not find fch file');
       end
-    % FIXME: unify readfchk's
-   %if strcmp(obj.config.basisSet, 'GEN')
    [Ehfe, Eorbe, orbe, ~,  ~, ~, ...
     ~, ~, ~, ~, ...
     ~, ~, ~] = ...
     Fragment.readfchk(fid1);
-   %else
-   %[Eorbe, orbe, ~, ~, Ehfe] = ...
-   %   Fragment.oldreadfchk(fid1);
-   %end
       fclose(fid1);
    catch
       disp('caught some stupid error');
