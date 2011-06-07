@@ -28,9 +28,10 @@ clear classes;
 load('junk1.mat');
 c1 = Fragment.defaultConfig();
 c1.template = 'h2';
-c1.basisSet = '6-31G';
-c1.par = 1.1;
+c1.basisSet = '6-31G**';
+c1.par = 1.0;
 frag = Fragment('data',c1);
+%%
 frag.setEnvSize(3);
 frag.addEnv(e1);
 frag.addEnv(e2);

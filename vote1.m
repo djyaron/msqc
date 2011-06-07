@@ -12,7 +12,7 @@ datapath = 'data2';
 c1 = Fragment.defaultConfig();
 c1.template = 'fhydeGen';
 c1.basisSet = 'GEN';
-c1.par = [1.0 1.1 1.1 0.9 0.9];
+c1.par = [1.0 1.1 1.1 1.2 1.2];
 
 frag1 = Fragment(datapath,c1);
 %%
