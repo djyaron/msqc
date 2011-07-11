@@ -86,8 +86,9 @@ end
 obj.nbasis = size(obj.H1,1);
 
 % save files for debugging
-% system(['copy ', dataPath,'\temp.fch ', dataPath,'\debug.fch']);
-% system(['copy ', dataPath,'\full.out ', dataPath,'\debug.out']);
+%system(['copy ', dataPath,'\full.gjf ', dataPath,'\debug.gjf']);
+%system(['copy ', dataPath,'\temp.fch ', dataPath,'\debug.fch']);
+%system(['copy ', dataPath,'\full.out ', dataPath,'\debug.out']);
 % cleanup files
 delete([dataPath,'\fort.32'], [dataPath,'\full.gjf'], ...
    [dataPath,'\full.out'], [dataPath,'\temp.chk'], ...
@@ -104,8 +105,12 @@ for iatom = 1:natom
    % charge and spin come next
    % To keep even number of electrons (and so spin 1), add an electron
    % by increasing the charge
-   % TODO: this should only be done for certain atoms, should fix
-   ctext = [ctext, num2str(charge-1), ' ', num2str(spin), newline];
+   if (rem(obj.Z(iatom),2) == 1) 
+      tempCharge = charge -1;
+   else
+      tempCharge = charge;
+   end
+   ctext = [ctext, num2str(tempCharge), ' ', num2str(spin), newline];
    % For molecule specification, we first replace all ATOM# with spaces
    t1 = obj.templateText;
    for jatom = 1:natom
@@ -126,7 +131,7 @@ for iatom = 1:natom
    gjf_file = [jobname,'.gjf'];
    origdir = cd(obj.dataPath);
    fid1 = fopen(gjf_file,'w');
-   fwrite(fid1, ctext, 'char');
+   fwrite(fid1, [ctext,newline,newline], 'char');
    fclose(fid1);
    % run gaussian
 %    for i = 1:3
