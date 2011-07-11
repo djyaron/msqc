@@ -34,11 +34,12 @@ classdef Fragment < handle
 
       EhfEnv   % (1,nenv)        Hartree-Fock energy in env
       EorbEnv; % (nbasis,nenv)   molecular orbital energies in env
-      orbEnv;  % (nbasis,nbasis,nenv) molecular orbitals in env  
+      orbEnv;  % (nbasis,nbasis,nenv) molecular orbitals in env
+      dipoleEnv % (3,nenv) dipole moment in the environment
       
       basisAtom  % (nbasis,1) atom # on which the function is centered 
       basisType  % (nbasis,1) l quantum number: 0=s 1=p 2=d 3=d etc
-      basisSubType % (nbasis,1) m quantum number: 1..(2*l+1)
+      basisSubType % (nbasis,1) m quantum number: s=1 p=3 d=6 (cartesian)
       basisNprims  % number of primitives in this function
       basisPrims   % {nbasis,1} cell array of matrices of size (2,nprims)
                    %    with (1,:) being contraction coefficients and

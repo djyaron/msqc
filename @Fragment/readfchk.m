@@ -1,27 +1,27 @@
-function [Ehf, Eorb, orb, Nelectrons,  Z, rcart, ...
+function [Ehf, Eorb, orb, Nelectrons, Z, rcart, ...
          dipole, mulliken, ...
           atom, type, subtype, nprims, prims ] = readfchk(fid1)
 % reads contents of a formatted checkpoint file from Gaussian
 % Input
-%   fid1:   file handle
+% fid1: file handle
 % Output
-%   Ehf:   total SCF energy of the molecule
-%   Eorb: (nbasis,1) molecular orbital energies
-%   orb:  (nbasis,nbasis) molecular orbital coefficients
-%   Nelectrons: number of electrons in the molecule
-%   Z:     (1,natom) atomic numbers of the molecules
-%   rcart: (3,natom) cartesian coordinates of the atoms
-%   dipole: (3,1)   dipole moment of molecule
-%   mulliken:  (1,natom)  mulliken charge on the atoms
+% Ehf: total SCF energy of the molecule
+% Eorb: (nbasis,1) molecular orbital energies
+% orb: (nbasis,nbasis) molecular orbital coefficients
+% Nelectrons: number of electrons in the molecule
+% Z: (1,natom) atomic numbers of the molecules
+% rcart: (3,natom) cartesian coordinates of the atoms
+% dipole: (3,1) dipole moment of molecule
+% mulliken: (1,natom) mulliken charge on the atoms
 %
-%   The following are (nbasis,1) arrays with info on the atomic basis 
-%   atom: atom # on which the function is centered 
-%   type: l quantum number: 0=s 1=p 2=d 3=d etc
-%   subtype: 1..(2*type+1)
-%   nprims:  number of primitives in this function
-%   prims: {nbasis,1} cell array of matrices of size (2,nprims)
-%          with (1,:) being contraction coefficients and
-%               (2,:) being primimitive exponents
+% The following are (nbasis,1) arrays with info on the atomic basis
+% atom: atom # on which the function is centered
+% type: l quantum number: 0=s 1=p 2=d 3=d etc
+% subtype: 1..(2*type+1)
+% nprims: number of primitives in this function
+% prims: {nbasis,1} cell array of matrices of size (2,nprims)
+% with (1,:) being contraction coefficients and
+% (2,:) being primimitive exponents
 
 %fid1 = fopen('data\temp.fch');
 t1 = textscan(fid1,'%s');
@@ -142,22 +142,38 @@ end
 
 phrase = {'Contraction','coefficients'};
 loc = findText(text,phrase);
-n1 = str2num(text{loc+4});
-contCoef = zeros(n1,1);
-for i=1:n1
-   contCoef(i,1) = str2num(text{loc+4+i});
+if (size(loc,1) > 0)
+   n1 = str2num(text{loc(1)+4});
+   contCoef = zeros(n1,1);
+   for i=1:n1
+      contCoef(i,1) = str2num(text{loc(1)+4+i});
+   end
+end
+if (size(loc,1) == 2)
+   if (strcmp(text{loc(2)-1},'P(S=P)')~=1)
+      error('readfchk.m: unsupported contraction in fchk file');
+   end
+   n1 = str2num(text{loc(2)+4});
+   contCoef2 = zeros(n1,1);
+   for i=1:n1
+      contCoef2(i,1) = str2num(text{loc(2)+4+i});
+   end
+end
+if ((size(loc,2) > 2) || (size(loc,2) < 1))
+  error('readfchk.m: unsupported contraction in fchk file');
 end
 
-% shellTypes, primsPerShell, shellToAtom, primExp, contCoef
-
+% Information on the basis set. See top of file for definition of these
+% arrays
 atom = zeros(Nenergies, 1);
 type = zeros(Nenergies, 1);
 subtype = zeros(Nenergies, 1);
 nprims = zeros(Nenergies, 1);
 % prims{ibasis) = (2,nprims) matrix
-%                 (1,:) = cont coefficients; (2,:) = prim exponents
+% (1,:) = cont coefficients; (2,:) = prim exponents
 prims = cell(Nenergies,1);
 
+nsubtypes = [1 3 6]; %  cartesian basis sets for s,p,d
 ibasis = 0;
 iprim = 0;
 for ishell = 1:nshells
@@ -174,7 +190,7 @@ for ishell = 1:nshells
            primTemp(1,ip) = contCoef(iprim);
            primTemp(2,ip) = primExp(iprim);
        end
-       for itemp = 1:(2*stype + 1)
+       for itemp = 1:nsubtypes(stype+1)
            ibasis = ibasis + 1;
            atom(ibasis) = shellToAtom(ishell);
            type(ibasis) = stype;
@@ -187,13 +203,18 @@ for ishell = 1:nshells
            primTemp = zeros(2, primsPerShell(ishell));
            for ip = 1:primsPerShell(ishell)
                iprim = iprim+1;
-               primTemp(1,ip) = contCoef(iprim);
+               if (stype == 0)
+                  primTemp(1,ip) = contCoef(iprim);
+               else
+                  primTemp(1,ip) = contCoef2(iprim);
+               end
                primTemp(2,ip) = primExp(iprim);
            end
+           % reset iprim, to keep count ok
            if (stype < abs(stypeFile))
                iprim = iprim - primsPerShell(ishell);
            end
-           for itemp = 1:(2*stype + 1)
+           for itemp = 1:nsubtypes(stype+1)
                ibasis = ibasis + 1;
                atom(ibasis) = shellToAtom(ishell);
                type(ibasis) = stype;

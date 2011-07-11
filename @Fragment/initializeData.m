@@ -85,8 +85,9 @@ catch
 end
 obj.nbasis = size(obj.H1,1);
 
-
-%system(['copy ', dataPath,'\temp.fch ', dataPath,'\test.fch']);
+% save files for debugging
+% system(['copy ', dataPath,'\temp.fch ', dataPath,'\debug.fch']);
+% system(['copy ', dataPath,'\full.out ', dataPath,'\debug.out']);
 % cleanup files
 delete([dataPath,'\fort.32'], [dataPath,'\full.gjf'], ...
    [dataPath,'\full.out'], [dataPath,'\temp.chk'], ...

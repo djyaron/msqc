@@ -60,7 +60,7 @@ else
          error('could not find fch file');
       end
    [Ehfe, Eorbe, orbe, ~,  ~, ~, ...
-    ~, ~, ~, ~, ...
+    dipolee, ~, ~, ~, ...
     ~, ~, ~] = ...
     Fragment.readfchk(fid1);
       fclose(fid1);
@@ -87,7 +87,7 @@ else
    envResults.Eorb  = Eorbe;
    envResults.orb   = orbe;
    envResults.Hnuc  = Hnuce;
-   
+   envResults.dipole = dipolee;
    % cleanup files
 %    delete([dataPath,'\fort.32'], [dataPath,'\env.gjf'], ...
 %       [dataPath,'\env.out'], [dataPath,'\temp.chk'], ...
@@ -108,4 +108,6 @@ obj.EhfEnv(1,obj.nenv)  = envResults.Ehf;
 obj.EorbEnv(:,obj.nenv) = envResults.Eorb;
 obj.HnucEnv(:,obj.nenv) = envResults.Hnuc;
 obj.orbEnv(:,:,obj.nenv)  = envResults.orb;
+obj.dipoleEnv(:,obj.nenv) = envResults.dipole;
+
 

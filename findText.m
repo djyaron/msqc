@@ -6,9 +6,9 @@ function loc = findText(text, phrase, issueError)
 %   issueError: bool  if true, error() is called if loc < 1
 %               [defaults to false]
 % Output:
-%   loc:   text(loc,1) is first word in phrase, if found
+%   loc:   (nfound,1) array
+%   loc:   text(loc(i),1) is ith location of first word in phrase, if found
 %          loc = 0 if phrase is not found
-%          loc = -1 if more than one location is found
 
 % approach is adapted from
 % http://arstechnica.com/civis/viewtopic.php?f=20&t=296197
@@ -48,8 +48,9 @@ if (size(res,1) == 0)
    if (issueError)
       error(['Error in findText, phrase: ',phrase{1:nphrase},' not found']);
    end
-%elseif (size(res,1) > 1)
-%   loc = -1;
 else
-   loc = locs(res(1));
+   loc = zeros(size(res,1),1);
+   for i2 = 1:size(res,1)
+      loc(i2,1) = locs(res(i2));
+   end
 end
