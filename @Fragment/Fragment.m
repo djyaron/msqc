@@ -8,7 +8,7 @@ classdef Fragment < handle
       
       natom   % number of atoms in fragment
       nelec   % number of electrons in the fragment
-      Z       % (1,natom) atomic numbers of the molecules
+      Z       % (1,natom) atomic numbers of the atoms
       rcart   % (3,natom) cartesian coordinates of the atoms
       npar    % number of parameters in template file
 
