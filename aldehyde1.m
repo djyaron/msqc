@@ -105,7 +105,7 @@ for ipar = 1:size(params,2)
 end
 %%
 EHL = zeros(HL.nenv,1);
-iatom = 1;
+iatom = 2;
 for ienv=1:HL.nenv
    temp = HL.partitionE1(ienv,HL.KE+HL.H1en(:,:,iatom)+HL.H1en(:,:,2));
    EHL(ienv) = temp(1,2);
