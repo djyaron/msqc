@@ -1,3 +1,8 @@
+%% Setup Environment Variables
+root = 'C:\Users\Alex\Programming\msqc';
+exp_folder = 'test';
+full_path = strcat( root, filesep, exp_folder );
+
 %% What is a reasonable value to use for the environment.
 mag = [1.0 5.0 10.0 25.0];
 nenv = 10;
@@ -9,13 +14,13 @@ for imag=1:size(mag,2)
 end
 % only run this once, or you will overwrite the env. It is commented out
 % for this reason.
-%save('data3/env1.mat','env');
+%save( strcat( exp_folder, filesep, 'env1.mat' ),'env');
 %% Generate all of the needed quantum data
-%load('data3/env1.mat');
+load( strcat( exp_folder, filesep, 'env1.mat' ) );
 config = Fragment.defaultConfig();
 config.template = 'fhyde';
 config.basisSet = 'sto-3g ';
-frag0 = Fragment('c:\dave\apoly\msqc\data3', config);
+frag = Fragment( full_path, config);
 %% These results suggest a magnitude of 2 to 3 cause significant
 % perturbations
 figure(100);
@@ -40,26 +45,26 @@ for ienv = 1:nenv
 end
 % only run this once, or you will overwrite the env. It is commented out
 % for this reason.
-%save('data3/env_mag25.mat','env');
+%save( strcat( exp_folder, filesep, 'env_mag25.mat' ),'env');
 %%
-load('data3/env_mag25.mat');
+load( strcat( exp_folder, filesep, 'env_mag25.mat' ) );
 config = Fragment.defaultConfig();
 config.template = 'fhyde';
 config.basisSet = '6-31G**';
-frag = Fragment('c:\dave\apoly\msqc\data3', config);
+frag = Fragment( full_path, config);
 %% These results suggest a magnitude of 2 to 3 cause significant
 for ienv = 1:size(env,1)
    frag.addEnv(env{ienv,1});
 end
 %% High level calculations
 clear classes;
-load('data3/env_mag25.mat');
+load( strcat( exp_folder, filesep, 'env_mag25.mat' ) );
 basisSets = {'6-31G','6-31G**','6-31++G','6-31++G**'};
 config = Fragment.defaultConfig();
 config.template = 'fhyde';
 for ib = 1:size(basisSets,2)
    config.basisSet = basisSets{ib};
-   frag = Fragment('c:\dave\apoly\msqc\data3', config);
+   frag = Fragment( full_path, config);
    for ienv = 1:size(env,1)
       disp(['basis ',basisSets{ib},' env ',num2str(ienv)]);
       frag.addEnv(env{ienv});
@@ -67,7 +72,7 @@ for ib = 1:size(basisSets,2)
 end
 %% Low level calculations
 clear classes;
-load('data3/env_mag25.mat');
+load( strcat( exp_folder, filesep, 'env_mag25.mat' ) );
 config = Fragment.defaultConfig();
 config.template = 'fhydeGen';
 config.basisSet = 'gen';
@@ -75,7 +80,7 @@ params = {[1.0 1.0 1.0 1.0 1.0], [0.8 0.8 0.8 0.8 0.8],...
    [1.2 1.2 1.2 1.2 1.2]};
 for ipar = 1:size(params,2)
    config.par = params{ipar};
-   frag = Fragment('c:\dave\apoly\msqc\data3', config);
+   frag = Fragment( full_path, config);
    config.par = [0.8 0.8 0.8 0.8 0.8];
    for ienv = 1:size(env,1)
       disp(['ipar ',num2str(ipar),' env ',num2str(ienv)]);
@@ -87,7 +92,7 @@ clear classes;
 config = Fragment.defaultConfig();
 config.template = 'fhyde';
 config.basisSet = '6-31++G**';
-HL = Fragment('c:\dave\apoly\msqc\data3', config);
+HL = Fragment( full_path, config);
 HL.loadAllEnv;
 %%
 config = Fragment.defaultConfig();
@@ -98,7 +103,7 @@ params = {[1.0 1.0 1.0 1.0 1.0], [0.8 0.8 0.8 0.8 0.8],...
 LL = cell(size(params,2),1);
 for ipar = 1:size(params,2)
    config.par = params{ipar};
-   LL{ipar} = Fragment('c:\dave\apoly\msqc\data3', config);
+   LL{ipar} = Fragment( full_path, config);
    for ienv = 1:HL.nenv
       LL{ipar}.addEnv( HL.env(ienv) );
    end
@@ -154,7 +159,7 @@ params = {[1.0 1.0 1.0 1.0 1.0], [0.8 0.8 0.8 0.8 0.8],...
    [1.2 1.2 1.2 1.2 1.2]};
 for ipar = 1:1
    config.par = params{ipar};
-   frag = Fragment('c:\dave\apoly\msqc\data3', config);
+   frag = Fragment( full_path, config);
    [orb,Eorb,Ehf] = Model1.hartreeFock(frag,0);
 %   for ienv = 1:HL.nenv
 %      LL.addEnv( HL.env(ienv) );
