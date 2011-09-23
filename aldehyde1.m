@@ -1,6 +1,6 @@
 %% What is a reasonable value to use for the environment.
-mag = [1.0 5.0 10.0 25.0];
-nenv = 10;
+mag = [1.0]; %5.0 10.0 25.0];
+nenv = 2;
 cubSize = [6,6,6];
 for imag=1:size(mag,2)
    for ienv = 1:nenv
@@ -9,13 +9,15 @@ for imag=1:size(mag,2)
 end
 % only run this once, or you will overwrite the env. It is commented out
 % for this reason.
-%save('data3/env1.mat','env');
+save('data4/env1.mat','env');
 %% Generate all of the needed quantum data
-%load('data3/env1.mat');
+%clear classes;
+load('data4/env1.mat');
 config = Fragment.defaultConfig();
-config.template = 'fhyde';
-config.basisSet = 'sto-3g ';
-frag0 = Fragment('c:\dave\apoly\msqc\data3', config);
+config.template = 'fhydeGen';
+config.basisSet = 'gen ';
+config.par = [1.0 1.0 1.0 1.0 1.0];
+frag = Fragment('c:\dave\apoly\msqc\data4', config);
 %% These results suggest a magnitude of 2 to 3 cause significant
 % perturbations
 figure(100);
@@ -40,7 +42,7 @@ for ienv = 1:nenv
 end
 % only run this once, or you will overwrite the env. It is commented out
 % for this reason.
-%save('data3/env_mag25.mat','env');
+save('data4/env_mag25.mat','env');
 %%
 load('data3/env_mag25.mat');
 config = Fragment.defaultConfig();
@@ -67,7 +69,7 @@ for ib = 1:size(basisSets,2)
 end
 %% Low level calculations
 clear classes;
-load('data3/env_mag25.mat');
+load('data4/env_mag25.mat');
 config = Fragment.defaultConfig();
 config.template = 'fhydeGen';
 config.basisSet = 'gen';
@@ -75,7 +77,7 @@ params = {[1.0 1.0 1.0 1.0 1.0], [0.8 0.8 0.8 0.8 0.8],...
    [1.2 1.2 1.2 1.2 1.2]};
 for ipar = 1:size(params,2)
    config.par = params{ipar};
-   frag = Fragment('c:\dave\apoly\msqc\data3', config);
+   frag = Fragment('c:\dave\apoly\msqc\data4', config);
    config.par = [0.8 0.8 0.8 0.8 0.8];
    for ienv = 1:size(env,1)
       disp(['ipar ',num2str(ipar),' env ',num2str(ienv)]);

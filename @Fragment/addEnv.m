@@ -11,7 +11,7 @@ found = false;
 failed = false;
 while (~failed && ~found)
    ifile = ifile + 1;
-   fileEnvPrefix = [obj.fileprefix,'_',int2str(ifile)];
+   fileEnvPrefix = [obj.fileprefix,'\env_',int2str(ifile)];
    cfgfilename = [fileEnvPrefix,'_cfg.mat'];
    try % try to open the file
       load(cfgfilename,'envFile');
@@ -26,7 +26,8 @@ while (~failed && ~found)
       end
    end
 end
-
+% at this point, calcfilename is either the file with the result
+% or the next file that should be written
 calcfilename = [fileEnvPrefix,'_calc.mat'];
 % Either load envResults from calcfile, or generate it
 if (found)
@@ -41,7 +42,7 @@ else
    
    % Need to put charge spec before environment, but gaussianFile has
    % header and environment.
-   ctext = strrep(obj.gaussianFile, '!BASIS', [envTarget.gaussianText()]);
+   ctext = strrep(obj.gaussianFile, '!ENV', [envTarget.gaussianText()]);
    gjf_file = [jobname,'.gjf'];
    origdir = cd(obj.dataPath);
    fid1 = fopen(gjf_file,'w');
@@ -67,7 +68,7 @@ else
    catch
       disp('caught some stupid error');
       fclose(fid1);
-      error('failed during fchk read');
+      error('failed during env fchk read');
    end
    % read in data from the polyatom output file
    try
