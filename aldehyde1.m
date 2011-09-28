@@ -15,7 +15,7 @@ end
 config = Fragment.defaultConfig();
 config.template = 'fhyde';
 config.basisSet = 'sto-3g ';
-frag0 = Fragment('c:\dave\apoly\msqc\data3', config);
+frag0 = Fragment('c:\dave\msqc\data3', config);
 %% These results suggest a magnitude of 2 to 3 cause significant
 % perturbations
 figure(100);
@@ -47,11 +47,24 @@ config = Fragment.defaultConfig();
 config.template = 'fhyde';
 config.basisSet = '6-31G**';
 frag = Fragment('c:\dave\apoly\msqc\data3', config);
-%% These results suggest a magnitude of 2 to 3 cause significant
+%% Generate high level data
+clear classes;
+basisSets = {'6-31G','6-31G**','6-31++G','6-31++G**'};
+load('data3/env_mag25.mat');
+config = Fragment.defaultConfig();
+config.template = 'fhyde';
+for i1=1:size(basisSets,2)
+    config.basisSet = basisSets{i1};
+    frag = Fragment('c:\dave\msqc\data3', config);
+    for ienv = 1:1
+        frag.addEnv(env{ienv});
+    end
+end
+
+%% 
 for ienv = 1:size(env,1)
    frag.addEnv(env{ienv,1});
 end
-%% Scaled sto-3g calcs
 config = Fragment.defaultConfig();
 config.template = 'fhydeGen';
 config.basisSet = 'gen';
