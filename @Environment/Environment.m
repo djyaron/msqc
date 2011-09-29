@@ -1,4 +1,4 @@
-classdef Environment
+classdef Environment < handle 
    %ENVIRONMENT Summary of this class goes here
    %   Detailed explanation goes here
    
@@ -65,6 +65,14 @@ classdef Environment
             end
             res = [res, num2str(obj.rho(ic), '%23.12f'), newline];
          end
+      end
+      function displace(obj, rdisp)
+          if (sum(size(rdisp) == size(obj.r(:,1))) ~= 2)
+              error('Environment.displace needs a 3x1 vector');
+          end
+          for ic = 1:obj.ncharge
+              obj.r(:,ic) = obj.r(:,ic) + rdisp;
+          end
       end
    end % methods
 end
