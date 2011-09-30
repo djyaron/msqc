@@ -49,7 +49,7 @@ end
 %% Generate environments for production runs 
 %From the above, it looks like a magnitude of 15 will be good
 clear classes;
-mag = 15.0;
+mag = 5.0;
 nenv = 100;
 cubSize = [6,6,6];
 cent = [0.77; 0; 0];
@@ -60,7 +60,7 @@ for ienv = 1:nenv
 end
 % only run this once, or you will overwrite the env. It is commented out
 % for this reason.
-%save('ethane1/env1.mat','env');
+save('ethane2/env2.mat','env');
 %% Generate data
 clear classes;
 load('ethane1/env1.mat');
@@ -68,7 +68,7 @@ basis{1} = '6-31G**';
 basis{2} = 'STO-3G';
 for itry=1:10
     try
-for angle = 60:-15:0
+for angle = 60:-30:0
     for rcc = 1.39:0.15:1.69 % 1.54
         for rch = 0.97:0.15:1.27 %1.12
             for ib = 1:2
@@ -82,14 +82,15 @@ for angle = 60:-15:0
                         ' angle ',num2str(angle), ...
                         ' basis ',basis{ib}]);                
                         % perturbations
-%                 for ienv = 1:size(env,2)
-%                     frag.addEnv(env{ienv});
-%                     disp(['rcc ',num2str(rcc), ...
-%                         ' rch ',num2str(rch), ...
-%                         ' angle ',num2str(angle), ...
-%                         ' basis ',basis{ib}, ...
-%                         ' ienv ',num2str(ienv)]);
-%                 end
+                 for ienv = 1:size(env,2)
+                     frag.addEnv(env{ienv});
+                     disp(['itry ',num2str(itry) ...
+                         ' rcc ',num2str(rcc), ...
+                         ' rch ',num2str(rch), ...
+                         ' angle ',num2str(angle), ...
+                         ' basis ',basis{ib}, ...
+                         ' ienv ',num2str(ienv)]);
+                 end
             end
         end
     end
