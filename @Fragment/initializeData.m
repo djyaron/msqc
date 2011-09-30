@@ -155,7 +155,7 @@ for iatom = 1:natom
       fclose(fid1);
    catch
       %fclose(fid1);
-      throws(['failed during polyatom read for atom ',num2str(iatom)]);
+      throw(['failed during polyatom read for atom ',num2str(iatom)]);
    end
    obj.H1en(:,:,iatom) = H1atom - KE;
    
