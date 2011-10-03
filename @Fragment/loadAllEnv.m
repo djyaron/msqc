@@ -5,7 +5,7 @@ ifile = 0;
 failed = false;
 while (~failed)
    ifile = ifile + 1;
-   fileEnvPrefix = [obj.fileprefix,'_',int2str(ifile)];
+   fileEnvPrefix = [obj.fileprefix,'\env_',int2str(ifile)];
    cfgfilename = [fileEnvPrefix,'_cfg.mat'];
    try % try to open the file
       load(cfgfilename,'envFile');
