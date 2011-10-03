@@ -1,7 +1,7 @@
-function [orb,Eorb,Ehf] = hartreeFock(frag,env,eps)
+function [orb,Eorb,Ehf] = hartreeFock(obj,env,eps)
 % Solve Hartree Fock equations
 % Input:
-%   frag:  Holds hamiltonian information (H1,H2,S,nelec,Hnuc,H1env,HnucEnv)
+%   obj:  Holds hamiltonian information (H1,H2,S,nelec,Hnuc,H1env,HnucEnv)
 %          [see Fragment class for definitions of these properties]
 %   env:   environment number (uses H1env(:,:,env) and HnucEnv(env))
 %          [defaults to 0, with 0 meaning isolated fragment]
@@ -21,15 +21,15 @@ if (nargin < 3)
 end
 
 if (env == 0)
-   H1 = frag.H1;
-   Enuc = frag.Hnuc;
+   H1 = obj.H1;
+   Enuc = obj.Hnuc;
 else
-   H1 = frag.H1 + frag.H1Env(:,:,env);
-   Enuc = frag.HnucEnv(1,env);
+   H1 = obj.H1 + obj.H1Env(:,:,env);
+   Enuc = obj.HnucEnv(1,env);
 end
-H2 = frag.H2;
-S  = frag.S;
-Nelec = frag.nelec;
+H2 = obj.H2;
+S  = obj.S;
+Nelec = obj.frag1.nelec;
 
 [Nbasis,junk] = size(H1); %#ok<NASGU> %Getting size of basis set
 
