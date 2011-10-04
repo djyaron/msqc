@@ -1,7 +1,7 @@
-%% Setup Environment Variables
+%% Setup Paths
 root = 'C:\Users\Alex\Programming\msqc';
 exp_folder = 'test';
-full_path = strcat( root, filesep, exp_folder );
+full_path = [ root, filesep, exp_folder ];
 
 %% What is a reasonable value to use for the environment.
 mag = [1.0 5.0 10.0 25.0];
@@ -14,7 +14,7 @@ for imag=1:size(mag,2)
 end
 % only run this once, or you will overwrite the env. It is commented out
 % for this reason.
-%save( strcat( exp_folder, filesep, 'env1.mat' ),'env');
+save( strcat( exp_folder, filesep, 'env1.mat' ),'env');
 %% Generate all of the needed quantum data
 load( strcat( exp_folder, filesep, 'env1.mat' ) );
 config = Fragment.defaultConfig();
