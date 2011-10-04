@@ -99,8 +99,12 @@ classdef Fragment < handle
                Fragment.findCalc(res.dataPath,res.config);
             if (found)
                ftemp = [res.fileprefix,'_calc.mat'];
+               prefixsave = res.fileprefix;
+               dataPathsave = res.dataPath;
                load(ftemp, 'resFile' );
                res = resFile;
+               res.fileprefix = prefixsave;
+               res.dataPath = dataPathsave;
             else
                res.templateText = fileread([res.dataPath,filesep,...
                   res.config.template,'.tpl']);

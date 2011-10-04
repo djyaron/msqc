@@ -154,8 +154,8 @@ for iatom = 1:natom
       [~, H1atom, KE, ~, ~] = Fragment.readpolyatom(fid1);
       fclose(fid1);
    catch
-      fclose(fid1);
-      error(['failed during polyatom read for atom ',num2str(iatom)]);
+      %fclose(fid1);
+      throw(['failed during polyatom read for atom ',num2str(iatom)]);
    end
    obj.H1en(:,:,iatom) = H1atom - KE;
    
