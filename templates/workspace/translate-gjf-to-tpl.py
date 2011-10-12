@@ -38,132 +38,42 @@ def writeTextFile(text, filename):
 
 # Begin relevant code
 
-def is_float( input ):
-    try:
-        foo = float( input )
-        return True
-    except ValueError:
-        return False
-
-def is_atom( input ):
-    ascii = ord( input[ 0 ] )
-    if ( not ( ascii >= 65 and ascii <= 90 ) ):
-        return False
-    if ( len( input ) >= 2 ):
-        ascii = ord( input[ 1 ] )
-        if( not ( ( ascii >= 97 and ascii <= 122 ) ) ):
-            return False
-    return True
-        
-
-def is_meas( input ):
-    for i in xrange( len( input ) ):
-        ascii = ord( input[ i ] )
-        if ( i == 0 ):
-            if ( not ( ascii >= 65 and ascii <= 90 ) ):
-                return False
-        else:
-            if ( not ( ascii >= 48 and ascii <= 57 ) ):
-                return False
-    return True
-
-def count_digits( input ):
-    input = str( input )
-    return len( input )
-
-def run_conversion( infile, outfile, length_change = 0 ):
+def run_conversion( infile, outfile ):
     input = readTextFile( infile )
+    print( "Read " + infile )
+
+    # Cut off beginning and end junk
     start = input.find( "0 1" )
-    input = input[ start + 4: ]
-
-    # Separate into atom_data and meas_data
-    split = input.find( "\n\n" )
-    atom_data = input[ : split ]
-    meas_data = input[ split + 2: ]
-    meas_data = meas_data[ : meas_data.find( "\n\n" ) ] # Cut off end garbage
-
-    # Parse input into lists
-    atom_data_list = atom_data.split( " " )
-    meas_data_list = meas_data.split( " " )
+    data = input[ start + 4: ]
+    data = data[ : data.rfind( "\n\n" ) ]
+    data = data[ : data.rfind( "\n\n" ) ]
 
     i = 0
-    atom_count = 0
-    while( i < len( atom_data_list ) ):
-        # Remove empty strings
-        if ( atom_data_list[ i ] == "" ):
-            atom_data_list.pop( i )
-        # Separate newlines into their own elements
-        elif ( atom_data_list[ i ][ -1 ] == "\n" and \
-                   not atom_data_list[ i ] == "\n" ):
-            atom_data_list[ i ] = atom_data_list[ i ][ :-1 ]
-            atom_data_list.insert( i + 1, "\n" )
-            # Remove last column
-            if ( atom_data_list[ i ] == '0' ):
-                atom_data_list.pop( i )
-                i -= 1
-            i += 2
-        else:
-            if ( is_atom( atom_data_list[ i ] ) ):
-                atom_count += 1
-            i += 1
-    # Final element of last column won't get caught above
-    atom_data_list.pop( -1 )
+    n = 1
+    split = data.find( "\n\n" )
 
-    i = 0
-    while( i < len( meas_data_list ) ):
-        # Remove empty strings
-        if ( meas_data_list[ i ] == "" ):
-            meas_data_list.pop( i )
-        # Floor numbers to 2 decimal places (and remove newlines)
-        elif ( is_float( meas_data_list[ i ] ) ):
-            dec = meas_data_list[ i ].find( "." )
-            meas_data_list[ i ] = meas_data_list[ i ][ : dec + 3 ]
-            i += 1
-        else:
-            i += 1
-
-    # Parse new output
-    output = " "
-    offset = count_digits( atom_count ) - 1
-    max_length = [ 6 + offset, 1 + offset, 4, 1 + offset, 6, 1 + offset, 7 ]
-    col_index = 0
-    atom_count = 1
-
-    for i in xrange( len( atom_data_list ) ):
-        if ( is_atom( atom_data_list[ i ] ) ):
-            add = atom_data_list[ i ] + "ATOM" + str( atom_count )
-            spaces = ( 16 + max_length[ col_index ] - len( add ) - \
-                           len( atom_data_list[ i + 1 ] ) + \
-                           max_length[ col_index + 1 ] ) * ' '
-            output += add + spaces
-            atom_count += 1
-            col_index += 1
-        elif ( is_meas( atom_data_list[ i ] ) ):
-            sub_index = meas_data_list.index( atom_data_list[ i ] )
-            dec = meas_data_list[ sub_index + 1 ].find( '.' )
-            leading_spaces = ' ' * ( 9 + max_length[ col_index ] - dec )
-            if ( col_index != len( max_length ) - 1 ):
-                trailing_spaces = ' ' * ( 4 + max_length[ col_index + 1 ] \
-                                              - len( atom_data_list[ i + 1 ] ) )
-            else:
-                trailing_spaces = ''
-            output += leading_spaces + meas_data_list[ sub_index + 1 ] + \
-                trailing_spaces
-            col_index += 1
-        elif ( atom_data_list[ i ] == "\n" ):
-            output += "\n "
-            col_index = 0
-        else:
-            output += atom_data_list[ i ]
-            col_index += 1
+    # Add ATOM and count after each chemical symbol in the first section
+    while ( i < split ):
+        i_old = i
+        i = data.find( "\n", i ) + 6
+        data = data[ : i_old + 2 ] + "ATOM" + str( n ) + \
+            data[ i_old + 2 + len( str( n ) ) - 1 : ]
+        n += 1
 
     # Add end data
-    output += "\n\n!ENV"
+    data += "\n\n!ENV"
+    
+    print "Output:\n", data
 
-    #print "Atom Data:\n", atom_data_list
-    #print "Measurement Data:\n", meas_data_list
-    print "Output:\n", output
+    writeTextFile( data, outfile )
+    print( "Wrote " + outfile )
 
-    writeTextFile( output, outfile )
+name = raw_input( "Molecule Name? " )
 
-run_conversion( )
+if ( ".gjf" == name[ -4 : ] ):
+    name = name[ : -4 ]
+
+infile = name + ".gjf"
+outfile = name + ".tpl"
+
+run_conversion( infile, outfile )
