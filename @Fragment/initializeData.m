@@ -30,7 +30,9 @@ ctext = header;
 ctext = [ctext, num2str(charge), ' ', num2str(spin), newline];
 % For molecule specification, we first replace all ATOM# with spaces
 t1 = obj.templateText;
-for iatom = 1:obj.natom
+% Iterate in reverse order, or replacements will not work properly with 
+% more than 10 atoms.
+for iatom = obj.natom:-1:1
    t1 = strrep(t1, ['ATOM',num2str(iatom)], ' ');
 end
 % And replace all PAR# with the parameter values
@@ -113,7 +115,9 @@ for iatom = 1:natom
    ctext = [ctext, num2str(tempCharge), ' ', num2str(spin), newline];
    % For molecule specification, we first replace all ATOM# with spaces
    t1 = obj.templateText;
-   for jatom = 1:natom
+   % Iterate in reverse order, or replacements will not work properly 
+   % with more than 10 atoms.
+   for jatom = natom:-1:1
       if (jatom == iatom)
          t1 = strrep(t1, ['ATOM',num2str(jatom)],' ');
       else
@@ -146,6 +150,8 @@ for iatom = 1:natom
    system([gaussianPath,'\',gaussianExe,' ',gjf_file]);
    cd(origdir);
    % read in data from the polyatom output file
+   pause on;
+   pause( 2 );
    try
       fid1 = fopen([dataPath,'\fort.32'],'r');
       if (fid1 == -1)
@@ -157,6 +163,7 @@ for iatom = 1:natom
       %fclose(fid1);
       throw(['failed during polyatom read for atom ',num2str(iatom)]);
    end
+   pause off;
    obj.H1en(:,:,iatom) = H1atom - KE;
    
    % cleanup files
