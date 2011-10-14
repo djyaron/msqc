@@ -101,6 +101,7 @@ delete([dataPath,'\fort.32'], [dataPath,'\full.gjf'], ...
 [n1,n2] = size(obj.H1);
 natom = obj.natom;
 obj.H1en = zeros(n1,n2,natom);
+
 for iatom = 1:natom
    disp(['doing calc for atom ',num2str(iatom)]);
    ctext = header;
@@ -129,7 +130,7 @@ for iatom = 1:natom
       t1 = strrep(t1, ['PAR',num2str(ipar)], num2str(par(ipar),'%23.12f'));
    end
    ctext = [ctext, t1];
-   
+
    % Do the calculation and read in data
    jobname = ['atom',num2str(iatom)];
    gjf_file = [jobname,'.gjf'];
@@ -147,11 +148,17 @@ for iatom = 1:natom
 %       end
 %    end
 %    input junk;
+   
    system([gaussianPath,'\',gaussianExe,' ',gjf_file]);
+   % check if the call to Gaussian failed.
+   if ans ~= 0
+       error( 'Gaussian failed. Check template, Gaussian input file, or Gaussian output file.' );
+   end
    cd(origdir);
    % read in data from the polyatom output file
-   pause on;
-   pause( 2 );
+   %pause on;
+   %pause( 2 );
+   %pause off;
    try
       fid1 = fopen([dataPath,'\fort.32'],'r');
       if (fid1 == -1)
@@ -163,13 +170,13 @@ for iatom = 1:natom
       %fclose(fid1);
       throw(['failed during polyatom read for atom ',num2str(iatom)]);
    end
-   pause off;
    obj.H1en(:,:,iatom) = H1atom - KE;
-   
+
    % cleanup files
    delete([dataPath,'\fort.32'], [dataPath,'\',jobname,'.gjf'], ...
       [dataPath,'\',jobname,'.out'], [dataPath,'\temp.chk']);
-   
+   success = true;
 end
+
 
 
