@@ -1,4 +1,4 @@
-function plotEnvironment( obj, frag, rdisp )
+function plotEnvironment( obj, frag, rdisp, ctrChg )
 %PLOTENVIRONMENT Visualize a fragment in a given environment.
 %   Inputs:
 %       obj: Environment object
@@ -10,12 +10,12 @@ function plotEnvironment( obj, frag, rdisp )
 %           magnitude of charge. Red corresponds to positive charges and
 %           blue to negative charges. The molecule is shown for reference.
 
-% rcart does not appear to be given in Angstroms. 
-rcartAng = frag.rcart / 1.88973;
+% rcart given in Bohr radii. Approx conversion factor.
+rcartAng = frag.rcart / 1.889726124565062;
 
-[x,y,z] = sphere(10);
-disp( sort( obj.rho ) );
-disp( sort( abs( obj.rho ) ) );
+[x,y,z] = sphere(12);
+%disp( sort( obj.rho ) );
+%disp( sort( abs( obj.rho ) ) );
 rhoMax = max( abs( obj.rho ) );
 
 plot3( 0, 0, 0, '*' );
@@ -23,7 +23,7 @@ hold on;
 
 % Draw the charges, proportional to their magnitude.
 for icharge = 1:size( obj.r, 2 )
-    scale = abs( obj.rho(icharge) / rhoMax );
+    scale = abs( obj.rho( icharge ) / rhoMax );
     a = x * scale;
     b = y * scale;
     c = z * scale;
@@ -42,5 +42,7 @@ for iatom = 1:size( rcartAng, 2 )
         rcartAng( 2, iatom ) + rdisp(2), ...
         rcartAng( 3, iatom ) + rdisp(3), 'o' );
 end
+
+plot3( ctrChg(1), ctrChg(2), ctrChg(3), 'go' );
 
 hold off;
