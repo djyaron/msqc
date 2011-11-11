@@ -87,6 +87,8 @@ for iatom=1:natom
    icurr = icurr+1;
    end
 end
+% Convert from Bohr radii to Angstroms
+rcart = rcart / 1.889726124565062;
 
 % Dipole moment
 phrase = {'Dipole','Moment'};
