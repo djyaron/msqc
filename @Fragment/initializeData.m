@@ -41,8 +41,7 @@ for ipar = 1:obj.npar
 end
 ctext = [ctext, t1];
 
-% add charge keyword, so calcs can be done in an environment
-obj.gaussianFile = strrep(ctext,'symm=noint','symm=noint charge');
+obj.gaussianFile = ctext;
 
 % Do the calculation and read in data
 jobname = 'full';

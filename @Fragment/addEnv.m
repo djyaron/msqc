@@ -40,9 +40,34 @@ else
    jobname = 'env';
    newline = char(10);
    
+   ctext = obj.gaussianFile;
+   
    % Need to put charge spec before environment, but gaussianFile has
    % header and environment.
-   ctext = strrep(obj.gaussianFile, '!ENV', [envTarget.gaussianText()]);
+   if envTarget.ncharge > 0
+      % add charge keyword, so calcs can be done in an environment
+      ctext = strrep(ctext,'symm=noint','symm=noint charge');
+      ctext = strrep(ctext, '!ENV', [envTarget.gaussianText()]);
+   end
+   
+    % add the fields
+    if envTarget.nfield > 0
+        for ifield = 1:envTarget.nfield
+           % turn into the format for Gaussian
+           dir = [ repmat( 'X', 1, envTarget.fieldType( ifield, 1 ) ), ...
+                   repmat( 'Y', 1, envTarget.fieldType( ifield, 2 ) ), ...
+                   repmat( 'Z', 1, envTarget.fieldType( ifield, 3 ) ) ];
+           mag = '';
+           if envTarget.fieldMag( ifield ) >= 0
+               mag = '+';
+           end
+           mag = [ mag, num2str( envTarget.fieldMag( ifield ) ) ];
+           insert = [ 'Field=', dir, mag ];
+           % Add to the input file
+           ctext = strrep( ctext, 'symm=noint', [ 'symm=noint ', insert ] );
+        end
+    end
+   
    gjf_file = [jobname,'.gjf'];
    origdir = cd(obj.dataPath);
    fid1 = fopen(gjf_file,'w');
