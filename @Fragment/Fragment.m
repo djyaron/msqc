@@ -21,6 +21,7 @@ classdef Fragment < handle
       Hnuc;   % nuclear-nuclear interaction energy
             
       Ehf     % Hartree Fock energy
+      MP2     % MP2 Energy
       Eorb    % (nbasis,1)      molecular orbital energies
       orb     % (nbasis,nbasis) molecular orbital coefficients
       dipole  % (3,1)   dipole moment of molecule
@@ -33,6 +34,7 @@ classdef Fragment < handle
       HnucEnv % (1,nenv)             Hnuc in environment
 
       EhfEnv   % (1,nenv)        Hartree-Fock energy in env
+      MP2Env   % (1,nenv)        MP2 energy in env
       EorbEnv; % (nbasis,nenv)   molecular orbital energies in env
       orbEnv;  % (nbasis,nbasis,nenv) molecular orbitals in env
       dipoleEnv % (3,nenv) dipole moment in the environment
@@ -61,6 +63,8 @@ classdef Fragment < handle
          %               [defaults to 'template.txt']
          %  basisSet = basis set keyword (Gaussian format)
          %               [defaults to 'STO-3G']
+         %  method = Method that you want to use
+         %              [defults to hf]
          %  charge = charge on the fragment
          %             [defaults to 0]
          %  spin   = spin (multiplicity) of the fragment,
@@ -68,12 +72,13 @@ classdef Fragment < handle
          %             [defaults to 1]
          res.template = 'template';
          res.basisSet = 'STO-3G';
+         res.method   = 'hf';
          res.charge   = 0;
          res.spin     = 1;
          res.par      = [];
       end
       [found,fileprefix] = findCalc(dataPath,config)
-      [Ehf, Eorb, orb, Nelectrons,  Z, rcart, ...
+      [MP2, Ehf, Eorb, orb, Nelectrons,  Z, rcart, ...
          dipole, mulliken, ...
        atom, type, subtype, nprims, prims ] = readfchk(fid1)
       [Eorb, orb, atom, Nelectrons, Ehf] = oldreadfchk(fid1)
@@ -134,6 +139,7 @@ classdef Fragment < handle
          obj.env(1,nenvIn) = Environment;
          obj.H1Env = zeros(obj.nbasis, obj.nbasis, nenvIn);
          obj.EhfEnv = zeros(1,nenvIn);
+         obj.MP2Env = zeros(1,nenvIn);
          obj.EorbEnv = zeros(obj.nbasis, nenvIn);
          obj.orbEnv  = zeros(obj.nbasis,obj.nbasis,nenvIn);
       end
