@@ -17,7 +17,7 @@ config = Fragment.defaultConfig();
 config.template = 'fhydeGen';
 config.basisSet = 'gen ';
 config.par = [1.0 1.0 1.0 1.0 1.0];
-frag = Fragment('c:\dave\apoly\msqc\data4', config);
+frag = Fragment('c:\Users\Matteus\Computional\msqc\data4', config);
 %% These results suggest a magnitude of 2 to 3 cause significant
 % perturbations
 figure(100);
