@@ -12,7 +12,7 @@
 %       8 H        1.89666667      0.62226748     -0.79402271
 clear classes;
 mag = [1.0 5.0 10.0 25.0];
-nenv = 5;
+nenv = 100;%%number of environments to generate goes here.
 cubSize = [6,6,6];
 cent = [0.77; 0; 0];
 for imag=1:size(mag,2)
@@ -24,7 +24,7 @@ for imag=1:size(mag,2)
 end
 % only run this once, or you will overwrite the env. It is commented out
 % for this reason.
-%save('ethane1/env0.mat','env');
+save('ethane1/env0.mat','env');
 %% what magnitude of charge do we want
 clear classes;
 load('ethane1/env0.mat');
