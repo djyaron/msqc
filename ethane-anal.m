@@ -1,6 +1,6 @@
 %% Load data
 clear classes;
-root = 'c:\dave\apoly\msqc\';
+root = 'c:\code\msqc\';
 load('ethane2/env2.mat');
 nenv = size(env,2);
 pars{1} = [1.54 1.12 60];
@@ -17,7 +17,7 @@ LL = cell(npar,3);
 %%
 for itry = 1:1
     try
-        for ipar = 1:1 %size(pars,2)
+        for ipar = [1 4 5] %size(pars,2)
             par = pars{ipar};
             disp(['rcc ',num2str(par(1)), ...
                 ' rch ',num2str(par(2)), ...
@@ -72,6 +72,7 @@ for itry = 1:1
 end
 %%
 save('ethaneDat.mat');
+
 %%
 load('temp1.mat');
 %% trying the new aggregator fit stuff
@@ -88,12 +89,13 @@ fit = lsqnonlin(@agg.err1, [0.5 0.5]);
 clear classes;
 load('temp1.mat');
 agg = Aggregator;
-for ipar = 1:3%size(HL,1) %%%need this to work for multiple parameters
+for ipar = [1 4 5]%size(HL,1) %%%need this to work for multiple parameters
+    %add second low level into calculation
    agg.addFrags(HL{ipar},LL{ipar,1},LL{ipar,2});
 end
-%[diff, ehigh, epred]  = agg.err2([0 1 1 1 1]);
-fit = lsqnonlin(@agg.err2, [0.5 0.5 0.5 0.5]);
-[diff, ehigh, epred] = agg.err2(fit);
+%[diff, ehigh, epred, elow]  = agg.err2([0 1 1 1 1 1 1 1]);%%add in list of environmet, env
+fit = lsqnonlin(@agg.err2, [1 1 1 1 1 1 1 1]);
+[diff, ehigh, epred elow] = agg.err2(fit);
 %%
 [diff, ehigh, epred]  = agg.err1(fit);
 %%
