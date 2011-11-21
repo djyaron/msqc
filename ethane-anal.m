@@ -59,7 +59,7 @@ for itry = 1:1
             % LL 3
             config.template = 'ethane1-gen';
             config.basisSet = 'GEN';
-            config.par = [par 1.05 1.05 1.05 1.05 1.05];
+            config.par = [par 1.04 1.04 1.04 1.04 1.04];
             frag4 = Fragment([root,'ethane2'], config);
             for ienv = 1:nenv
                 display(['LL env ',num2str(ienv)]);
@@ -71,7 +71,8 @@ for itry = 1:1
     end
 end
 %%
-save('temp1.mat');
+save('ethaneDat.mat');
+
 %%
 load('temp1.mat');
 %% trying the new aggregator fit stuff
@@ -250,3 +251,23 @@ hold off;
 plot(-BHHL,-BHpred,'rx');
 %hold on;
 %plot(-BHHL,-BHHL,'k-');
+
+%% PLaying with model2
+clear classes;
+load('ethanefixed.mat');
+
+f1 = LL{1,1};
+f2 = LL{1,2};
+f3 = LL{1,3};
+fhl = LL{1,1};
+
+m2 = Model2(f1, f2, f3, fhl);
+m2.par = [0 0 0 0];
+m2.solveHF;
+disp(['HF energy ',num2str(m2.Ehf),' ',num2str(f1.Ehf), ...
+   ' ', num2str(m2.Ehf - f1.Ehf)]);
+disp(['max Eorb diff ',num2str( max(m2.Eorb-f1.Eorb))]);
+%disp(['max EhfEnv diff ',num2str( max(max(m2.EhfEnv-f1.EhfEnv)))]);
+%disp(['max EorbEnv diff ',num2str( max(max(m2.EorbEnv-f1.EorbEnv)))]);
+par = lsqnonlin(@m2.err, [0 0 0 0]);
+

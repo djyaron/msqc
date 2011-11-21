@@ -60,9 +60,9 @@ else
       if (fid1 == -1)
          error('could not find fch file');
       end
-   [Ehfe, Eorbe, orbe, ~,  ~, ~, ...
-    dipolee, ~, ~, ~, ...
-    ~, ~, ~] = ...
+   [MP2e, Ehfe, Eorbe, orbe, junk,  junk2, junk3, ...
+    dipolee, junk4, junk5, junk6, ...
+    junk7, junk8, junk9] = ...
     Fragment.readfchk(fid1);
       fclose(fid1);
    catch
@@ -76,7 +76,7 @@ else
       if (fid1 == -1)
          error(['could not find ',dataPath,'\fort.32']);
       end
-      [~, H1e, ~, ~, Hnuce] = Fragment.readpolyatom(fid1);
+      [junk11, H1e, junk12, junk13, Hnuce] = Fragment.readpolyatom(fid1);
       fclose(fid1);
    catch
       fclose(fid1);
@@ -84,6 +84,7 @@ else
    end
    
    envResults.H1Env = H1e - obj.H1;
+   envResults.MP2   = MP2e;
    envResults.Ehf   = Ehfe;
    envResults.Eorb  = Eorbe;
    envResults.orb   = orbe;
@@ -106,6 +107,7 @@ obj.nenv = obj.nenv + 1;
 obj.env(1,obj.nenv) = envTarget;
 obj.H1Env(:,:,obj.nenv) = envResults.H1Env;
 obj.EhfEnv(1,obj.nenv)  = envResults.Ehf;
+obj.MP2Env(1,obj.nenv)  = envResults.MP2;
 obj.EorbEnv(:,obj.nenv) = envResults.Eorb;
 obj.HnucEnv(:,obj.nenv) = envResults.Hnuc;
 obj.orbEnv(:,:,obj.nenv)  = envResults.orb;
