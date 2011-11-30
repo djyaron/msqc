@@ -1,4 +1,4 @@
-function plotEnvironment( obj, frag, rdisp, ctrChg )
+function plotEnvironment( obj, frag, rdisp )
 %PLOTENVIRONMENT Visualize a fragment in a given environment.
 %   Inputs:
 %       obj: Environment object
@@ -43,6 +43,6 @@ for iatom = 1:size( rcartAng, 2 )
         rcartAng( 3, iatom ) + rdisp(3), 'o' );
 end
 
-plot3( ctrChg(1), ctrChg(2), ctrChg(3), 'go' );
+%plot3( ctrChg(1), ctrChg(2), ctrChg(3), 'go' );
 
 hold off;

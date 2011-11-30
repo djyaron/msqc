@@ -1,4 +1,4 @@
-function [ res ctrChg bound ] = newBox( frag, cubeExtension, mag, ncharge )
+function res = newBox( frag, cubeExtension, mag, ncharge )
 %NEWBOX Double cube approach to environment creation.
 %   Inputs:
 %       frag: data from a single fragment, i.e. HL{1,1}
@@ -69,20 +69,20 @@ res.rho = rhoParity .* rhoScale .* mag;
 res.ncharge = ncharge;
 res.r = r;
 
-% Debugging:
-ctrChg = [ sum( r( 1, : ) .* res.rho ) / sum( abs( res.rho ) ); ...
-           sum( r( 2, : ) .* res.rho ) / sum( abs( res.rho ) ); ...
-           sum( r( 3, : ) .* res.rho ) / sum( abs( res.rho ) ) ]; 
-       
-bound = ( ctrChg > innerBox( :, 1 ) ) == ( ctrChg < innerBox( :, 2 ) );
-
-dist = sqrt( r(1,:).^2 + r(2,:).^2 + r(3,:).^2 );
-e0 = 8.854197e-12;
-fieldMag = ( 1 / ( 4 * pi * e0 ) ) * res.rho .* ( 1.6e-19 ) ...
-    ./ ( dist .^ 3 );
-OField = repmat( fieldMag, 3, 1 ) .* res.r;
 
 if 0
+    % Debugging:
+    ctrChg = [ sum( r( 1, : ) .* res.rho ) / sum( abs( res.rho ) ); ...
+               sum( r( 2, : ) .* res.rho ) / sum( abs( res.rho ) ); ...
+               sum( r( 3, : ) .* res.rho ) / sum( abs( res.rho ) ) ]; 
+       
+    bound = ( ctrChg > innerBox( :, 1 ) ) == ( ctrChg < innerBox( :, 2 ) );
+
+    dist = sqrt( r(1,:).^2 + r(2,:).^2 + r(3,:).^2 );
+    e0 = 8.854197e-12;
+    fieldMag = ( 1 / ( 4 * pi * e0 ) ) * res.rho .* ( 1.6e-19 ) ...
+        ./ ( dist .^ 3 );
+    OField = repmat( fieldMag, 3, 1 ) .* res.r;
     
     disp( 'Inner Box: [ min max ]' );        
     disp( innerBox );  
