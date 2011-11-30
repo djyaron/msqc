@@ -71,6 +71,34 @@ for itry = 1:1
     end
 end
 %%
+save('ethaneDat.mat');
+
+%%
+load('temp1.mat');
+%% trying the new aggregator fit stuff
+%clear classes;
+load('temp1.mat');
+agg = Aggregator;
+for ipar = 1:1 %size(HL,1)
+   agg.addFrags(HL{ipar},LL{ipar,1},LL{ipar,2});
+end
+[diff, ehigh, epred]  = agg.err1([0 1]);
+fit = lsqnonlin(@agg.err1, [0.5 0.5]);
+%%
+%trying err 2
+clear classes;
+load('temp1.mat');
+agg = Aggregator;
+for ipar = [1 4 5]%size(HL,1) %%%need this to work for multiple parameters
+    %add second low level into calculation
+   agg.addFrags(HL{ipar},LL{ipar,1},LL{ipar,2});
+end
+%[diff, ehigh, epred, elow]  = agg.err2([0 1 1 1 1 1 1 1]);%%add in list of environmet, env
+fit = lsqnonlin(@agg.err2, [1 1 1 1 1 1 1 1]);
+[diff, ehigh, epred elow] = agg.err2(fit);
+%%
+[diff, ehigh, epred]  = agg.err1(fit);
+%%
 save([root,'ethane2\data3.mat'],'HL','LL');
 %%
 clear classes;
@@ -223,3 +251,23 @@ hold off;
 plot(-BHHL,-BHpred,'rx');
 %hold on;
 %plot(-BHHL,-BHHL,'k-');
+
+%% PLaying with model2
+clear classes;
+load('ethanefixed.mat');
+
+f1 = LL{1,1};
+f2 = LL{1,2};
+f3 = LL{1,3};
+fhl = LL{1,1};
+
+m2 = Model2(f1, f2, f3, fhl);
+m2.par = [0 0 0 0];
+m2.solveHF;
+disp(['HF energy ',num2str(m2.Ehf),' ',num2str(f1.Ehf), ...
+   ' ', num2str(m2.Ehf - f1.Ehf)]);
+disp(['max Eorb diff ',num2str( max(m2.Eorb-f1.Eorb))]);
+%disp(['max EhfEnv diff ',num2str( max(max(m2.EhfEnv-f1.EhfEnv)))]);
+%disp(['max EorbEnv diff ',num2str( max(max(m2.EorbEnv-f1.EorbEnv)))]);
+par = lsqnonlin(@m2.err, [0 0 0 0]);
+

@@ -1,4 +1,4 @@
-function [Ehf, Eorb, orb, Nelectrons, Z, rcart, ...
+function [MP2, Ehf, Eorb, orb, Nelectrons, Z, rcart, ...
          dipole, mulliken, ...
           atom, type, subtype, nprims, prims ] = readfchk(fid1)
 % reads contents of a formatted checkpoint file from Gaussian
@@ -66,6 +66,16 @@ phrase = {'SCF','Energy','R'};
 loc = findText(text,phrase);
 
 Ehf = str2double(text{loc+3});
+
+% MP2 Energy
+phrase = {'MP2','Energy','R'};
+loc = findText(text,phrase);
+
+if loc == 0
+    MP2 = Ehf;
+else
+MP2 = str2double(text{loc+3});
+end
 
 % the atomic numbers (Z) are after 'Atomic numbers'
 phrase = {'Atomic','numbers'};
