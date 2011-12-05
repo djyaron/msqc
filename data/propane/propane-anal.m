@@ -1,7 +1,7 @@
 %% Load data
 clear classes;
-root = 'c:\dave\apoly\msqc\';
-load('ethane2/env2.mat');
+root = 'C:\Users\Alex\Programming\msqc\';
+load('data\propane\env1.mat');
 nenv = size(env,2);
 pars{1} = [1.54 1.12 60];
 pars{2} = [1.54 1.12 30];
@@ -16,90 +16,63 @@ HL = cell(npar,1);
 LL = cell(npar,3);
 %%
 for itry = 1:1
-    try
-        for ipar = 1:size(pars,2)
-            par = pars{ipar};
-            disp(['rcc ',num2str(par(1)), ...
-                ' rch ',num2str(par(2)), ...
-                ' angle ',num2str(par(3))]);
-            
-            config = Fragment.defaultConfig();
-            config.par = par;
-            
-            % HL
-            config.template = 'ethane1';
-            config.basisSet = HLbasis;
-            disp('loading HL');
-            frag1 = Fragment([root,'ethane2'], config);
-            for ienv = 1:nenv
-                display(['HL env ',num2str(ienv)]);
-                frag1.addEnv(env{ienv});
-            end
-            HL{ipar,1} = frag1;
-            % LL 1
-            config.basisSet = 'STO-3G';
-            frag2 = Fragment([root,'ethane2'], config);
-            disp('loading HL 1');
-            for ienv = 1:nenv
-                display(['LL env ',num2str(ienv)]);
-                frag2.addEnv(env{ienv});
-            end
-            LL{ipar,1} = frag2;
-            
-            % LL 2
-            config.template = 'ethane1-gen';
-            config.basisSet = 'GEN';
-            config.par = [par 0.9 0.9 0.9 0.9 0.9];
-            frag3 = Fragment([root,'ethane2'], config);
-            for ienv = 1:nenv
-                display(['LL env ',num2str(ienv)]);
-                frag3.addEnv(env{ienv});
-            end
-            LL{ipar,2} = frag3;
-            % LL 3
-            config.template = 'ethane1-gen';
-            config.basisSet = 'GEN';
-            config.par = [par 1.05 1.05 1.05 1.05 1.05];
-            frag4 = Fragment([root,'ethane2'], config);
-            for ienv = 1:nenv
-                display(['LL env ',num2str(ienv)]);
-                frag4.addEnv(env{ienv});
-            end
-            LL{ipar,3} = frag4;
+    %try
+    for ipar = 1:size(pars,2)
+        par = pars{ipar};
+        disp(['rcc ',num2str(par(1)), ...
+            ' rch ',num2str(par(2)), ...
+            ' angle ',num2str(par(3))]);
+
+        config = Fragment.defaultConfig();
+        config.par = par;
+
+        % HL
+        config.template = 'propane';
+        config.basisSet = HLbasis;
+        disp('loading HL');
+        frag1 = Fragment([root,'data\propane'], config);
+        for ienv = 1:nenv
+            display(['HL env ',num2str(ienv)]);
+            frag1.addEnv(env{ienv});
         end
-    catch
+        HL{ipar,1} = frag1;
+        % LL 1
+        config.basisSet = 'STO-3G';
+        frag2 = Fragment([root,'data\propane'], config);
+        disp('loading HL 1');
+        for ienv = 1:nenv
+            display(['LL env ',num2str(ienv)]);
+            frag2.addEnv(env{ienv});
+        end
+        LL{ipar,1} = frag2;
+
+        % LL 2
+        config.template = 'propane-gen';
+        config.basisSet = 'GEN';
+        config.par = [par 0.9 0.9 0.9 0.9 0.9];
+        frag3 = Fragment([root,'data\propane'], config);
+        for ienv = 1:nenv
+            display(['LL env ',num2str(ienv)]);
+            frag3.addEnv(env{ienv});
+        end
+        LL{ipar,2} = frag3;
+        % LL 3
+        config.template = 'propane-gen';
+        config.basisSet = 'GEN';
+        config.par = [par 1.05 1.05 1.05 1.05 1.05];
+        frag4 = Fragment([root,'data\propane'], config);
+        for ienv = 1:nenv
+            display(['LL env ',num2str(ienv)]);
+            frag4.addEnv(env{ienv});
+        end
+        LL{ipar,3} = frag4;
+    end
+    %catch
+        %disp('oops');
     end
 end
 %%
-save('ethaneDat.mat');
-
-%%
-load('temp1.mat');
-%% trying the new aggregator fit stuff
-%clear classes;
-load('temp1.mat');
-agg = Aggregator;
-for ipar = 1:1 %size(HL,1)
-   agg.addFrags(HL{ipar},LL{ipar,1},LL{ipar,2});
-end
-[diff, ehigh, epred]  = agg.err1([0 1]);
-fit = lsqnonlin(@agg.err1, [0.5 0.5]);
-%%
-%trying err 2
-clear classes;
-load('temp1.mat');
-agg = Aggregator;
-for ipar = [1 4 5]%size(HL,1) %%%need this to work for multiple parameters
-    %add second low level into calculation
-   agg.addFrags(HL{ipar},LL{ipar,1},LL{ipar,2});
-end
-%[diff, ehigh, epred, elow]  = agg.err2([0 1 1 1 1 1 1 1]);%%add in list of environmet, env
-fit = lsqnonlin(@agg.err2, [1 1 1 1 1 1 1 1]);
-[diff, ehigh, epred elow] = agg.err2(fit);
-%%
-[diff, ehigh, epred]  = agg.err1(fit);
-%%
-save([root,'ethane2\data3.mat'],'HL','LL');
+save([root,'data\propane\data3.mat'],'HL','LL');
 %%
 clear classes;
 %root = 'c:\dave\apoly\msqc\';
@@ -251,35 +224,3 @@ hold off;
 plot(-BHHL,-BHpred,'rx');
 %hold on;
 %plot(-BHHL,-BHHL,'k-');
-
-%% PLaying with model2
-clear classes;
-load('ethanefixed.mat');
-
-f1 = LL{1,1};
-f2 = LL{1,2};
-f3 = LL{1,3};
-fhl = LL{1,1};
-
-m2 = Model2(f1, f2, f3, fhl);
-m2.par = [0 0 0 0];
-m2.nenv = 20;
-m2.solveHF;
-disp(['HF energy ',num2str(m2.Ehf),' ',num2str(f1.Ehf), ...
-   ' ', num2str(m2.Ehf - f1.Ehf)]);
-disp(['max Eorb diff ',num2str( max(m2.Eorb-f1.Eorb))]);
-%disp(['max EhfEnv diff ',num2str( max(max(m2.EhfEnv-f1.EhfEnv)))]);
-%disp(['max EorbEnv diff ',num2str( max(max(m2.EorbEnv-f1.EorbEnv)))]);
-par = [ 0 0 0 0];
-%%
-par = [ 0 0 0 0];
-for i=1:5
-    m2.updateDensity(par);
-    par = lsqnonlin(@m2.errApprox, par);
-    errFit = m2.errApprox(par);
-    errReal = m2.err(par);
-    disp(['iter ',num2str(i),' par ',num2str(par)]);
-    disp([' errorApprox ',...
-        num2str(max(errFit)),' errorReal ',num2str(max(errReal))]);
-end
-

@@ -6,10 +6,21 @@ classdef Environment < handle
       ncharge   % number of charges
       rho       % (1,ncharges)  value of charge
       r         % (3,ncharges)  position of charge
+      nfield    % number of fields
+      fieldType % specify orientation and order of multipole as [X,Y,Z]
+                % multiple fields given by additional rows in matrix
+                % ex. [2,1,0;0,1,2] with mags of [10,-10] -> field=XXY+10
+                % field=YZZ-10
+      fieldMag  % corresponding magnitudes of these fields
    end
    
    methods (Static)
       res = newCube(size,mag)
+      
+      [ res ctrChg bound ] = newBox( obj, frag, cubeExtension, mag, ncharge )
+      goodEnv = testEnv( obf, frag, cubeExtension, mag, ncharge, ntrial )
+      [ res ctrChg bound ] = dipoleEnvironment( frag, cubeExtension, mag, ndipole )
+      
    end % static methods
    
    methods

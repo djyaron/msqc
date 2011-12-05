@@ -40,9 +40,48 @@ else
    jobname = 'env';
    newline = char(10);
    
+   ctext = obj.gaussianFile;
+   
    % Need to put charge spec before environment, but gaussianFile has
    % header and environment.
-   ctext = strrep(obj.gaussianFile, '!ENV', [envTarget.gaussianText()]);
+   if envTarget.ncharge > 0
+      % add charge keyword, so calcs can be done in an environment
+      ctext = strrep(ctext,'symm=noint','symm=noint charge');
+      ctext = strrep(ctext, '!ENV', [envTarget.gaussianText()]);
+   end
+   
+    % add the fields
+    if envTarget.nfield > 0
+        for ifield = 1:envTarget.nfield
+           % turn into the format for Gaussian
+           tmp = envTarget.fieldType( ifield, : );
+           dir = '';
+           while max( tmp ) > 0 
+               switch find( tmp == max( tmp ), 1 )
+                   case 1
+                       dir = [ dir, repmat( 'X', 1, tmp( 1 ) ) ];
+                       tmp( 1 ) = 0;
+                   case 2
+                       dir = [ dir, repmat( 'Y', 1, tmp( 2 ) ) ];
+                       tmp( 2 ) = 0;
+                   case 3
+                       dir = [ dir, repmat( 'Z', 1, tmp( 3 ) ) ];
+                       tmp( 3 ) = 0;
+                   otherwise
+                       error( 'Invalid input' );
+               end
+           end
+           mag = '';
+           if envTarget.fieldMag( ifield ) >= 0
+               mag = '+';
+           end
+           mag = [ mag, num2str( envTarget.fieldMag( ifield ) ) ];
+           insert = [ 'Field=', dir, mag ];
+           % Add to the input file
+           ctext = strrep( ctext, 'symm=noint', [ 'symm=noint ', insert ] );
+        end
+    end
+   
    gjf_file = [jobname,'.gjf'];
    origdir = cd(obj.dataPath);
    fid1 = fopen(gjf_file,'w');
@@ -60,9 +99,9 @@ else
       if (fid1 == -1)
          error('could not find fch file');
       end
-   [MP2e, Ehfe, Eorbe, orbe, junk,  junk2, junk3, ...
-    dipolee, junk4, junk5, junk6, ...
-    junk7, junk8, junk9] = ...
+   [Ehfe, Eorbe, orbe, ~,  ~, ~, ...
+    dipolee, ~, ~, ~, ...
+    ~, ~, ~] = ...
     Fragment.readfchk(fid1);
       fclose(fid1);
    catch
@@ -76,7 +115,7 @@ else
       if (fid1 == -1)
          error(['could not find ',dataPath,'\fort.32']);
       end
-      [junk11, H1e, junk12, junk13, Hnuce] = Fragment.readpolyatom(fid1);
+      [~, H1e, ~, ~, Hnuce] = Fragment.readpolyatom(fid1);
       fclose(fid1);
    catch
       fclose(fid1);
@@ -84,7 +123,6 @@ else
    end
    
    envResults.H1Env = H1e - obj.H1;
-   envResults.MP2   = MP2e;
    envResults.Ehf   = Ehfe;
    envResults.Eorb  = Eorbe;
    envResults.orb   = orbe;
@@ -107,7 +145,6 @@ obj.nenv = obj.nenv + 1;
 obj.env(1,obj.nenv) = envTarget;
 obj.H1Env(:,:,obj.nenv) = envResults.H1Env;
 obj.EhfEnv(1,obj.nenv)  = envResults.Ehf;
-obj.MP2Env(1,obj.nenv)  = envResults.MP2;
 obj.EorbEnv(:,obj.nenv) = envResults.Eorb;
 obj.HnucEnv(:,obj.nenv) = envResults.Hnuc;
 obj.orbEnv(:,:,obj.nenv)  = envResults.orb;
