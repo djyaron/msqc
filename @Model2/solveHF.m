@@ -7,14 +7,14 @@ end
 [obj.orb,obj.Eorb,obj.Ehf] = obj.hartreeFock(0,eps);
 
 %
-%obj.EhfEnv  = zeros(1,obj.nenv);
-%obj.EorbEnv = zeros(obj.nbasis,obj.nenv);
-%obj.orbEnv  = zeros(obj.nbasis,obj.nbasis,obj.nenv);
+obj.EhfEnv  = zeros(1,obj.nenv);
+obj.EorbEnv = zeros(obj.nbasis,obj.nenv);
+obj.orbEnv  = zeros(obj.nbasis,obj.nbasis,obj.nenv);
 
-%for ienv = 1:obj.nenv
-%    [obj.orbEnv(:,:,ienv), obj.EorbEnv(:,ienv), obj.EhfEnv(1,ienv)] = ...
-%       obj.hartreeFock(ienv,eps);
-%end
+for ienv = 1:obj.nenv
+    [obj.orbEnv(:,:,ienv), obj.EorbEnv(:,ienv), obj.EhfEnv(1,ienv)] = ...
+       obj.hartreeFock(ienv,eps);
+end
 
 
 end

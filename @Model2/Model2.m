@@ -31,6 +31,7 @@ classdef Model2 < handle
       onAtom     % {natom,1}  list of basis functions on iatom
       
       par     % current list of parameters for fitting routine
+      E2tmp   % temporary store of E2 in environments, for errApprox
    end
    methods (Static)
       function res = mix(x, v1, v2)
@@ -61,11 +62,37 @@ classdef Model2 < handle
             res.onAtom{iatom,1} = find(res.basisAtom == iatom);
          end
       end
+      function res = updateDensity(obj,par)
+          obj.par = par;
+          obj.solveHF;
+          obj.E2tmp = zeros(1,obj.nenv);
+          for ienv = 1:obj.nenv
+              obj.E2tmp(ienv) = sum(sum(sum(sum(obj.partitionE2(ienv)))));
+          end
+      end
+      function res = errApprox(obj,par)
+          obj.par = par;
+          res = zeros(1,obj.nenv);
+          for ienv=1:obj.nenv
+              E1 = sum(sum(obj.partitionE1(ienv)));
+              E2 = obj.E2tmp(ienv);
+              Enuc = obj.Hnuc(ienv);
+              res(ienv) = (E1+E2+Enuc) - obj.fHL.EhfEnv(ienv);
+          end
+      end
+      
       function res = err(obj, par)
          obj.par = par;
          obj.solveHF;
-         ic = 1;
-         res(ic) = obj.Ehf - obj.fHL.Ehf;
+         ic = 0;
+         res = zeros(1,obj.nenv);
+         %res(ic) = obj.Ehf - obj.fHL.Ehf;
+         for i=1:obj.nenv
+             ehl = obj.fHL.EhfEnv(i);
+             emod = obj.EhfEnv(i);
+             ic = ic+1;
+             res(ic) = emod - ehl;
+         end
          %den = obj.density;
          %denHL = obj.fHL.density;
       end
