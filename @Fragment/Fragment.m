@@ -100,34 +100,34 @@ classdef Fragment < handle
             res.config = Fragment.defaultConfig();
          else
             res.config = configIn;
-            [found,res.fileprefix] = ...
-               Fragment.findCalc(res.dataPath,res.config);
-            if (found)
-               ftemp = [res.fileprefix,'_calc.mat'];
-               prefixsave = res.fileprefix;
-               dataPathsave = res.dataPath;
-               load(ftemp, 'resFile' );
-               res = resFile;
-               res.fileprefix = prefixsave;
-               res.dataPath = dataPathsave;
-            else
-               res.templateText = fileread([res.dataPath,filesep,...
-                  res.config.template,'.tpl']);
-               res.natom = size( strfind(res.templateText, 'ATOM'), 2);
-               res.npar = size( strfind(res.templateText, 'PAR'), 2);
-               nparIn = size(res.config.par,1) * size(res.config.par,2);
-               if (nparIn ~= res.npar)
-                  error(['template has ',num2str(res.npar),' parameters',...
-                     ' while config contains ',num2str(nparIn),' pars']);
-               end
-               res.initializeData();
-               resFile = res;
-               Cfile = res.config;
-               save([res.fileprefix,'_cfg.mat'],  'Cfile' );
-               save([res.fileprefix,'_calc.mat'], 'resFile' );
-               if (exist(res.fileprefix) ~= 7)
-                  mkdir(res.fileprefix);
-               end
+         end
+         [found,res.fileprefix] = ...
+            Fragment.findCalc(res.dataPath,res.config);
+         if (found)
+            ftemp = [res.fileprefix,'_calc.mat'];
+            prefixsave = res.fileprefix;
+            dataPathsave = res.dataPath;
+            load(ftemp, 'resFile' );
+            res = resFile;
+            res.fileprefix = prefixsave;
+            res.dataPath = dataPathsave;
+         else
+            res.templateText = fileread([res.dataPath,filesep,...
+               res.config.template,'.tpl']);
+            res.natom = size( strfind(res.templateText, 'ATOM'), 2);
+            res.npar = size( strfind(res.templateText, 'PAR'), 2);
+            nparIn = size(res.config.par,1) * size(res.config.par,2);
+            if (nparIn ~= res.npar)
+               error(['template has ',num2str(res.npar),' parameters',...
+                  ' while config contains ',num2str(nparIn),' pars']);
+            end
+            res.initializeData();
+            resFile = res;
+            Cfile = res.config;
+            save([res.fileprefix,'_cfg.mat'],  'Cfile' );
+            save([res.fileprefix,'_calc.mat'], 'resFile' );
+            if (exist(res.fileprefix) ~= 7)
+               mkdir(res.fileprefix);
             end
          end
          res.nenv = 0;
