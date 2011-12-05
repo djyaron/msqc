@@ -1,6 +1,6 @@
 %% Load data
 clear classes;
-root = 'c:\code\msqc\';
+root = 'c:\dave\apoly\msqc\';
 load('ethane2/env2.mat');
 nenv = size(env,2);
 pars{1} = [1.54 1.12 60];
