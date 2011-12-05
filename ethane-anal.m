@@ -263,11 +263,23 @@ fhl = LL{1,1};
 
 m2 = Model2(f1, f2, f3, fhl);
 m2.par = [0 0 0 0];
+m2.nenv = 20;
 m2.solveHF;
 disp(['HF energy ',num2str(m2.Ehf),' ',num2str(f1.Ehf), ...
    ' ', num2str(m2.Ehf - f1.Ehf)]);
 disp(['max Eorb diff ',num2str( max(m2.Eorb-f1.Eorb))]);
 %disp(['max EhfEnv diff ',num2str( max(max(m2.EhfEnv-f1.EhfEnv)))]);
 %disp(['max EorbEnv diff ',num2str( max(max(m2.EorbEnv-f1.EorbEnv)))]);
-par = lsqnonlin(@m2.err, [0 0 0 0]);
+par = [ 0 0 0 0];
+%%
+par = [ 0 0 0 0];
+for i=1:5
+    m2.updateDensity(par);
+    par = lsqnonlin(@m2.errApprox, par);
+    errFit = m2.errApprox(par);
+    errReal = m2.err(par);
+    disp(['iter ',num2str(i),' par ',num2str(par)]);
+    disp([' errorApprox ',...
+        num2str(max(errFit)),' errorReal ',num2str(max(errReal))]);
+end
 

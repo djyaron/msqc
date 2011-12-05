@@ -17,11 +17,7 @@ if (nargin < 2)
    env = 0;
 end
 if (nargin < 3)
-   if (env == 0)
-      operator = obj.H1;
-   else
-      operator = obj.H1 + obj.H1Env(:,:,env);
-   end
+   operator = obj.H1(env);
 end
 if (nargin < 4)
    arange = cell(obj.natom,1);
