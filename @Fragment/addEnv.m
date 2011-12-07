@@ -35,7 +35,7 @@ if (found)
    load(calcfilename, 'envResults')
 else
    disp(['not found, generating ',calcfilename]);
-
+   
    % Do the calculation and read in data
    jobname = 'env';
    newline = char(10);
@@ -50,37 +50,37 @@ else
       ctext = strrep(ctext, '!ENV', [envTarget.gaussianText()]);
    end
    
-    % add the fields
-    if envTarget.nfield > 0
-        for ifield = 1:envTarget.nfield
-           % turn into the format for Gaussian
-           tmp = envTarget.fieldType( ifield, : );
-           dir = '';
-           while max( tmp ) > 0 
-               switch find( tmp == max( tmp ), 1 )
-                   case 1
-                       dir = [ dir, repmat( 'X', 1, tmp( 1 ) ) ];
-                       tmp( 1 ) = 0;
-                   case 2
-                       dir = [ dir, repmat( 'Y', 1, tmp( 2 ) ) ];
-                       tmp( 2 ) = 0;
-                   case 3
-                       dir = [ dir, repmat( 'Z', 1, tmp( 3 ) ) ];
-                       tmp( 3 ) = 0;
-                   otherwise
-                       error( 'Invalid input' );
-               end
-           end
-           mag = '';
-           if envTarget.fieldMag( ifield ) >= 0
-               mag = '+';
-           end
-           mag = [ mag, num2str( envTarget.fieldMag( ifield ) ) ];
-           insert = [ 'Field=', dir, mag ];
-           % Add to the input file
-           ctext = strrep( ctext, 'symm=noint', [ 'symm=noint ', insert ] );
-        end
-    end
+   % add the fields
+   if envTarget.nfield > 0
+      for ifield = 1:envTarget.nfield
+         % turn into the format for Gaussian
+         tmp = envTarget.fieldType( ifield, : );
+         dir = '';
+         while max( tmp ) > 0
+            switch find( tmp == max( tmp ), 1 )
+               case 1
+                  dir = [ dir, repmat( 'X', 1, tmp( 1 ) ) ];
+                  tmp( 1 ) = 0;
+               case 2
+                  dir = [ dir, repmat( 'Y', 1, tmp( 2 ) ) ];
+                  tmp( 2 ) = 0;
+               case 3
+                  dir = [ dir, repmat( 'Z', 1, tmp( 3 ) ) ];
+                  tmp( 3 ) = 0;
+               otherwise
+                  error( 'Invalid input' );
+            end
+         end
+         mag = '';
+         if envTarget.fieldMag( ifield ) >= 0
+            mag = '+';
+         end
+         mag = [ mag, num2str( envTarget.fieldMag( ifield ) ) ];
+         insert = [ 'Field=', dir, mag ];
+         % Add to the input file
+         ctext = strrep( ctext, 'symm=noint', [ 'symm=noint ', insert ] );
+      end
+   end
    
    gjf_file = [jobname,'.gjf'];
    origdir = cd(obj.dataPath);
@@ -99,10 +99,10 @@ else
       if (fid1 == -1)
          error('could not find fch file');
       end
-   [Ehfe, Eorbe, orbe, ~,  ~, ~, ...
-    dipolee, ~, ~, ~, ...
-    ~, ~, ~] = ...
-    Fragment.readfchk(fid1);
+      [MP2e,Ehfe, Eorbe, orbe, ~,  ~, ~, ...
+         dipolee, ~, ~, ~, ...
+         ~, ~, ~] = ...
+         Fragment.readfchk(fid1);
       fclose(fid1);
    catch
       disp('caught some stupid error');
@@ -124,14 +124,15 @@ else
    
    envResults.H1Env = H1e - obj.H1;
    envResults.Ehf   = Ehfe;
+   envResults.MP2   = MP2e;
    envResults.Eorb  = Eorbe;
    envResults.orb   = orbe;
    envResults.Hnuc  = Hnuce;
    envResults.dipole = dipolee;
    % cleanup files
-%    delete([dataPath,'\fort.32'], [dataPath,'\env.gjf'], ...
-%       [dataPath,'\env.out'], [dataPath,'\temp.chk'], ...
-%       [dataPath,'\temp.fch']);
+   %    delete([dataPath,'\fort.32'], [dataPath,'\env.gjf'], ...
+   %       [dataPath,'\env.out'], [dataPath,'\temp.chk'], ...
+   %       [dataPath,'\temp.fch']);
    
    % save environment ot the cfg file
    envFile = envTarget;
@@ -144,6 +145,7 @@ end % if (found)
 obj.nenv = obj.nenv + 1;
 obj.env(1,obj.nenv) = envTarget;
 obj.H1Env(:,:,obj.nenv) = envResults.H1Env;
+obj.MP2Env(1,obj.nenv) = envResults.MP2
 obj.EhfEnv(1,obj.nenv)  = envResults.Ehf;
 obj.EorbEnv(:,obj.nenv) = envResults.Eorb;
 obj.HnucEnv(:,obj.nenv) = envResults.Hnuc;

@@ -1,4 +1,4 @@
-classdef Environment < handle 
+classdef Environment < handle
    %ENVIRONMENT Summary of this class goes here
    %   Detailed explanation goes here
    
@@ -8,9 +8,9 @@ classdef Environment < handle
       r         % (3,ncharges)  position of charge
       nfield    % number of fields
       fieldType % specify orientation and order of multipole as [X,Y,Z]
-                % multiple fields given by additional rows in matrix
-                % ex. [2,1,0;0,1,2] with mags of [10,-10] -> field=XXY+10
-                % field=YZZ-10
+      % multiple fields given by additional rows in matrix
+      % ex. [2,1,0;0,1,2] with mags of [10,-10] -> field=XXY+10
+      % field=YZZ-10
       fieldMag  % corresponding magnitudes of these fields
    end
    
@@ -62,12 +62,12 @@ classdef Environment < handle
          end
       end
       function displace(obj, rdisp)
-          if (sum(size(rdisp) == size(obj.r(:,1))) ~= 2)
-              error('Environment.displace needs a 3x1 vector');
-          end
-          for ic = 1:obj.ncharge
-              obj.r(:,ic) = obj.r(:,ic) + rdisp;
-          end
+         if (sum(size(rdisp) == size(obj.r(:,1))) ~= 2)
+            error('Environment.displace needs a 3x1 vector');
+         end
+         for ic = 1:obj.ncharge
+            obj.r(:,ic) = obj.r(:,ic) + rdisp;
+         end
       end
    end % methods
 end

@@ -55,7 +55,6 @@ classdef Fragment < handle
    end
    methods (Access = private)
       initializeData(obj);
-      initializeDataInEnv(obj,env);
    end
    methods (Static)
       function res = defaultConfig()
@@ -142,6 +141,7 @@ classdef Fragment < handle
          obj.MP2Env = zeros(1,nenvIn);
          obj.EorbEnv = zeros(obj.nbasis, nenvIn);
          obj.orbEnv  = zeros(obj.nbasis,obj.nbasis,nenvIn);
+         obj.dipoleEnv = zeros(3,nenvIn);
       end
    end % methods
 end %
