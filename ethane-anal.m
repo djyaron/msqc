@@ -1,7 +1,7 @@
 %% Load data
 clear classes;
-root = 'c:\dave\apoly\msqc\';
-load('ethane2/env2.mat');
+root = 'C:\Users\Alex\Programming\msqc\';
+load('data\ethane\ethane1\env0.mat');
 nenv = size(env,2);
 pars{1} = [1.54 1.12 60];
 pars{2} = [1.54 1.12 30];
@@ -16,7 +16,7 @@ HL = cell(npar,1);
 LL = cell(npar,3);
 %%
 for itry = 1:1
-    try
+    %try
         for ipar = 1:size(pars,2)
             par = pars{ipar};
             disp(['rcc ',num2str(par(1)), ...
@@ -30,7 +30,7 @@ for itry = 1:1
             config.template = 'ethane1';
             config.basisSet = HLbasis;
             disp('loading HL');
-            frag1 = Fragment([root,'ethane2'], config);
+            frag1 = Fragment([root,'data\ethane\ethane1'], config);
             for ienv = 1:nenv
                 display(['HL env ',num2str(ienv)]);
                 frag1.addEnv(env{ienv});
@@ -38,7 +38,7 @@ for itry = 1:1
             HL{ipar,1} = frag1;
             % LL 1
             config.basisSet = 'STO-3G';
-            frag2 = Fragment([root,'ethane2'], config);
+            frag2 = Fragment([root,'data\ethane\ethane1'], config);
             disp('loading HL 1');
             for ienv = 1:nenv
                 display(['LL env ',num2str(ienv)]);
@@ -50,7 +50,7 @@ for itry = 1:1
             config.template = 'ethane1-gen';
             config.basisSet = 'GEN';
             config.par = [par 0.9 0.9 0.9 0.9 0.9];
-            frag3 = Fragment([root,'ethane2'], config);
+            frag3 = Fragment([root,'data\ethane\ethane1'], config);
             for ienv = 1:nenv
                 display(['LL env ',num2str(ienv)]);
                 frag3.addEnv(env{ienv});
@@ -60,14 +60,14 @@ for itry = 1:1
             config.template = 'ethane1-gen';
             config.basisSet = 'GEN';
             config.par = [par 1.05 1.05 1.05 1.05 1.05];
-            frag4 = Fragment([root,'ethane2'], config);
+            frag4 = Fragment([root,'data\ethane\ethane1'], config);
             for ienv = 1:nenv
                 display(['LL env ',num2str(ienv)]);
                 frag4.addEnv(env{ienv});
             end
             LL{ipar,3} = frag4;
         end
-    catch
+    %catch
     end
 end
 %%
