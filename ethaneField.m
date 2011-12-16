@@ -1,4 +1,7 @@
-%% What is a reasonable value to use for the environment.
+%% Create the environment
+% While none of this is "randomly" generated, it represents very wide
+% range of fields. Next step is narrowing in more on what range of fields
+% are useful.
 clear classes;
 fieldType = [ 1 0 0; 0 1 0; 0 0 1; 2 0 0; 0 2 0; 0 0 2; 1 1 0; 1 0 1; ...
               0 1 1; 3 0 0; 0 3 0; 0 0 3; 2 1 0; 1 2 0; 2 0 1; 1 0 2; ...
@@ -20,7 +23,7 @@ end
 % for this reason.
 save('data/ethane/ethane3/env0.mat','env');
 
-%%
+%% Same parameters as Charge run.
 clear classes;
 root = 'C:\Users\Alex\Programming\msqc';
 load('data\ethane\ethane3\env0.mat');
