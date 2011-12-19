@@ -23,7 +23,7 @@ function [MP2, Ehf, Eorb, orb, Nelectrons, Z, rcart, ...
 % with (1,:) being contraction coefficients and
 % (2,:) being primimitive exponents
 
-%fid1 = fopen('data\temp.fch');
+%fid1 = fopen(['data',filesep,'temp.fch']);
 t1 = textscan(fid1,'%s');
 text = t1{1};
 %fclose(fid1);

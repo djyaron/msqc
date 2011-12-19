@@ -22,6 +22,13 @@ header = ['%rwf=temp.rwf',newline,...
    'title', newline,newline];
 
 % ____________________________________________________________
+% Create Scratch directory within g09 to be used to store temp directories
+% to store output files.
+
+%if(~exist([gaussianPath, 'Scratch'], 'dir'));
+%       mkdir(gaussianPath, 'Scratch');
+%end
+   
 % Do calculation on entire fragment
 
 % ctext will hold the Gaussian job file (input file)
@@ -47,7 +54,9 @@ obj.gaussianFile = ctext;
 % Do the calculation and read in data
 jobname = 'full';
 gjf_file = [jobname,'.gjf'];
-origdir = cd(obj.dataPath);
+tempDir = tempname([gaussianPath,'/','Scratch']);
+mkdir(tempDir);
+origdir = cd(tempDir); % should move into unique scratch directory
 fid1 = fopen(gjf_file,'w');
 fwrite(fid1, [ctext,newline,newline], 'char');
 fclose(fid1);
@@ -59,7 +68,7 @@ system([gaussianPath,'\formchk.exe temp.chk temp.fch']);
 cd(origdir);
 % read in data from formatted checkpoint file
 try
-   fid1 = fopen([dataPath,'\temp.fch'],'r');
+   fid1 = fopen([tempDir,'/','temp.fch'],'r');
    if (fid1 == -1)
       error('could not find fch file');
    end
@@ -75,9 +84,9 @@ catch
 end
 % read in data from the polyatom output file
 try
-   fid1 = fopen([dataPath,'\fort.32'],'r');
+   fid1 = fopen([tempDir,'/','fort.32'],'r','b');
    if (fid1 == -1)
-      error(['could not find ',dataPath,'\fort.32']);
+      error(['could not find ',tempDir,'\','fort.32']);
    end
    [obj.S, obj.H1, obj.KE, obj.H2, obj.Hnuc] = Fragment.readpolyatom(fid1);
    fclose(fid1);
@@ -88,13 +97,16 @@ end
 obj.nbasis = size(obj.H1,1);
 
 % save files for debugging
-%system(['copy ', dataPath,'\full.gjf ', dataPath,'\debug.gjf']);
-%system(['copy ', dataPath,'\temp.fch ', dataPath,'\debug.fch']);
-%system(['copy ', dataPath,'\full.out ', dataPath,'\debug.out']);
+system(['copy ', tempDir,filesep,'full.gjf ', tempDir,filesep,'debug.gjf']);
+%system(['copy ', tempDir,filesep,'temp.fch ', tempDir,filesep,'debug.fch']);
+%system(['copy ', tempDir,filesep,'full.out ', tempDir,filesep,'debug.out']);
+
 % cleanup files
-delete([dataPath,'\fort.32'], [dataPath,'\full.gjf'], ...
-   [dataPath,'\full.out'], [dataPath,'\temp.chk'], ...
-   [dataPath,'\temp.fch']);
+rmdir(tempDir,'s');
+
+%delete([tempDir,filesep,'fort.32'], [tempDir,filesep,'full.gjf'], ...
+%   [tempDir,filesep,'full.out'], [tempDir,filesep,'temp.chk'], ...
+%   [tempDir,filesep,'temp.fch']);
 % ____________________________________________________________
 % Do calculation with only one nucleus present at a time
 
@@ -167,13 +179,10 @@ for iatom = 1:natom
    end
    cd(origdir);
    % read in data from the polyatom output file
-   %pause on;
-   %pause( 2 );
-   %pause off;
    try
-      fid1 = fopen([dataPath,'\fort.32'],'r');
+      fid1 = fopen([tempDir,filesep,'fort.32'],'r','b');
       if (fid1 == -1)
-         error(['could not find ',dataPath,'\fort.32']);
+         error(['could not find ',tempDir,filesep,'fort.32']);
       end
       [junk, H1atom, KE, junk2, junk3] = Fragment.readpolyatom(fid1);
       fclose(fid1);
@@ -182,12 +191,13 @@ for iatom = 1:natom
       throw(['failed during polyatom read for atom ',num2str(iatom)]);
    end
    obj.H1en(:,:,iatom) = H1atom - KE;
-
-   % cleanup files
-   delete([dataPath,'\fort.32'], [dataPath,'\',jobname,'.gjf'], ...
-      [dataPath,'\',jobname,'.out'], [dataPath,'\temp.chk']);
-   success = true;
+   
+% cleanup files
+rmdir(tempDir,'s');
+   
+   %delete([tempDir,filesep,'fort.32'], [tempDir,filesep,jobname,'.gjf'], ...
+   %   [tempDir,filesep,jobname,'.out'], [tempDir,filesep,'temp.chk']);
+   
 end
-
 
 
