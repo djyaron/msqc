@@ -1,7 +1,21 @@
 %% Load data
 clear classes;
 root = 'c:\dave\apoly\msqc\';
-load('ethane2/env2.mat');
+% Generate environments for production runs 
+if (exists('ethane4/env1.mat')
+   load('ethane4/env2.mat');
+else
+   mag = 15.0;
+   nenv = 100;
+   cubSize = [6,6,6];
+   cent = [0.77; 0; 0];
+   for ienv = 1:nenv
+      temp = Environment.newCube(cubSize,mag);
+      temp.displace(cent);
+      env{ienv} = temp;
+   end
+   save('ethane4/env2.mat','env');
+end
 nenv = size(env,2);
 pars{1} = [1.54 1.12 60];
 pars{2} = [1.54 1.12 30];
@@ -30,7 +44,7 @@ for itry = 1:1
             config.template = 'ethane1';
             config.basisSet = HLbasis;
             disp('loading HL');
-            frag1 = Fragment([root,'ethane2'], config);
+            frag1 = Fragment([root,'ethane4'], config);
             for ienv = 1:nenv
                 display(['HL env ',num2str(ienv)]);
                 frag1.addEnv(env{ienv});
@@ -38,7 +52,7 @@ for itry = 1:1
             HL{ipar,1} = frag1;
             % LL 1
             config.basisSet = 'STO-3G';
-            frag2 = Fragment([root,'ethane2'], config);
+            frag2 = Fragment([root,'ethane4'], config);
             disp('loading HL 1');
             for ienv = 1:nenv
                 display(['LL env ',num2str(ienv)]);
@@ -50,7 +64,7 @@ for itry = 1:1
             config.template = 'ethane1-gen';
             config.basisSet = 'GEN';
             config.par = [par 0.9 0.9 0.9 0.9 0.9];
-            frag3 = Fragment([root,'ethane2'], config);
+            frag3 = Fragment([root,'ethane4'], config);
             for ienv = 1:nenv
                 display(['LL env ',num2str(ienv)]);
                 frag3.addEnv(env{ienv});
@@ -60,7 +74,7 @@ for itry = 1:1
             config.template = 'ethane1-gen';
             config.basisSet = 'GEN';
             config.par = [par 1.05 1.05 1.05 1.05 1.05];
-            frag4 = Fragment([root,'ethane2'], config);
+            frag4 = Fragment([root,'ethane4'], config);
             for ienv = 1:nenv
                 display(['LL env ',num2str(ienv)]);
                 frag4.addEnv(env{ienv});
@@ -70,14 +84,12 @@ for itry = 1:1
     catch
     end
 end
-%%
+%% since even loading all the files will take time, we'll dave everything
 save('ethaneDat.mat');
 
-%%
-load('temp1.mat');
-%% trying the new aggregator fit stuff
+%% Aggregator fits
 %clear classes;
-load('temp1.mat');
+load('ethaneDat.mat');
 agg = Aggregator;
 for ipar = 1:1 %size(HL,1)
    agg.addFrags(HL{ipar},LL{ipar,1},LL{ipar,2});

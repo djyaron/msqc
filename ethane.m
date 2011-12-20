@@ -50,7 +50,7 @@ end
 %From the above, it looks like a magnitude of 15 will be good
 clear classes;
 mag = 15.0;
-nenv = 100;
+nenv = 3;
 cubSize = [6,6,6];
 cent = [0.77; 0; 0];
 for ienv = 1:nenv
@@ -60,17 +60,15 @@ for ienv = 1:nenv
 end
 % only run this once, or you will overwrite the env. It is commented out
 % for this reason.
-save('ethane3/env2.mat','env');
+save('ethane4/env2.mat','env');
 %% Generate data
 clear classes;
-load('ethane3/env2.mat');
+load('ethane4/env2.mat');
 basis{1} = '6-31G**';
 basis{2} = 'STO-3G';
-for itry=1:10
-    try
-for angle = 60:-30:0
-    for rcc = 1.39:0.15:1.69 % 1.54
-        for rch = 0.97:0.15:1.27 %1.12
+for angle = 60 % 60:-30:0
+    for rcc = 1.39 %:0.15:1.69 % 1.54
+        for rch = 0.97 % :0.15:1.27 %1.12
             for ib = 1:2
                 config = Fragment.defaultConfig();
                 config.template = 'ethane1';
@@ -93,9 +91,6 @@ for angle = 60:-30:0
                  end
             end
         end
-    end
-end
-    catch
     end
 end
 disp(['done']);
