@@ -1,4 +1,4 @@
-classdef Environment < handle 
+classdef Environment < handle
    %ENVIRONMENT Summary of this class goes here
    %   Detailed explanation goes here
    
@@ -41,15 +41,35 @@ classdef Environment < handle
          end
       end
       function res = compare(obj1, obj2)
-         res = (obj1.ncharge == obj2.ncharge);
-         if (res)
+         if  size( obj1.ncharge, 1 ) == 0 && size(obj2.ncharge, 1 ) == 0
+             chgEq = 1;
+         elseif size( obj1.ncharge, 1 ) == 0 || size(obj2.ncharge, 1 ) == 0
+             chgEq = 0;
+         else
+             chgEq = obj1.ncharge == obj2.ncharge;
+         end
+         if  size( obj1.nfield, 1 ) == 0 && size(obj2.nfield, 1 ) == 0
+             fldEq = 1;
+         elseif size( obj1.nfield, 1 ) == 0 || size(obj2.nfield, 1 ) == 0
+             fldEq = 0;
+         else
+             fldEq = obj1.nfield == obj2.nfield;
+         end
+         if (chgEq && fldEq)
             maxdiff = max(max(abs(obj1.r - obj2.r)));
             maxdiff2 = max(max(abs(obj1.rho-obj2.rho)));
             max2 = max(maxdiff, maxdiff2);
             if (max2 > 1.0e-11)
-               res = false;
+               chgEq = false;
+            end
+            if (sum(sum(obj1.fieldType == obj2.fieldType)) ~= 3 * obj1.nfield )
+                fldEq = 0;
+            end
+            if(max(abs(obj1.fieldMag - obj2.fieldMag)) > 1.0e-11)
+                fldEq = 0;
             end
          end
+         res = chgEq && fldEq;
       end
       function res = gaussianText(obj)
          newline = char(10);
@@ -62,12 +82,12 @@ classdef Environment < handle
          end
       end
       function displace(obj, rdisp)
-          if (sum(size(rdisp) == size(obj.r(:,1))) ~= 2)
-              error('Environment.displace needs a 3x1 vector');
-          end
-          for ic = 1:obj.ncharge
-              obj.r(:,ic) = obj.r(:,ic) + rdisp;
-          end
+         if (sum(size(rdisp) == size(obj.r(:,1))) ~= 2)
+            error('Environment.displace needs a 3x1 vector');
+         end
+         for ic = 1:obj.ncharge
+            obj.r(:,ic) = obj.r(:,ic) + rdisp;
+         end
       end
    end % methods
 end
