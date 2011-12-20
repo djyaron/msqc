@@ -114,7 +114,7 @@ else
    end
    % read in data from the polyatom output file
    try
-      fid1 = fopen([dataPath,filesep,'fort.32'],'r','b');
+      fid1 = fopen([dataPath,filesep,'fort.32'],'r');%,'b');
       if (fid1 == -1)
          error(['could not find ',dataPath,filesep,'fort.32']);
       end

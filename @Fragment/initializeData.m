@@ -84,7 +84,8 @@ catch
 end
 % read in data from the polyatom output file
 try
-   fid1 = fopen([tempDir,'/','fort.32'],'r','b');
+%   fid1 = fopen([tempDir,'/','fort.32'],'r','b'); % only for mac version
+   fid1 = fopen([tempDir,'/','fort.32'],'r');
    if (fid1 == -1)
       error(['could not find ',tempDir,'\','fort.32']);
    end
@@ -157,7 +158,9 @@ for iatom = 1:natom
    % Do the calculation and read in data
    jobname = ['atom',num2str(iatom)];
    gjf_file = [jobname,'.gjf'];
-   origdir = cd(obj.dataPath);
+   tempDir = tempname([gaussianPath,'/','Scratch']);
+   mkdir(tempDir);
+   origdir = cd(tempDir);
    fid1 = fopen(gjf_file,'w');
    fwrite(fid1, [ctext,newline,newline], 'char');
    fclose(fid1);
@@ -180,7 +183,7 @@ for iatom = 1:natom
    cd(origdir);
    % read in data from the polyatom output file
    try
-      fid1 = fopen([tempDir,filesep,'fort.32'],'r','b');
+      fid1 = fopen([tempDir,filesep,'fort.32'],'r');%,'b');
       if (fid1 == -1)
          error(['could not find ',tempDir,filesep,'fort.32']);
       end
