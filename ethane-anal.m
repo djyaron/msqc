@@ -2,7 +2,8 @@
 clear classes;
 root = 'c:\dave\apoly\msqc\';
 % Generate environments for production runs 
-if (exists('ethane4/env1.mat')
+if (exist('ethane4/env2.mat','file'))
+   disp('loading existing environments');
    load('ethane4/env2.mat');
 else
    mag = 15.0;
