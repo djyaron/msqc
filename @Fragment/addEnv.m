@@ -149,7 +149,7 @@ end % if (found)
 obj.nenv = obj.nenv + 1;
 obj.env(1,obj.nenv) = envTarget;
 obj.H1Env(:,:,obj.nenv) = envResults.H1Env;
-obj.MP2Env(1,obj.nenv) = envResults.MP2
+obj.MP2Env(1,obj.nenv) = envResults.MP2;
 obj.EhfEnv(1,obj.nenv)  = envResults.Ehf;
 obj.EorbEnv(:,obj.nenv) = envResults.Eorb;
 obj.HnucEnv(:,obj.nenv) = envResults.Hnuc;
