@@ -23,7 +23,7 @@ function [CorrE, MP2, Ehf, Eorb, orb, Nelectrons, Z, rcart, ...
 % with (1,:) being contraction coefficients and
 % (2,:) being primimitive exponents
 
-%fid1 = fopen('data\temp.fch');
+%fid1 = fopen(['data',filesep,'temp.fch']);
 t1 = textscan(fid1,'%s');
 text = t1{1};
 %fclose(fid1);
@@ -100,6 +100,8 @@ for iatom=1:natom
    icurr = icurr+1;
    end
 end
+% Convert from Bohr radii to Angstroms
+rcart = rcart / 1.889726124565062;
 
 % Dipole moment
 phrase = {'Dipole','Moment'};

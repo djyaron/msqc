@@ -1,4 +1,4 @@
-classdef Environment < handle 
+classdef Environment < handle
    %ENVIRONMENT Summary of this class goes here
    %   Detailed explanation goes here
    
@@ -6,26 +6,21 @@ classdef Environment < handle
       ncharge   % number of charges
       rho       % (1,ncharges)  value of charge
       r         % (3,ncharges)  position of charge
+      nfield    % number of fields
+      fieldType % specify orientation and order of multipole as [X,Y,Z]
+      % multiple fields given by additional rows in matrix
+      % ex. [2,1,0;0,1,2] with mags of [10,-10] -> field=XXY+10
+      % field=YZZ-10
+      fieldMag  % corresponding magnitudes of these fields
    end
    
    methods (Static)
-      function res = newCube(size, mag)
-         res = Environment;
-         icharge = 0;
-         evec = eye(3);
-         for ix=-1:2:1
-            for iy=-1:2:1
-               for iz=-1:2:1
-                  icharge = icharge + 1;
-                  res.r(:,icharge) = ...
-                     size(1) * ix * evec(:,1) + size(2) * iy * evec(:,2) ...
-                     + size(3) * iz * evec(:,3);
-               end
-            end
-         end
-         res.ncharge = icharge;
-         res.rho = mag * (2 * rand(1,res.ncharge) - 1);
-      end
+      res = newCube(size,mag)
+      
+      [ res ctrChg bound ] = newBox( obj, frag, cubeExtension, mag, ncharge )
+      goodEnv = testEnv( obf, frag, cubeExtension, mag, ncharge, ntrial )
+      [ res ctrChg bound ] = dipoleEnvironment( frag, cubeExtension, mag, ndipole )
+      
    end % static methods
    
    methods
@@ -67,12 +62,12 @@ classdef Environment < handle
          end
       end
       function displace(obj, rdisp)
-          if (sum(size(rdisp) == size(obj.r(:,1))) ~= 2)
-              error('Environment.displace needs a 3x1 vector');
-          end
-          for ic = 1:obj.ncharge
-              obj.r(:,ic) = obj.r(:,ic) + rdisp;
-          end
+         if (sum(size(rdisp) == size(obj.r(:,1))) ~= 2)
+            error('Environment.displace needs a 3x1 vector');
+         end
+         for ic = 1:obj.ncharge
+            obj.r(:,ic) = obj.r(:,ic) + rdisp;
+         end
       end
    end % methods
 end

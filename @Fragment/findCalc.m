@@ -13,7 +13,7 @@ found = false;
 failed = false;
 while (~failed && ~found)
    ifile = ifile + 1;
-   fileprefix = [dataPath,'\',Ctarget.template,'_',int2str(ifile)];
+   fileprefix = [dataPath,filesep,Ctarget.template,'_',int2str(ifile)];
    %disp(['looking for ',fileprefix]);
    cfgfilename = [fileprefix,'_cfg.mat'];
    try % try to open the file

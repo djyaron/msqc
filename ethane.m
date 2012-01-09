@@ -12,7 +12,7 @@
 %       8 H        1.89666667      0.62226748     -0.79402271
 clear classes;
 mag = [1.0 5.0 10.0 25.0];
-nenv = 5;
+nenv = 10;%%number of environments to generate goes here.
 cubSize = [6,6,6];
 cent = [0.77; 0; 0];
 for imag=1:size(mag,2)
@@ -24,15 +24,15 @@ for imag=1:size(mag,2)
 end
 % only run this once, or you will overwrite the env. It is commented out
 % for this reason.
-%save('ethane1/env0.mat','env');
+save('ethane3/env0.mat','env');
 %% what magnitude of charge do we want
 clear classes;
-load('ethane1/env0.mat');
+load('ethane3/env0.mat');
 config = Fragment.defaultConfig();
 config.template = 'ethane1';
-config.basisSet = '6-31G**';
+config.basisSet = '6-31G';
 config.par = [1.54 1.12 60.0];
-frag = Fragment('c:\dave\msqc\ethane1', config);
+frag = Fragment('ethane3', config);
 % perturbations
 figure(100);
 i1 = 0;
@@ -49,8 +49,8 @@ end
 %% Generate environments for production runs 
 %From the above, it looks like a magnitude of 15 will be good
 clear classes;
-mag = 5.0;
-nenv = 100;
+mag = 15.0;
+nenv = 3;
 cubSize = [6,6,6];
 cent = [0.77; 0; 0];
 for ienv = 1:nenv
@@ -60,17 +60,15 @@ for ienv = 1:nenv
 end
 % only run this once, or you will overwrite the env. It is commented out
 % for this reason.
-save('ethane2/env2.mat','env');
+save('ethane4/env2.mat','env');
 %% Generate data
 clear classes;
-load('ethane1/env1.mat');
+load('ethane4/env2.mat');
 basis{1} = '6-31G**';
 basis{2} = 'STO-3G';
-for itry=1:10
-    try
-for angle = 60:-30:0
-    for rcc = 1.39:0.15:1.69 % 1.54
-        for rch = 0.97:0.15:1.27 %1.12
+for angle = 60 % 60:-30:0
+    for rcc = 1.39 %:0.15:1.69 % 1.54
+        for rch = 0.97 % :0.15:1.27 %1.12
             for ib = 1:2
                 config = Fragment.defaultConfig();
                 config.template = 'ethane1';
@@ -93,9 +91,6 @@ for angle = 60:-30:0
                  end
             end
         end
-    end
-end
-    catch
     end
 end
 disp(['done']);

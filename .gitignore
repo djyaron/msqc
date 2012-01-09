@@ -1,3 +1,5 @@
 **/*.asv
 *.asv
 *.mat
+data*
+*.fch

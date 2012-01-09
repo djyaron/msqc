@@ -22,6 +22,13 @@ header = ['%rwf=temp.rwf',newline,...
    'title', newline,newline];
 
 % ____________________________________________________________
+% Create Scratch directory within g09 to be used to store temp directories
+% to store output files.
+
+%if(~exist([gaussianPath, 'Scratch'], 'dir'));
+%       mkdir(gaussianPath, 'Scratch');
+%end
+   
 % Do calculation on entire fragment
 
 % ctext will hold the Gaussian job file (input file)
@@ -31,7 +38,9 @@ ctext = header;
 ctext = [ctext, num2str(charge), ' ', num2str(spin), newline];
 % For molecule specification, we first replace all ATOM# with spaces
 t1 = obj.templateText;
-for iatom = 1:obj.natom
+% Iterate in reverse order, or replacements will not work properly with 
+% more than 10 atoms.
+for iatom = obj.natom:-1:1
    t1 = strrep(t1, ['ATOM',num2str(iatom)], ' ');
 end
 % And replace all PAR# with the parameter values
@@ -40,13 +49,14 @@ for ipar = 1:obj.npar
 end
 ctext = [ctext, t1];
 
-% add charge keyword, so calcs can be done in an environment
-obj.gaussianFile = strrep(ctext,'symm=noint','symm=noint charge');
+obj.gaussianFile = ctext;
 
 % Do the calculation and read in data
 jobname = 'full';
 gjf_file = [jobname,'.gjf'];
-origdir = cd(obj.dataPath);
+tempDir = tempname([gaussianPath,'/','Scratch']);
+mkdir(tempDir);
+origdir = cd(tempDir); % should move into unique scratch directory
 fid1 = fopen(gjf_file,'w');
 fwrite(fid1, [ctext,newline,newline], 'char');
 fclose(fid1);
@@ -58,7 +68,7 @@ system([gaussianPath,'\formchk.exe temp.chk temp.fch']);
 cd(origdir);
 % read in data from formatted checkpoint file
 try
-   fid1 = fopen([dataPath,'\temp.fch'],'r');
+   fid1 = fopen([tempDir,'/','temp.fch'],'r');
    if (fid1 == -1)
       error('could not find fch file');
    end
@@ -74,9 +84,10 @@ catch
 end
 % read in data from the polyatom output file
 try
-   fid1 = fopen([dataPath,'\fort.32'],'r');
+%   fid1 = fopen([tempDir,'/','fort.32'],'r','b'); % only for mac version
+   fid1 = fopen([tempDir,'/','fort.32'],'r');
    if (fid1 == -1)
-      error(['could not find ',dataPath,'\fort.32']);
+      error(['could not find ',tempDir,'\','fort.32']);
    end
    [obj.S, obj.H1, obj.KE, obj.H2, obj.Hnuc] = Fragment.readpolyatom(fid1);
    fclose(fid1);
@@ -87,13 +98,16 @@ end
 obj.nbasis = size(obj.H1,1);
 
 % save files for debugging
-%system(['copy ', dataPath,'\full.gjf ', dataPath,'\debug.gjf']);
-%system(['copy ', dataPath,'\temp.fch ', dataPath,'\debug.fch']);
-%system(['copy ', dataPath,'\full.out ', dataPath,'\debug.out']);
+system(['copy ', tempDir,filesep,'full.gjf ', tempDir,filesep,'debug.gjf']);
+%system(['copy ', tempDir,filesep,'temp.fch ', tempDir,filesep,'debug.fch']);
+%system(['copy ', tempDir,filesep,'full.out ', tempDir,filesep,'debug.out']);
+
 % cleanup files
-delete([dataPath,'\fort.32'], [dataPath,'\full.gjf'], ...
-   [dataPath,'\full.out'], [dataPath,'\temp.chk'], ...
-   [dataPath,'\temp.fch']);
+rmdir(tempDir,'s');
+
+%delete([tempDir,filesep,'fort.32'], [tempDir,filesep,'full.gjf'], ...
+%   [tempDir,filesep,'full.out'], [tempDir,filesep,'temp.chk'], ...
+%   [tempDir,filesep,'temp.fch']);
 % ____________________________________________________________
 % Do calculation with only one nucleus present at a time
 
@@ -111,6 +125,7 @@ header = ['%rwf=temp.rwf',newline,...
 [n1,n2] = size(obj.H1);
 natom = obj.natom;
 obj.H1en = zeros(n1,n2,natom);
+
 for iatom = 1:natom
    disp(['doing calc for atom ',num2str(iatom)]);
    ctext = header;
@@ -125,7 +140,9 @@ for iatom = 1:natom
    ctext = [ctext, num2str(tempCharge), ' ', num2str(spin), newline];
    % For molecule specification, we first replace all ATOM# with spaces
    t1 = obj.templateText;
-   for jatom = 1:natom
+   % Iterate in reverse order, or replacements will not work properly 
+   % with more than 10 atoms.
+   for jatom = natom:-1:1
       if (jatom == iatom)
          t1 = strrep(t1, ['ATOM',num2str(jatom)],' ');
       else
@@ -137,11 +154,13 @@ for iatom = 1:natom
       t1 = strrep(t1, ['PAR',num2str(ipar)], num2str(par(ipar),'%23.12f'));
    end
    ctext = [ctext, t1];
-   
+
    % Do the calculation and read in data
    jobname = ['atom',num2str(iatom)];
    gjf_file = [jobname,'.gjf'];
-   origdir = cd(obj.dataPath);
+   tempDir = tempname([gaussianPath,'/','Scratch']);
+   mkdir(tempDir);
+   origdir = cd(tempDir);
    fid1 = fopen(gjf_file,'w');
    fwrite(fid1, [ctext,newline,newline], 'char');
    fclose(fid1);
@@ -155,13 +174,18 @@ for iatom = 1:natom
 %       end
 %    end
 %    input junk;
+   
    system([gaussianPath,'\',gaussianExe,' ',gjf_file]);
+   % check if the call to Gaussian failed.
+   if ans ~= 0
+       error( 'Gaussian failed. Check template, Gaussian input file, or Gaussian output file.' );
+   end
    cd(origdir);
    % read in data from the polyatom output file
    try
-      fid1 = fopen([dataPath,'\fort.32'],'r');
+      fid1 = fopen([tempDir,filesep,'fort.32'],'r');%,'b');
       if (fid1 == -1)
-         error(['could not find ',dataPath,'\fort.32']);
+         error(['could not find ',tempDir,filesep,'fort.32']);
       end
       [junk, H1atom, KE, junk2, junk3] = Fragment.readpolyatom(fid1);
       fclose(fid1);
@@ -171,9 +195,11 @@ for iatom = 1:natom
    end
    obj.H1en(:,:,iatom) = H1atom - KE;
    
-   % cleanup files
-   delete([dataPath,'\fort.32'], [dataPath,'\',jobname,'.gjf'], ...
-      [dataPath,'\',jobname,'.out'], [dataPath,'\temp.chk']);
+% cleanup files
+rmdir(tempDir,'s');
+   
+   %delete([tempDir,filesep,'fort.32'], [tempDir,filesep,jobname,'.gjf'], ...
+   %   [tempDir,filesep,jobname,'.out'], [tempDir,filesep,'temp.chk']);
    
 end
 
