@@ -60,7 +60,7 @@ else
       if (fid1 == -1)
          error('could not find fch file');
       end
-   [MP2e, Ehfe, Eorbe, orbe, junk,  junk2, junk3, ...
+   [CorrEe, MP2e, Ehfe, Eorbe, orbe, junk,  junk2, junk3, ...
     dipolee, junk4, junk5, junk6, ...
     junk7, junk8, junk9] = ...
     Fragment.readfchk(fid1);
@@ -86,6 +86,7 @@ else
    envResults.H1Env = H1e - obj.H1;
    envResults.MP2   = MP2e;
    envResults.Ehf   = Ehfe;
+   envResults.CorrE  = CorrEe;
    envResults.Eorb  = Eorbe;
    envResults.orb   = orbe;
    envResults.Hnuc  = Hnuce;
@@ -108,6 +109,7 @@ obj.env(1,obj.nenv) = envTarget;
 obj.H1Env(:,:,obj.nenv) = envResults.H1Env;
 obj.EhfEnv(1,obj.nenv)  = envResults.Ehf;
 obj.MP2Env(1,obj.nenv)  = envResults.MP2;
+obj.CorrE(1,obj.nenv)   = envResults.CorrE;
 obj.EorbEnv(:,obj.nenv) = envResults.Eorb;
 obj.HnucEnv(:,obj.nenv) = envResults.Hnuc;
 obj.orbEnv(:,:,obj.nenv)  = envResults.orb;

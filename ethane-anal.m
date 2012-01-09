@@ -1,6 +1,6 @@
 %% Load data
 clear classes;
-root = 'c:\dave\apoly\msqc\';
+root = 'c:\Users\Matteus\Research\msqc\';
 load('ethane2/env2.mat');
 nenv = size(env,2);
 pars{1} = [1.54 1.12 60];
@@ -11,13 +11,14 @@ pars{5} = [1.69 1.12 60];
 pars{6} = [1.54 0.97 60];
 pars{7} = [1.54 1.27 60];
 npar = size(pars,2);
-HLbasis = '6-31G';
+HLbasis = 'STO-3G ';
+HLmethod = 'MP2';
 HL = cell(npar,1);
 LL = cell(npar,3);
 %%
 for itry = 1:1
     try
-        for ipar = 1:size(pars,2)
+        for ipar = 1:1%npar
             par = pars{ipar};
             disp(['rcc ',num2str(par(1)), ...
                 ' rch ',num2str(par(2)), ...
@@ -29,29 +30,34 @@ for itry = 1:1
             % HL
             config.template = 'ethane1';
             config.basisSet = HLbasis;
+            config.method = HLmethod;
             disp('loading HL');
             frag1 = Fragment([root,'ethane2'], config);
-            for ienv = 1:nenv
+            for ienv = 1:2%nenv
                 display(['HL env ',num2str(ienv)]);
                 frag1.addEnv(env{ienv});
             end
             HL{ipar,1} = frag1;
+           
+            
             % LL 1
             config.basisSet = 'STO-3G';
+            config.method = 'HF';
+            config.template = 'ethane1';
             frag2 = Fragment([root,'ethane2'], config);
             disp('loading HL 1');
-            for ienv = 1:nenv
+            for ienv = 1:1%nenv
                 display(['LL env ',num2str(ienv)]);
                 frag2.addEnv(env{ienv});
             end
             LL{ipar,1} = frag2;
-            
+ 
             % LL 2
             config.template = 'ethane1-gen';
             config.basisSet = 'GEN';
             config.par = [par 0.9 0.9 0.9 0.9 0.9];
             frag3 = Fragment([root,'ethane2'], config);
-            for ienv = 1:nenv
+            for ienv = 1:1 %nenv
                 display(['LL env ',num2str(ienv)]);
                 frag3.addEnv(env{ienv});
             end
@@ -61,7 +67,7 @@ for itry = 1:1
             config.basisSet = 'GEN';
             config.par = [par 1.05 1.05 1.05 1.05 1.05];
             frag4 = Fragment([root,'ethane2'], config);
-            for ienv = 1:nenv
+            for ienv = 1:1 %nenv
                 display(['LL env ',num2str(ienv)]);
                 frag4.addEnv(env{ienv});
             end
@@ -70,15 +76,27 @@ for itry = 1:1
     catch
     end
 end
+
 %%
-save([root,'ethane2\data3.mat'],'HL','LL');
+%save([root,'ethane2\datamp2.mat'],'HL','LL');
 %%
-clear classes;
+%clear classes;
 %root = 'c:\dave\apoly\msqc\';
-load(['ethane2\data3.mat']);
+load(['ethane2\datamp2.mat']);
+
+% %% Correlation Energy
+% corrE = zeros(npar,1);
+% for i = 1:npar
+%     corrE(i,1) = HL{i}.MP2-LL{i,1}.Ehf;
+%     corrEnv(i,:) = HL{i}.MP2Env-LL{i,1}.EhfEnv;
+% end
+
 %% determine the energy of interaction with the environment
-EHL = cell(7,1);
-for ipar = 1:7
+ihl = size(HL,1);
+ill = size(LL,1);
+
+EHL = cell(ihl,1);
+for ipar = 1:ihl
    frag = HL{ipar,1};
    Eenv = zeros(1,frag.nenv);
    for ienv = 1:frag.nenv
@@ -87,8 +105,8 @@ for ipar = 1:7
    end
    EHL{ipar,1} = Eenv;
 end
-ELL = cell(7,3);
-for ipar = 1:7
+ELL = cell(ill,3);
+for ipar = 1:ill
    for i2 = 1:3
       frag = LL{ipar,i2};
       Eenv = zeros(1,frag.nenv);
