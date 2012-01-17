@@ -119,7 +119,7 @@ else
       if (fid1 == -1)
          error(['could not find ',dataPath,filesep,'fort.32']);
       end
-      [~, H1e, ~, ~, Hnuce] = Fragment.readpolyatom(fid1);
+      [junk1, H1e, junk2, junk3, Hnuce] = Fragment.readpolyatom(fid1);
       fclose(fid1);
    catch
       fclose(fid1);
