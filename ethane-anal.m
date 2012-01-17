@@ -30,10 +30,6 @@ pars{6} = [1.54 0.97 60];
 pars{7} = [1.54 1.27 60];
 npar = size(pars,2);
 
-% 
-% HL = cell(npar,1);
-% LL = cell(npar,3);
-% %%
 % for itry = 1:1
 %     try
 %         for ipar = 1:1%npar
@@ -96,7 +92,7 @@ npar = size(pars,2);
 % end
 
 HLbasis = {'6-31G' '6-31G*' '6-31G**'};
-HLmethod = 'MP2';
+HLmethod = 'HF';
 HL = cell(npar,3);
 LL = cell(npar,3);
 %%
@@ -341,13 +337,13 @@ plot(-BHHL,-BHpred,'rx');
 %plot(-BHHL,-BHHL,'k-');
 
 %% PLaying with model2
-clear classes;
-load('ethanefixed.mat');
+%clear classes;
+%load('ethane4/ethaneDat.mat');
 
 f1 = LL{1,1};
 f2 = LL{1,2};
 f3 = LL{1,3};
-fhl = LL{1,1};
+fhl = HL{1,1};
 
 m2 = Model2(f1, f2, f3, fhl);
 m2.par = [0 0 0 0];

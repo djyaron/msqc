@@ -116,12 +116,16 @@ classdef Model2 < handle
             res(ran,ran) = res(ran,ran) + Model2.mix( diagPar( obj.Z(iatom) ), ...
                 obj.fnar.H1en(ran,ran,iatom), obj.fdif.H1en(ran,ran,iatom));
          end
+         cart = obj.rcart;
          for iatom = 1:obj.natom
-            iran = obj.onAtom{iatom};
-            for jatom = setdiff(1:obj.natom, iatom)
-               jran = obj.onAtom{jatom};
-               % substract off current value
-               res(iran,jran) = res(iran,jran) ... 
+             for jatom = 1:obj.natom
+             distAtom(iatom,jatom) = sqrt(((cart(1,iatom)-(cart(1,jatom)))^2)...
+             +((cart(2,iatom)-(cart(2,jatom)))^2)+((cart(3,iatom)-(cart(3,jatom)))^2));
+             if distAtom(iatom,iatom) == 0
+             elseif distAtom(iatom,jatom)< 1.8
+                 iran = obj.onAtom{iatom};
+                 jran = obj.onAtom{jatom};
+                 res(iran,jran) = res(iran,jran) ... 
                   - obj.frag.H1en(iran,jran,iatom) ...
                   - obj.frag.H1en(iran,jran,jatom) ...
                   - obj.frag.KE(iran,jran);
@@ -134,7 +138,8 @@ classdef Model2 < handle
                   + obj.fnar.KE(iran,jran);
                res(iran,jran) = res(iran,jran) + ...
                   obj.mix( bondPar(obj.Z(iatom),obj.Z(jatom)), vnar, vdif);
-            end
+             end
+             end
          end
          if (ienv > 0)
             res = res + obj.frag.H1Env(:,:,ienv);
