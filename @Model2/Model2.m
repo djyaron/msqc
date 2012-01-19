@@ -1,15 +1,15 @@
 classdef Model2 < handle
 %{
    Interpolate between narrow and diffuse STO-3G matrix elements. 
-   Hartree-Fock routine needs the following methods:
-      H1 H1env Hnuc HnucEnv H2 S nelec nbasis
 %}
    properties
+      % Input to the class
       frag;  % Fragment with regular STO-3G basis set
       fnar;  % Fragment with narrow  STO-3G basis set
       fdif;  % Fragment with diffuse STO-3G basis set
       fHL;   % High level data
       
+      % Most recent predictions of the model
       Ehf     % Hartree Fock energy
       Eorb    % (nbasis,1)      molecular orbital energies
       orb     % (nbasis,nbasis) molecular orbital coefficients
@@ -17,7 +17,7 @@ classdef Model2 < handle
       EorbEnv; % (nbasis,nenv)   molecular orbital energies in env
       orbEnv;  % (nbasis,nbasis,nenv) molecular orbitals in env
       
-      
+      % Useful properties initialized in the constructor
       natom   % number of atoms in fragment
       nelec   % number of electrons in the fragment
       Z       % (1,natom) atomic numbers of the molecules
@@ -29,7 +29,10 @@ classdef Model2 < handle
       basisType  % (nbasis,1) l quantum number: 0=s 1=p 2=d 3=d etc
       basisSubType % (nbasis,1) m quantum number: s=1 p=3 d=6 (cartesian)
       onAtom     % {natom,1}  list of basis functions on iatom
+      valAtom    % {natom,type} list of valence basis functions of type 
+                 %              (1-s 2-p) on iatom
       
+      % Current parameters, and some temporary values
       par     % current list of parameters for fitting routine
       E2tmp   % temporary store of E2 in environments, for errApprox
    end
@@ -61,8 +64,20 @@ classdef Model2 < handle
          for iatom = 1:res.natom
             res.onAtom{iatom,1} = find(res.basisAtom == iatom);
          end
+         for iatom = 1:res.natom
+            % kind of a hack. For s orbitals, we take the maximum value
+            % from the list of basis functions on the atom, since this 
+            % will be the valence orbital (2s instead of 1s for C)
+            res.valAtom{iatom,1} = max(find(res.basisAtom == iatom & ...
+                                            res.basisType == 0));
+            % For p orbitals, we just take the ones that matach
+            res.valAtom{iatom,2} = find(res.basisAtom == iatom & ...
+                                              res.basisType == 1);
+         end
       end
       function res = updateDensity(obj,par)
+         % updates density for use in obj.errApprox, including saving the
+         % two electron energy. 
           obj.par = par;
           obj.solveHF;
           obj.E2tmp = zeros(1,obj.nenv);
@@ -71,6 +86,10 @@ classdef Model2 < handle
           end
       end
       function res = errApprox(obj,par)
+         % Evaluates difference between fHL and model, using density matrix
+         % that is currently saved in the class. This means the HF problem
+         % is not solved. To solve HF, the density matrix should be updated 
+         % by calling obj.updateDensity
           obj.par = par;
           res = zeros(1,obj.nenv);
           for ienv=1:obj.nenv
@@ -82,64 +101,105 @@ classdef Model2 < handle
       end
       
       function res = err(obj, par)
+         % Evaluates difference between fHL and model, using density matrix
+         % corresponding to the density matrix for parameters in par.
+         % The density matrix, orbitals etc are all saved in the
+         % corresponding class variables
          obj.par = par;
          obj.solveHF;
          ic = 0;
          res = zeros(1,obj.nenv);
-         %res(ic) = obj.Ehf - obj.fHL.Ehf;
          for i=1:obj.nenv
              ehl = obj.fHL.EhfEnv(i);
              emod = obj.EhfEnv(i);
              ic = ic+1;
              res(ic) = emod - ehl;
          end
-         %den = obj.density;
-         %denHL = obj.fHL.density;
       end
-      function res = H1(obj, ienv)
-         % parameters for the H1 diagonal energies
-         diagPar = zeros(6,1);
-         par = obj.par;
-         diagPar(1,1) = par(1); % diagonal for H
-         diagPar(6,1) = par(2); % diagonal for C
-         % Bonding parameters between atoms
-         bondPar = zeros(6,6);
-         bondPar(6,6) = par(3); % C C bonds
-         bondPar(1,6) = par(4); % C H bonds
-         bondPar(6,1) = bondPar(1,6);
-         res   = obj.frag.H1;
-         for iatom = 1:obj.natom
-            ran = obj.onAtom{iatom}; % range of functions on iatom
-            % substract off current value
-            res(ran,ran) = res(ran,ran) - obj.frag.H1en(ran,ran,iatom);
-            % add on scaled value
-            res(ran,ran) = res(ran,ran) + Model2.mix( diagPar( obj.Z(iatom) ), ...
-                obj.fnar.H1en(ran,ran,iatom), obj.fdif.H1en(ran,ran,iatom));
-         end
-         for iatom = 1:obj.natom
-            iran = obj.onAtom{iatom};
-            for jatom = setdiff(1:obj.natom, iatom)
-               jran = obj.onAtom{jatom};
-               % substract off current value
-               res(iran,jran) = res(iran,jran) ... 
-                  - obj.frag.H1en(iran,jran,iatom) ...
-                  - obj.frag.H1en(iran,jran,jatom) ...
-                  - obj.frag.KE(iran,jran);
-               % add on scaled value
-               vnar = obj.fnar.H1en(iran,jran,iatom) ...
-                  + obj.fnar.H1en(iran,jran,jatom) ...
-                  + obj.fnar.KE(iran,jran);
-               vdif = obj.fdif.H1en(iran,jran,iatom) ...
-                  + obj.fdif.H1en(iran,jran,jatom) ...
-                  + obj.fnar.KE(iran,jran);
-               res(iran,jran) = res(iran,jran) + ...
-                  obj.mix( bondPar(obj.Z(iatom),obj.Z(jatom)), vnar, vdif);
-            end
-         end
-         if (ienv > 0)
-            res = res + obj.frag.H1Env(:,:,ienv);
-         end
-      end
+%       function res = H1(obj, ienv)
+%          % parameters for the H1 diagonal energies
+%          diagPar = zeros(6,1);
+%          par = obj.par;
+%          diagPar(1,1) = par(1); % diagonal for H
+%          diagPar(6,1) = par(2); % diagonal for C
+%          % Bonding parameters between atoms
+%          bondPar = zeros(6,6);
+%          bondPar(6,6) = par(3); % C C bonds
+%          bondPar(1,6) = par(4); % C H bonds
+%          bondPar(6,1) = bondPar(1,6);
+%          
+%          % start with H1 matrix of unmodified STO-3G
+%          res   = obj.frag.H1;
+%          
+%          % On atom modifications: KE and H1en with atom on which orbitals
+%          %  reside. 
+%          for iatom = 1:obj.natom
+%             if (obj.Z(iatom) == 1) % Hydrogen
+%                maxType = 1;
+%             else % heavy atom
+%                maxType = 2;
+%             end
+%             for itype = 1:maxType
+%                ran = obj.valAtom{iatom,itype}; % range of valence orbs (1s)
+%                res(ran,ran) = res(ran,ran) - obj.frag.KE(ran,ran) ...
+%                   + Model2.mix( PAR, ...
+%                   obj.fnar.KE(ran,ran), ...
+%                   obj.fdif.KE(ran,ran) );
+%                res(ran,ran) = res(ran,ran) - obj.frag.H1en(ran,ran,iatom) ...
+%                   + Model2.mix( PAR, ...
+%                   obj.fnar.H1en(ran,ran,iatom),...
+%                   obj.fdif.H1en(ran,ran,iatom));
+%             end
+%          end
+%          % Bonding terms (TODO: AT THIS POINT)
+%          for iatom = 1:obj.natom
+%             for jatom = 1:obj.natom
+%                if (obj.bonded(iatom,jatom))
+%                   if (obj.Z(iatom) == 1) % Hydrogen
+%                      maxType = 1;
+%                   else % heavy atom
+%                      maxType = 2;
+%                   end
+%                   if (obj.Z(iatom) == 1) % Hydrogen
+%                      maxType = 1;
+%                   else % heavy atom
+%                      maxType = 2;
+%                   end
+%                end
+%             end
+%          end
+%          
+%             ran = obj.onAtom{iatom}; % range of functions on iatom
+%             % substract off current value
+%             res(ran,ran) = res(ran,ran) - obj.frag.H1en(ran,ran,iatom);
+%             % add on scaled value
+%             res(ran,ran) = res(ran,ran) + Model2.mix( diagPar( obj.Z(iatom) ), ...
+%                 obj.fnar.H1en(ran,ran,iatom), obj.fdif.H1en(ran,ran,iatom));
+%          end
+%          for iatom = 1:obj.natom
+%             iran = obj.onAtom{iatom};
+%             for jatom = setdiff(1:obj.natom, iatom)
+%                jran = obj.onAtom{jatom};
+%                % substract off current value
+%                res(iran,jran) = res(iran,jran) ... 
+%                   - obj.frag.H1en(iran,jran,iatom) ...
+%                   - obj.frag.H1en(iran,jran,jatom) ...
+%                   - obj.frag.KE(iran,jran);
+%                % add on scaled value
+%                vnar = obj.fnar.H1en(iran,jran,iatom) ...
+%                   + obj.fnar.H1en(iran,jran,jatom) ...
+%                   + obj.fnar.KE(iran,jran);
+%                vdif = obj.fdif.H1en(iran,jran,iatom) ...
+%                   + obj.fdif.H1en(iran,jran,jatom) ...
+%                   + obj.fnar.KE(iran,jran);
+%                res(iran,jran) = res(iran,jran) + ...
+%                   obj.mix( bondPar(obj.Z(iatom),obj.Z(jatom)), vnar, vdif);
+%             end
+%          end
+%          if (ienv > 0)
+%             res = res + obj.frag.H1Env(:,:,ienv);
+%          end
+%       end
       function res = Hnuc(obj,ienv)
          if (ienv == 0)
             res = obj.frag.Hnuc;

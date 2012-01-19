@@ -32,7 +32,7 @@ S  = obj.S;
 Enuc = obj.Hnuc(ienv);
 Nelec = obj.frag.nelec;
 
-Nbasis = size(H1,1); %#ok<NASGU> %Getting size of basis set
+Nbasis = size(H1,1); %Getting size of basis set
 
  %step 3 -- Calculate transformation matrix (eq. 3.167)
 X = inv(sqrtm(S));
