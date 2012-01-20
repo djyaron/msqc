@@ -21,7 +21,7 @@ else
    filledOrbs = obj.orbEnv(:,1:nocc,env);
 end
 
-res = filledOrbs * filledOrbs';
+res = 2*filledOrbs * filledOrbs'; % why is the 2 there??
 
 end
 

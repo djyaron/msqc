@@ -111,18 +111,17 @@ classdef Model2 < handle
          for iatom = 1:obj.natom
             ran = obj.onAtom{iatom}; % range of functions on iatom
             % substract off current value
-            res(ran,ran) = res(ran,ran) - obj.frag.H1en(ran,ran,iatom);
+            res(ran,ran) = res(ran,ran) - obj.frag.H1en(ran,ran,iatom)- obj.frag.KE(ran,ran,iatom);
             % add on scaled value
             res(ran,ran) = res(ran,ran) + Model2.mix( diagPar( obj.Z(iatom) ), ...
-                obj.fnar.H1en(ran,ran,iatom), obj.fdif.H1en(ran,ran,iatom));
+                obj.fnar(ran,ran,iatom), obj.fdif(ran,ran,iatom));
          end
-         cart = obj.rcart;
+         bond = bonded();
          for iatom = 1:obj.natom
              for jatom = 1:obj.natom
-             distAtom(iatom,jatom) = sqrt(((cart(1,iatom)-(cart(1,jatom)))^2)...
-             +((cart(2,iatom)-(cart(2,jatom)))^2)+((cart(3,iatom)-(cart(3,jatom)))^2));
-             if distAtom(iatom,iatom) == 0
-             elseif distAtom(iatom,jatom)< 1.8
+%              distAtom(iatom,jatom) = sqrt(((cart(1,iatom)-(cart(1,jatom)))^2)...
+%              +((cart(2,iatom)-(cart(2,jatom)))^2)+((cart(3,iatom)-(cart(3,jatom)))^2));
+             if  bond(iatom,jatom) ==1
                  iran = obj.onAtom{iatom};
                  jran = obj.onAtom{jatom};
                  res(iran,jran) = res(iran,jran) ... 
