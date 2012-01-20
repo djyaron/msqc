@@ -31,6 +31,7 @@ classdef Model2 < handle
       onAtom     % {natom,1}  list of basis functions on iatom
       valAtom    % {natom,type} list of valence basis functions of type 
                  %              (1-s 2-p) on iatom
+      isBonded   % (natom,natom)  1 if atoms are bonded, 0 otherwise
       
       % Current parameters, and some temporary values
       par     % current list of parameters for fitting routine
@@ -68,11 +69,17 @@ classdef Model2 < handle
             % kind of a hack. For s orbitals, we take the maximum value
             % from the list of basis functions on the atom, since this 
             % will be the valence orbital (2s instead of 1s for C)
-            res.valAtom{iatom,1} = max(find(res.basisAtom == iatom & ...
-                                            res.basisType == 0));
+            res.valAtom{iatom,1} = find(res.basisAtom == iatom & ...
+                                            res.basisType == 0, 1, 'last' );
             % For p orbitals, we just take the ones that matach
             res.valAtom{iatom,2} = find(res.basisAtom == iatom & ...
                                               res.basisType == 1);
+         end
+         res.isBonded = zeros(res.natom,res.natom);
+         for iatom = 1:res.natom
+            for jatom = 1:res.natom
+               res.isBonded(iatom,jatom) = res.bonded(iatom,jatom);
+            end
          end
       end
       function res = updateDensity(obj,par)
@@ -116,90 +123,107 @@ classdef Model2 < handle
              res(ic) = emod - ehl;
          end
       end
-%       function res = H1(obj, ienv)
-%          % parameters for the H1 diagonal energies
-%          diagPar = zeros(6,1);
-%          par = obj.par;
-%          diagPar(1,1) = par(1); % diagonal for H
-%          diagPar(6,1) = par(2); % diagonal for C
-%          % Bonding parameters between atoms
-%          bondPar = zeros(6,6);
-%          bondPar(6,6) = par(3); % C C bonds
-%          bondPar(1,6) = par(4); % C H bonds
-%          bondPar(6,1) = bondPar(1,6);
-%          
-%          % start with H1 matrix of unmodified STO-3G
-%          res   = obj.frag.H1;
-%          
-%          % On atom modifications: KE and H1en with atom on which orbitals
-%          %  reside. 
-%          for iatom = 1:obj.natom
-%             if (obj.Z(iatom) == 1) % Hydrogen
-%                maxType = 1;
-%             else % heavy atom
-%                maxType = 2;
-%             end
-%             for itype = 1:maxType
-%                ran = obj.valAtom{iatom,itype}; % range of valence orbs (1s)
-%                res(ran,ran) = res(ran,ran) - obj.frag.KE(ran,ran) ...
-%                   + Model2.mix( PAR, ...
-%                   obj.fnar.KE(ran,ran), ...
-%                   obj.fdif.KE(ran,ran) );
-%                res(ran,ran) = res(ran,ran) - obj.frag.H1en(ran,ran,iatom) ...
-%                   + Model2.mix( PAR, ...
-%                   obj.fnar.H1en(ran,ran,iatom),...
-%                   obj.fdif.H1en(ran,ran,iatom));
-%             end
-%          end
-%          % Bonding terms (TODO: AT THIS POINT)
-%          for iatom = 1:obj.natom
-%             for jatom = 1:obj.natom
-%                if (obj.bonded(iatom,jatom))
-%                   if (obj.Z(iatom) == 1) % Hydrogen
-%                      maxType = 1;
-%                   else % heavy atom
-%                      maxType = 2;
-%                   end
-%                   if (obj.Z(iatom) == 1) % Hydrogen
-%                      maxType = 1;
-%                   else % heavy atom
-%                      maxType = 2;
-%                   end
-%                end
-%             end
-%          end
-%          
-%             ran = obj.onAtom{iatom}; % range of functions on iatom
-%             % substract off current value
-%             res(ran,ran) = res(ran,ran) - obj.frag.H1en(ran,ran,iatom);
-%             % add on scaled value
-%             res(ran,ran) = res(ran,ran) + Model2.mix( diagPar( obj.Z(iatom) ), ...
-%                 obj.fnar.H1en(ran,ran,iatom), obj.fdif.H1en(ran,ran,iatom));
-%          end
-%          for iatom = 1:obj.natom
-%             iran = obj.onAtom{iatom};
-%             for jatom = setdiff(1:obj.natom, iatom)
-%                jran = obj.onAtom{jatom};
-%                % substract off current value
-%                res(iran,jran) = res(iran,jran) ... 
-%                   - obj.frag.H1en(iran,jran,iatom) ...
-%                   - obj.frag.H1en(iran,jran,jatom) ...
-%                   - obj.frag.KE(iran,jran);
-%                % add on scaled value
-%                vnar = obj.fnar.H1en(iran,jran,iatom) ...
-%                   + obj.fnar.H1en(iran,jran,jatom) ...
-%                   + obj.fnar.KE(iran,jran);
-%                vdif = obj.fdif.H1en(iran,jran,iatom) ...
-%                   + obj.fdif.H1en(iran,jran,jatom) ...
-%                   + obj.fnar.KE(iran,jran);
-%                res(iran,jran) = res(iran,jran) + ...
-%                   obj.mix( bondPar(obj.Z(iatom),obj.Z(jatom)), vnar, vdif);
-%             end
-%          end
-%          if (ienv > 0)
-%             res = res + obj.frag.H1Env(:,:,ienv);
-%          end
-%       end
+      function res = H1(obj, ienv)
+         % parameters for the H1 diagonal energies
+         diagParKE = zeros(6,2); % element and type(s,p)
+         diagparEN = zeros(6,2);
+         par = obj.par;
+         diagParKE(1,1) = par(1); % diagonal for H
+         diagParKE(6,1) = par(2); % s diagonal for C
+         diagParKE(6,2) = par(3); % s diagonal for C
+         diagParEN(1,1) = par(4); % diagonal for H
+         diagParEN(6,1) = par(5); % s diagonal for C
+         diagParEN(6,2) = par(6); % s diagonal for C
+         % Bonding parameters between atoms
+         bondParKE = zeros(6,2,6,2);
+         bondParKE(1,1,6,1) = par(7); % H Cs bonds
+         bondParKE(6,1,1,1) = par(7); %
+         bondParKE(1,1,6,2) = par(8); % H Cp bonds
+         bondParKE(6,2,1,1) = par(8); %
+         bondParKE(6,1,6,1) = par(9); % Cs Cs bonds
+         bondParKE(6,1,6,2) = par(10); % Cs Cp bonds
+         bondParKE(6,2,6,1) = par(10); %
+         bondParKE(6,2,6,2) = par(11); % Cp Cp bonds
+         bondParEN = zeros(6,2,6,2);
+         bondParEN(1,1,6,1) = par(12); % H Cs bonds
+         bondParEN(6,1,1,1) = par(12); %
+         bondParEN(1,1,6,2) = par(13); % H Cp bonds
+         bondParEN(6,2,1,1) = par(13); %
+         bondParEN(6,1,6,1) = par(14); % Cs Cs bonds
+         bondParEN(6,1,6,2) = par(15); % Cs Cp bonds
+         bondParEN(6,2,6,1) = par(15); %
+         bondParEN(6,2,6,2) = par(16); % Cp Cp bonds
+         
+         % start with H1 matrix of unmodified STO-3G
+         res   = obj.frag.H1;
+         
+         % On atom modifications: KE and H1en with atom on which orbitals
+         %  reside. 
+         for iatom = 1:obj.natom
+            if (obj.Z(iatom) == 1) % Hydrogen
+               maxType = 1;
+            else % heavy atom
+               maxType = 2;
+            end
+            for itype = 1:maxType
+               ran = obj.valAtom{iatom,itype}; % range of valence orbs (1s)
+               res(ran,ran) = res(ran,ran) - obj.frag.KE(ran,ran) ...
+                  + Model2.mix( diagParKE(obj.frag.Z(iatom),itype), ...
+                  obj.fnar.KE(ran,ran), ...
+                  obj.fdif.KE(ran,ran) );
+               res(ran,ran) = res(ran,ran) - obj.frag.H1en(ran,ran,iatom) ...
+                  + Model2.mix( diagParEN(obj.frag.Z(iatom),itype), ...
+                  obj.fnar.H1en(ran,ran,iatom),...
+                  obj.fdif.H1en(ran,ran,iatom));
+            end
+         end
+         % Bonding terms 
+         for iatom = 1:obj.natom
+            if (obj.Z(iatom) == 1) % Hydrogen
+               imaxType = 1;
+            else % heavy atom
+               imaxType = 2;
+            end
+            for jatom = 1:obj.natom
+               if (obj.Z(jatom) == 1) % Hydrogen
+                  jmaxType = 1;
+               else % heavy atom
+                  jmaxType = 2;
+               end
+               if (obj.isBonded(iatom,jatom))
+                  for itype = 1:imaxType
+                     for jtype = 1:jmaxType
+                        iran = obj.valAtom{iatom,itype};
+                        jran = obj.valAtom{jatom,jtype};
+                        iZ = obj.frag.Z(iatom);
+                        jZ = obj.frag.Z(jatom);
+                        % modify kinetic energy
+                        res(iran,jran) = res(iran,jran) ...
+                           - obj.frag.KE(iran,jran) ...
+                           + obj.mix(bondParKE(iZ,itype,jZ,jtype), ...
+                           obj.fnar.KE(iran,jran), ...
+                           obj.fdif.KE(iran,jran));
+                        % modify elec-nuc interaction
+                        res(iran,jran) = res(iran,jran) ...
+                           - obj.frag.H1en(iran,jran,iatom) ...
+                           - obj.frag.H1en(iran,jran,jatom);
+                        % add on scaled value
+                        vnar = obj.fnar.H1en(iran,jran,iatom) ...
+                           + obj.fnar.H1en(iran,jran,jatom);
+                        vdif = obj.fdif.H1en(iran,jran,iatom) ...
+                           + obj.fdif.H1en(iran,jran,jatom);
+                        res(iran,jran) = res(iran,jran) + ...
+                           obj.mix(bondParEN(iZ,itype,jZ,jtype),...
+                           vnar, vdif);
+                     end
+                  end
+               end
+            end
+         end
+         if (ienv > 0)
+            res = res + obj.frag.H1Env(:,:,ienv);
+         end
+      end
       function res = Hnuc(obj,ienv)
          if (ienv == 0)
             res = obj.frag.Hnuc;

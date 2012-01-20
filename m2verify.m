@@ -14,7 +14,7 @@ config.par = [par 0.9 0.9 0.9 0.9 0.9];
 nar = Fragment([root,'ethane4'], config);
 config.par = [par 1.05 1.05 1.05 1.05 1.05];
 dif = Fragment([root,'ethane4'], config);
-for ienv = 1:size(env,2)
+for ienv = 1:20 %size(env,2)
    reg.addEnv(env{ienv});
    nar.addEnv(env{ienv});
    dif.addEnv(env{ienv});
@@ -23,7 +23,20 @@ save('ethane4\m2verify.mat');
 %%
 clear classes;
 load('ethane4\m2verify.mat');
+
+%mod = Model2(reg,nar,dif,reg);
 mod = Model2(reg,nar,dif,reg);
+mod.par = zeros(1,16);
+
+f1 = Fitme;
+f1.addFrag(mod,reg);
+p1 = zeros(1,16);
+f1.updateDensity(p1);
+%%
+ p2 = lsqnonlin(@f1.err, p1);
+ %%
+ f1.updateDensity(p2);
+ p3 = lsqnonlin(@f1.err, p2);
 
 
 
