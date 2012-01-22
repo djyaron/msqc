@@ -23,11 +23,18 @@ save('ethane4\m2verify.mat');
 %%
 clear classes;
 load('ethane4\m2verify.mat');
-
-%mod = Model2(reg,nar,dif,reg);
-mod = Model2(reg,nar,dif,reg);
-mod.par = zeros(1,16);
-
+mod = Model2(reg,nar,dif);
+mod.par = rand(1,16);
+%% test of the new H1
+h1diff = max(max(abs(mod.H1check(0) - mod.H1(0))))
+%% test of range on partitionE1 (to avoid the sum(sum()) thing).
+mod.updateDensity(mod.par);
+t1 = sum(sum( mod.partitionE1(0) ) );
+arange = cell(1,1);
+arange{1,1}= 1:mod.nbasis;
+t2 = mod.partitionE1(0,mod.H1(0),arange);
+tdiff = t1-t2
+%%
 f1 = Fitme;
 f1.addFrag(mod,reg);
 p1 = zeros(1,16);
