@@ -33,7 +33,7 @@ classdef Fitme < handle
       end
       function updateDensity(obj,par)
          for i = 1:obj.nmodels
-            obj.models{i}.par = par;
+            obj.models{i}.setPar(par);
             obj.models{i}.solveHF();
          end
       end
@@ -42,7 +42,7 @@ classdef Fitme < handle
          % Do sum over all orbitals
          sumRange = cell(1,1);
          for imod = 1:obj.nmodels
-            obj.models{imod}.par = par;
+            obj.models{imod}.setPar(par);
             sumRange{1,1} = 1:obj.models{imod}.nbasis;
             for ienv = 0:obj.models{imod}.nenv
                ic = ic + 1;

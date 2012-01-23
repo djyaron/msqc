@@ -10,9 +10,9 @@ config.basisSet = 'STO-3G';
 reg = Fragment([root,'ethane4'], config);
 config.template = 'ethane1-gen';
 config.basisSet = 'GEN';
-config.par = [par 0.9 0.9 0.9 0.9 0.9];
+config.par = [par 0.99 0.99 0.99 0.99 0.99];
 nar = Fragment([root,'ethane4'], config);
-config.par = [par 1.05 1.05 1.05 1.05 1.05];
+config.par = [par 1.01 1.01 1.01 1.01 1.01];
 dif = Fragment([root,'ethane4'], config);
 for ienv = 1:20 %size(env,2)
    reg.addEnv(env{ienv});
@@ -41,7 +41,7 @@ f1.addFrag(mod,reg);
 p1 = rand(1,16);
 f1.updateDensity(p1);
 t3 = max(abs(f1.err(p1)));
-%% Fit to reg
+%% Fit to reg (failed because it does a fit to 16 params from start)
 mod = Model2(reg,nar,dif);
 f1 = Fitme;
 f1.addFrag(mod,reg);
@@ -49,13 +49,61 @@ pt{1} = zeros(1,16);
 for i=1:4
    disp(['updating density for p= ',num2str(pt{i})]);
    f1.updateDensity(pt{i});
-   err{i,1} = f1.err(pt{i});
+   err{i,2} = f1.err(pt{i});
    disp(['rms err = ',num2str(sqrt(err{i,1}*err{i,1}'))]);
    pt{i+1} = lsqnonlin(@f1.err, pt{i});
-   err{i+1,2} = f1.err(pt{i+1});
+   err{i+1,1} = f1.err(pt{i+1});
    disp(['rms err approx = ',num2str(sqrt(err{i+1,2}*err{i+1,2}'))]);
 end
-
+%% Fit by ramping up number of parameters
+clear classes;
+load('ethane4\m2verify.mat');
+mod = Model2(reg,nar,dif);
+f1 = Fitme;
+f1.addFrag(mod,reg);
+% start with 4 parameter fit
+mod.sepKE = 0;
+mod.sepSP = 0;
+pt{1} = zeros(1,mod.npar);
+scaler = ones(1,mod.npar);
+for i=1:10
+   disp(['updating density for p= ',num2str(pt{i})]);
+   f1.updateDensity(pt{i});
+   err{i,2} = f1.err(pt{i});
+   disp(['rms err = ',num2str(sqrt(err{i,2}*err{i,2}'))]);
+%   options = optimset('MaxIter',1);
+%   pt{i+1} = lsqnonlin(@f1.err, pt{i},[],[],options);
+   bounds = 0.2 * i *scaler;
+   pt{i+1} = lsqnonlin(@f1.err, pt{i},-bounds,bounds);  
+   err{i+1,1} = f1.err(pt{i+1});
+   disp(['rms err approx = ',num2str(sqrt(err{i+1,1}*err{i+1,1}'))]);
+end
+%% Plot error versus p
+clear classes;
+load('ethane4\m2verify.mat');
+mod = Model2(reg,nar,dif);
+ic = 0;
+for ps1 = -1:0.2:1
+   ic = ic+1;
+   pars = ps1 * ones(1,16);
+   mod.setPar(pars);
+   mod.solveHF();
+   p5(ic) = ps1;
+   for ienv = 0:mod.nenv
+      ke5(ienv+1,ic) = sum(sum(mod.partitionE1(ienv,mod.KE)));
+   end
+end
+%%
+for ienv = 0:reg.nenv
+   ke0(ienv+1,1) = sum(sum(reg.partitionE1(ienv,reg.KE)));
+end
+%%
+for i=1:reg.nenv+1
+   hold on;
+   plot(p5,ke5(i,:)+i,'b-');
+   hold on;
+   plot(0,ke0(i,1)+i,'rx');
+end
 
 
 
