@@ -89,11 +89,93 @@ classdef Model2 < handle
             end
          end
       end
-%      function res = mapPar(obj,pIn)
-%         if (obj.sepKE && obj.sepSP)
-%            obj.par = pIn;
-%         end
-%      end               
+      function res = npar(obj,pIn)
+         if (obj.sepKE && obj.sepSP)
+            res = 16;
+         end
+         if (~obj.sepKE && ~obj.sepSP)
+            res = 4;
+         end
+         if (~obj.sepKE && obj.sepSP)
+            res = 8;
+         end
+         if (obj.sepKE && ~obj.sepSP)
+            res = 8;
+         end
+      end    
+      function res = setPar(obj,pIn)
+         if (obj.sepKE && obj.sepSP)
+            obj.par = pIn;
+         end
+         if (~obj.sepKE && ~obj.sepSP)
+            p = zeros(1,16);
+            p([1 4])              = pIn(1); % H diag
+            p([2 3 5 6])          = pIn(2); % C diag
+            p([7 8 12 13])        = pIn(3); % C H bond
+            p([9 10 11 14 15 16]) = pIn(4); % C C bond
+            obj.par = p;
+         end
+         if (~obj.sepKE && obj.sepSP)
+            p = zeros(1,16);
+            p([1 4])              = pIn(1); % H diag
+            p([2 5])              = pIn(2); % Cs diag
+            p([3 6])              = pIn(3); % Cp diag
+            p([7 12])             = pIn(4); % H Cs bond
+            p([8 13])             = pIn(5); % H Cp bond
+            p([9 14])             = pIn(6); % Cs Cs bond
+            p([10 15])            = pIn(7); % Cs Cp bond
+            p([11 16])            = pIn(8); % Cp Cp bond
+            obj.par = p;
+         end
+         if (obj.sepKE && ~obj.sepSP)
+            p = zeros(1,16);
+            p(1)                  = pIn(1); % H diag KE
+            p(4)                  = pIn(2); % H diag EN
+            p([2 3])              = pIn(3); % C diag KE
+            p([5 6])              = pIn(4); % C diag EN
+            p([7 8])              = pIn(5); % C H bond KE
+            p([12 13])            = pIn(6); % C H bond EN
+            p([9 10 11])          = pIn(7); % C C bond KE
+            p([14 15 16])         = pIn(8); % C C bond EN
+            obj.par = p;
+         end
+         res = obj.par;
+      end               
+      function res = mapPar(obj,pFull)
+         % Given a full parameter vector, set guesses for the next level
+         if (obj.sepKE && obj.sepSP)
+            res = pFull;
+         end
+         if (~obj.sepKE && ~obj.sepSP)
+            res = zeros(1,4);
+            res(1) = pFull(1);
+            res(2) = pFull(2);
+            res(3) = pFull(7);
+            res(4) = pFull(9);
+         end
+         if (~obj.sepKE && obj.sepSP)
+            res = zeros(1,8);
+            res(1) = pFull(1);
+            res(2) = pFull(2);
+            res(3) = pFull(3);
+            res(4) = pFull(7);
+            res(5) = pFull(8);
+            res(6) = pFull(9);
+            res(7) = pFull(10);
+            res(8) = pFull(11);
+         end
+         if (obj.sepKE && ~obj.sepSP)
+            res = zeros(1,8);
+            res(1) = pFull(1);
+            res(2) = pFull(4);
+            res(3) = pFull(2);
+            res(4) = pFull(5);
+            res(5) = pFull(7);
+            res(6) = pFull(12);
+            res(7) = pFull(9);
+            res(8) = pFull(14);
+         end
+      end               
       function res = H1check(obj, ienv)
          % parameters for the H1 diagonal energies
          diagParKE = zeros(6,2); % element and type(s,p)
