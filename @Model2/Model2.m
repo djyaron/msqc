@@ -32,9 +32,16 @@ classdef Model2 < handle
                  %              (1-s 2-p) on iatom
       isBonded   % (natom,natom)  1 if atoms are bonded, 0 otherwise
       
+      % model characteristics
+      sepKE  % if 1, use different parameters for KE and H1en
+      sepSP  % if 1, use different parameters for s and p orbs
+      
       % Current parameters, and some temporary values
-      par     % current list of parameters for fitting routine
-      E2tmp   % temporary store of E2 in environments, for errApprox
+      par   % current list of parameters for fitting routine
+            % KE diagonal    1: H  2: Cs  3: Cp
+            % Hen diagonal   4: H  5: Cs  6: Cp
+            % KE bonding     7: H-Cs  8: H-Cp  9: Cs-Cs 10: Cs-Cp 11: Cp-Cp  
+            % Hen bonding   12: H-Cs 13: H-Cp 14: Cs-Cs 15: Cs-Cp 16: Cp-Cp  
    end
    methods (Static)
       function res = mix(x, v1, v2)
@@ -60,6 +67,8 @@ classdef Model2 < handle
          res.basisAtom = frag_.basisAtom;
          res.basisType = frag_.basisType;
          res.basisSubType = frag_.basisSubType;
+         res.sepKE = 1;
+         res.sepSP = 1;
          for iatom = 1:res.natom
             res.onAtom{iatom,1} = find(res.basisAtom == iatom);
          end
@@ -80,16 +89,11 @@ classdef Model2 < handle
             end
          end
       end
-      function res = updateDensity(obj,par)
-         % updates density for use in obj.errApprox, including saving the
-         % two electron energy. 
-          obj.par = par;
-          obj.solveHF;
-          obj.E2tmp = zeros(1,obj.nenv);
-          for ienv = 1:obj.nenv
-              obj.E2tmp(ienv) = sum(sum(sum(sum(obj.partitionE2(ienv)))));
-          end
-      end
+%      function res = mapPar(obj,pIn)
+%         if (obj.sepKE && obj.sepSP)
+%            obj.par = pIn;
+%         end
+%      end               
       function res = H1check(obj, ienv)
          % parameters for the H1 diagonal energies
          diagParKE = zeros(6,2); % element and type(s,p)
@@ -208,7 +212,7 @@ classdef Model2 < handle
          diagParKE = zeros(6,2); % element and type(s,p)
          diagParKE(1,1) = par(1); % diagonal for H
          diagParKE(6,1) = par(2); % s diagonal for C
-         diagParKE(6,2) = par(3); % s diagonal for C
+         diagParKE(6,2) = par(3); % p diagonal for C
          % Bonding parameters between atoms
          bondParKE = zeros(6,2,6,2);
          bondParKE(1,1,6,1) = par(7); % H Cs bonds
