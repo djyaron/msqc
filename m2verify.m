@@ -34,16 +34,27 @@ arange = cell(1,1);
 arange{1,1}= 1:mod.nbasis;
 t2 = mod.partitionE1(0,mod.H1(0),arange);
 tdiff = t1-t2
-%%
+%% Test of fitting: Should get zero error for this set-up
+mod = Model2(reg,reg,reg);
 f1 = Fitme;
 f1.addFrag(mod,reg);
-p1 = zeros(1,16);
+p1 = rand(1,16);
 f1.updateDensity(p1);
-%%
- p2 = lsqnonlin(@f1.err, p1);
- %%
- f1.updateDensity(p2);
- p3 = lsqnonlin(@f1.err, p2);
+t3 = max(abs(f1.err(p1)));
+%% Fit to reg
+mod = Model2(reg,nar,dif);
+f1 = Fitme;
+f1.addFrag(mod,reg);
+pt{1} = zeros(1,16);
+for i=1:4
+   disp(['updating density for p= ',num2str(pt{i})]);
+   f1.updateDensity(pt{i});
+   err{i,1} = f1.err(pt{i});
+   disp(['rms err = ',num2str(sqrt(err{i,1}*err{i,1}'))]);
+   pt{i+1} = lsqnonlin(@f1.err, pt{i});
+   err{i+1,2} = f1.err(pt{i+1});
+   disp(['rms err approx = ',num2str(sqrt(err{i+1,2}*err{i+1,2}'))]);
+end
 
 
 

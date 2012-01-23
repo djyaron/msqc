@@ -16,7 +16,7 @@ classdef Fitme < handle
          obj.HLs{1,end+1} = HL;
          ke = zeros(1,HL.nenv+1);
          for ienv = 0:HL.nenv
-            h1(1,ienv+1) = sum(sum( HL.partitionE1(ienv, HL.KE) ));
+            ke(1,ienv+1) = sum(sum( HL.partitionE1(ienv, HL.KE) ));
          end
          obj.HLKE{1,end+1} = ke;
          en = zeros(HL.natom, HL.nenv+1);
