@@ -4,12 +4,17 @@ classdef Fitme < handle
       HLs     % {1,nmodels}  cell array to fit to
       HLKE    % {1,nmodels}(1,nenv+1) KE energy
       HLEN    % {1,nmodels}(natom,nenv+1) electron-nuclear interaction
+      
+      includeKE % include kinetic energy in fit
+      includeEN % include individual electron-nuclear operators
+      exactDensity % re-evaluate density matrix on every call to err()
    end
    methods
       function res = Fitme
          res.models = cell(0,0);
          res.HLs    = cell(0,0);
          res.HLKE   = cell(0,0);
+         exactDensity = 0;
       end
       function addFrag(obj,model,HL)
          obj.models{1,end+1} = model;
@@ -38,11 +43,15 @@ classdef Fitme < handle
          end
       end
       function res = err(obj,par)
+         disp(['Fitme.err called with par = ',num2str(par)]);
          ic = 0;
          % Do sum over all orbitals
          sumRange = cell(1,1);
          for imod = 1:obj.nmodels
             obj.models{imod}.setPar(par);
+            if (obj.exactDensity)
+               obj.models{imod}.solveHF();
+            end
             sumRange{1,1} = 1:obj.models{imod}.nbasis;
             for ienv = 0:obj.models{imod}.nenv
                ic = ic + 1;
@@ -59,6 +68,7 @@ classdef Fitme < handle
                end
             end
          end
+         disp(['RMS err = ',num2str(sqrt(res*res'))]);
       end
    end
    
