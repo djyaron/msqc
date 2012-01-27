@@ -7,7 +7,7 @@ if (exist('ethane4/env2.mat','file'))
    load('ethane4/env2.mat');
 else
    mag = 15.0;
-   nenv = 100;
+   nenv = 50;
    cubSize = [6,6,6];
    cent = [0.77; 0; 0];
    for ienv = 1:nenv
@@ -26,7 +26,7 @@ pars{5} = [1.69 1.12 60];
 pars{6} = [1.54 0.97 60];
 pars{7} = [1.54 1.27 60];
 npar = size(pars,2);
-HLbasis = {'6-31G' '6-31G*' '6-31G**'};
+HLbasis = {'6-31G**'}; %{'6-31G' '6-31G*' '6-31G**'};
 HL = cell(npar,3);
 LL = cell(npar,3);
 %%
@@ -85,7 +85,7 @@ for ipar = 1:size(pars,2)
    LL{ipar,3} = frag4;
 end
 
-% since even loading all the files will take time, we'll dave everything
+% since even loading all the files will take time, we'll save everything
 save('ethane4/ethaneDat.mat');
 
 %% Aggregator fits
