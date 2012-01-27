@@ -36,12 +36,16 @@ classdef Model2 < handle
       sepKE  % if 1, use different parameters for KE and H1en
       sepSP  % if 1, use different parameters for s and p orbs
       
-      % Current parameters, and some temporary values
+      % Current parameters
       par   % current list of parameters for fitting routine
             % KE diagonal    1: H  2: Cs  3: Cp
             % Hen diagonal   4: H  5: Cs  6: Cp
             % KE bonding     7: H-Cs  8: H-Cp  9: Cs-Cs 10: Cs-Cp 11: Cp-Cp  
             % Hen bonding   12: H-Cs 13: H-Cp 14: Cs-Cs 15: Cs-Cp 16: Cp-Cp  
+   end
+   properties (Transient)
+      densitySave   % cell array {1:nenv+1} of most recent density matrices 
+                    % used to start HF iterations
    end
    methods (Static)
       function res = mix(x, v1, v2)
@@ -88,6 +92,7 @@ classdef Model2 < handle
                res.isBonded(iatom,jatom) = res.bonded(iatom,jatom);
             end
          end
+         res.densitySave = cell(1,res.nenv+1);
       end
       function res = npar(obj,pIn)
          if (obj.sepKE && obj.sepSP)

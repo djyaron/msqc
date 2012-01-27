@@ -9,7 +9,7 @@ if (exist('ethane4mp2/env2.mat','file'))
    load('ethane4mp2/env2.mat');
 else
    mag = 15.0;
-   nenv = 100;
+   nenv = 50;
    cubSize = [6,6,6];
    cent = [0.77; 0; 0];
    for ienv = 1:nenv
@@ -30,69 +30,9 @@ pars{6} = [1.54 0.97 60];
 pars{7} = [1.54 1.27 60];
 npar = size(pars,2);
 
-% for itry = 1:1
-%     try
-%         for ipar = 1:1%npar
-%             par = pars{ipar};
-%             disp(['rcc ',num2str(par(1)), ...
-%                 ' rch ',num2str(par(2)), ...
-%                 ' angle ',num2str(par(3))]);
-%             
-%             config = Fragment.defaultConfig();
-%             config.par = par;
-%             
-%             % HL
-%             config.template = 'ethane1';
-%             config.basisSet = HLbasis;
-%             config.method = HLmethod;
-%             disp('loading HL');
-%             frag1 = Fragment([root,'ethane2'], config);
-%             for ienv = 1:2%nenv
-%                 display(['HL env ',num2str(ienv)]);
-%                 frag1.addEnv(env{ienv});
-%             end
-%             HL{ipar,1} = frag1;
-%            
-%             
-%             % LL 1
-%             config.basisSet = 'STO-3G';
-%             config.method = 'HF';
-%             config.template = 'ethane1';
-%             frag2 = Fragment([root,'ethane2'], config);
-%             disp('loading LL 1');
-%             for ienv = 1:1%nenv
-%                 display(['LL env ',num2str(ienv)]);
-%                 frag2.addEnv(env{ienv});
-%             end
-%             LL{ipar,1} = frag2;
-%  
-%             % LL 2
-%             config.template = 'ethane1-gen';
-%             config.basisSet = 'GEN';
-%             config.par = [par 0.9 0.9 0.9 0.9 0.9];
-%             frag3 = Fragment([root,'ethane2'], config);
-%             for ienv = 1:1 %nenv
-%                 display(['LL env ',num2str(ienv)]);
-%                 frag3.addEnv(env{ienv});
-%             end
-%             LL{ipar,2} = frag3;
-%             % LL 3
-%             config.template = 'ethane1-gen';
-%             config.basisSet = 'GEN';
-%             config.par = [par 1.05 1.05 1.05 1.05 1.05];
-%             frag4 = Fragment([root,'ethane2'], config);
-%             for ienv = 1:1 %nenv
-%                 display(['LL env ',num2str(ienv)]);
-%                 frag4.addEnv(env{ienv});
-%             end
-%             LL{ipar,3} = frag4;
-%         end
-%     catch
-%     end
-% end
-
-HLbasis = {'6-31G'};  % '6-31G*' '6-31G**'};
 HLmethod = 'HF';
+HLbasis = {'6-31G**'}; %{'6-31G' '6-31G*' '6-31G**'};
+
 HL = cell(npar,3);
 LL = cell(npar,3);
 %%
@@ -103,6 +43,7 @@ for ipar = 1:npar
       ' angle ',num2str(par(3))]);
    
    config = Fragment.defaultConfig();
+   config.method = 'MP2';
    config.par = par;
    
    % HL
@@ -111,7 +52,7 @@ for ipar = 1:npar
       config.basisSet = HLbasis{ihl};
       config.method = 'HF';
       disp(['ipar ',num2str(ipar),' loading HL ',num2str(ihl)]);
-      frag1 = Fragment([root,'ethane4'], config);
+      frag1 = Fragment([root,'ethane4mp2'], config);
       for ienv = 1:nenv
          display(['HL env ',num2str(ienv)]);
          frag1.addEnv(env{ienv});
@@ -121,7 +62,7 @@ for ipar = 1:npar
    % LL 1
    config.basisSet = 'STO-3G';
    config.method = 'HF';
-   frag2 = Fragment([root,'ethane4'], config);
+   frag2 = Fragment([root,'ethane4mp2'], config);
    disp(['ipar ',num2str(ipar),' loading LL 1']);
    for ienv = 1:nenv
       display(['LL env ',num2str(ienv)]);
@@ -133,7 +74,7 @@ for ipar = 1:npar
    config.template = 'ethane1-gen';
    config.basisSet = 'GEN';
    config.par = [par 0.9 0.9 0.9 0.9 0.9];
-   frag3 = Fragment([root,'ethane4'], config);
+   frag3 = Fragment([root,'ethane4mp2'], config);
    disp(['ipar ',num2str(ipar),' loading LL 2']);
    for ienv = 1:nenv
       display(['LL env ',num2str(ienv)]);
@@ -143,9 +84,9 @@ for ipar = 1:npar
    % LL 3
    config.template = 'ethane1-gen';
    config.basisSet = 'GEN';
-   config.par = [par 1.05 1.05 1.05 1.05 1.05];
+   config.par = [par 1.1 1.1 1.1 1.1 1.1];
    disp(['ipar ',num2str(ipar),' loading LL 3']);
-   frag4 = Fragment([root,'ethane4'], config);
+   frag4 = Fragment([root,'ethane4mp2'], config);
    for ienv = 1:nenv
       display(['LL env ',num2str(ienv)]);
       frag4.addEnv(env{ienv});
@@ -153,8 +94,10 @@ for ipar = 1:npar
    LL{ipar,3} = frag4;
 end
 
-% since even loading all the files will take time, we'll dave everything
+
+%% since even loading all the files will take time, we'll dave everything
 save('ethane4mp2/ethaneDat.mat');
+
 
 %% Aggregator fits
 %clear classes;
