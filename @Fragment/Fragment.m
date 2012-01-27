@@ -141,7 +141,7 @@ classdef Fragment < handle
          obj.H1Env = zeros(obj.nbasis, obj.nbasis, nenvIn);
          obj.EhfEnv = zeros(1,nenvIn);
          obj.MP2Env = zeros(1,nenvIn);
-         obj.CorrE  = zeros(1,nenvIn);
+         obj.CorrEenv  = zeros(1,nenvIn);
          obj.EorbEnv = zeros(obj.nbasis, nenvIn);
          obj.orbEnv  = zeros(obj.nbasis,obj.nbasis,nenvIn);
          obj.dipoleEnv = zeros(3,nenvIn);

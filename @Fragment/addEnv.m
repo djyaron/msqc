@@ -128,7 +128,7 @@ else
    
    envResults.H1Env = H1e - obj.H1;
    envResults.Ehf   = Ehfe;
-   envResults.CorrE  = CorrEe;
+   envResults.CorrE = CorrEe;
    envResults.MP2   = MP2e;
    envResults.Eorb  = Eorbe;
    envResults.orb   = orbe;
@@ -153,7 +153,7 @@ obj.env(1,obj.nenv) = envTarget;
 obj.H1Env(:,:,obj.nenv) = envResults.H1Env;
 obj.MP2Env(1,obj.nenv) = envResults.MP2;
 obj.EhfEnv(1,obj.nenv)  = envResults.Ehf;
-obj.CorrE(1,obj.nenv)   = envResults.CorrE;
+obj.CorrEenv(1,obj.nenv)   = envResults.CorrE;
 obj.EorbEnv(:,obj.nenv) = envResults.Eorb;
 obj.HnucEnv(:,obj.nenv) = envResults.Hnuc;
 obj.orbEnv(:,:,obj.nenv)  = envResults.orb;

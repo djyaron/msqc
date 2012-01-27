@@ -39,8 +39,10 @@ if (nfile > 0)
          obj.env(1,obj.nenv) = envFile;
          obj.H1Env(:,:,obj.nenv) = envResults.H1Env;
          obj.EhfEnv(1,obj.nenv)  = envResults.Ehf;
+         obj.MP2Env(1,obj.nenv)  = envResults.MP2;
+         obj.CorrEenv(1,obj.nenv)= envResults.CorrE;
          obj.EorbEnv(:,obj.nenv) = envResults.Eorb;
-         obj.orbEnv(:,:,obj.nenv) = envResults.orb;
+         obj.orbEnv(:,:,obj.nenv)= envResults.orb;
          obj.HnucEnv(:,obj.nenv) = envResults.Hnuc;
       end
    end
