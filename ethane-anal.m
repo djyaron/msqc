@@ -76,7 +76,7 @@ for ipar = 1:size(pars,2)
    % LL 3
    config.template = 'ethane1-gen';
    config.basisSet = 'GEN';
-   config.par = [par 1.05 1.05 1.05 1.05 1.05];
+   config.par = [par 1.1 1.1 1.1 1.1 1.1];
    disp(['ipar ',num2str(ipar),' loading LL 3']);
    frag4 = Fragment([root,'ethane4mp2'], config);
    for ienv = 1:nenv
@@ -86,7 +86,7 @@ for ipar = 1:size(pars,2)
    LL{ipar,3} = frag4;
 end
 
-% since even loading all the files will take time, we'll dave everything
+%% since even loading all the files will take time, we'll dave everything
 save('ethane4mp2/ethaneDat.mat');
 
 %% Aggregator fits

@@ -68,7 +68,7 @@ classdef Fitme < handle
                end
             end
          end
-         disp(['RMS err = ',num2str(sqrt(res*res'))]);
+         disp(['RMS err = ',num2str(sqrt(res*res')/ic)]);
       end
    end
    
