@@ -37,6 +37,7 @@ for ipar = 1:size(pars,2)
       ' angle ',num2str(par(3))]);
    
    config = Fragment.defaultConfig();
+   config.method = 'MP2';
    config.par = par;
    
    % HL
@@ -44,7 +45,7 @@ for ipar = 1:size(pars,2)
       config.template = 'ethane1';
       config.basisSet = HLbasis{ihl};
       disp(['ipar ',num2str(ipar),' loading HL ',num2str(ihl)]);
-      frag1 = Fragment([root,'ethane4'], config);
+      frag1 = Fragment([root,'ethane4mp2'], config);
       for ienv = 1:nenv
          display(['HL env ',num2str(ienv)]);
          frag1.addEnv(env{ienv});
@@ -53,7 +54,7 @@ for ipar = 1:size(pars,2)
    end
    % LL 1
    config.basisSet = 'STO-3G';
-   frag2 = Fragment([root,'ethane4'], config);
+   frag2 = Fragment([root,'ethane4mp2'], config);
    disp(['ipar ',num2str(ipar),' loading LL 1']);
    for ienv = 1:nenv
       display(['LL env ',num2str(ienv)]);
@@ -65,7 +66,7 @@ for ipar = 1:size(pars,2)
    config.template = 'ethane1-gen';
    config.basisSet = 'GEN';
    config.par = [par 0.9 0.9 0.9 0.9 0.9];
-   frag3 = Fragment([root,'ethane4'], config);
+   frag3 = Fragment([root,'ethane4mp2'], config);
    disp(['ipar ',num2str(ipar),' loading LL 2']);
    for ienv = 1:nenv
       display(['LL env ',num2str(ienv)]);
@@ -75,9 +76,9 @@ for ipar = 1:size(pars,2)
    % LL 3
    config.template = 'ethane1-gen';
    config.basisSet = 'GEN';
-   config.par = [par 1.05 1.05 1.05 1.05 1.05];
+   config.par = [par 1.1 1.1 1.1 1.1 1.1];
    disp(['ipar ',num2str(ipar),' loading LL 3']);
-   frag4 = Fragment([root,'ethane4'], config);
+   frag4 = Fragment([root,'ethane4mp2'], config);
    for ienv = 1:nenv
       display(['LL env ',num2str(ienv)]);
       frag4.addEnv(env{ienv});
@@ -85,8 +86,10 @@ for ipar = 1:size(pars,2)
    LL{ipar,3} = frag4;
 end
 
-% since even loading all the files will take time, we'll save everything
-save('ethane4/ethaneDat.mat');
+
+%% since even loading all the files will take time, we'll dave everything
+save('ethane4mp2/ethaneDat.mat');
+
 
 %% Aggregator fits
 %clear classes;
