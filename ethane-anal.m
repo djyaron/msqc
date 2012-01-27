@@ -4,9 +4,9 @@ clear classes;
 root = 'c:\Users\Matteus\Research\msqc\';
 %load('ethane2/env2.mat');
 % Generate environments for production runs
-if (exist('ethane4/env2.mat','file'))
+if (exist('ethane4mp2/env2.mat','file'))
    disp('loading existing environments');
-   load('ethane4/env2.mat');
+   load('ethane4mp2/env2.mat');
 else
    mag = 15.0;
    nenv = 100;
@@ -17,7 +17,7 @@ else
       temp.displace(cent);
       env{ienv} = temp;
    end
-   save('ethane4/env2.mat','env');
+   save('ethane4mp2/env2.mat','env');
 end
 
 nenv = size(env,2);
@@ -91,7 +91,7 @@ npar = size(pars,2);
 %     end
 % end
 
-HLbasis = {'6-31G' '6-31G*' '6-31G**'};
+HLbasis = {'6-31G'};  % '6-31G*' '6-31G**'};
 HLmethod = 'HF';
 HL = cell(npar,3);
 LL = cell(npar,3);
@@ -154,7 +154,7 @@ for ipar = 1:npar
 end
 
 % since even loading all the files will take time, we'll dave everything
-save('ethane4/ethaneDat.mat');
+save('ethane4mp2/ethaneDat.mat');
 
 %% Aggregator fits
 %clear classes;
