@@ -1,7 +1,22 @@
 %% Load data
 clear classes;
-root = 'C:\Users\Alex\Programming\msqc\';
-load('data\ethane\ethane1\env0.mat');
+root = 'c:\dave\apoly\msqc\';
+% Generate environments for production runs
+if (exist('ethane4/env2.mat','file'))
+   disp('loading existing environments');
+   load('ethane4/env2.mat');
+else
+   mag = 15.0;
+   nenv = 100;
+   cubSize = [6,6,6];
+   cent = [0.77; 0; 0];
+   for ienv = 1:nenv
+      temp = Environment.newCube(cubSize,mag);
+      temp.displace(cent);
+      env{ienv} = temp;
+   end
+   save('ethane4/env2.mat','env');
+end
 nenv = size(env,2);
 pars{1} = [1.54 1.12 60];
 pars{2} = [1.54 1.12 30];
@@ -11,73 +26,72 @@ pars{5} = [1.69 1.12 60];
 pars{6} = [1.54 0.97 60];
 pars{7} = [1.54 1.27 60];
 npar = size(pars,2);
-HLbasis = '6-31G';
-HL = cell(npar,1);
+HLbasis = {'6-31G' '6-31G*' '6-31G**'};
+HL = cell(npar,3);
 LL = cell(npar,3);
 %%
-for itry = 1:1
-    %try
-        for ipar = 1:size(pars,2)
-            par = pars{ipar};
-            disp(['rcc ',num2str(par(1)), ...
-                ' rch ',num2str(par(2)), ...
-                ' angle ',num2str(par(3))]);
-            
-            config = Fragment.defaultConfig();
-            config.par = par;
-            
-            % HL
-            config.template = 'ethane1';
-            config.basisSet = HLbasis;
-            disp('loading HL');
-            frag1 = Fragment([root,'data\ethane\ethane1'], config);
-            for ienv = 1:nenv
-                display(['HL env ',num2str(ienv)]);
-                frag1.addEnv(env{ienv});
-            end
-            HL{ipar,1} = frag1;
-            % LL 1
-            config.basisSet = 'STO-3G';
-            frag2 = Fragment([root,'data\ethane\ethane1'], config);
-            disp('loading HL 1');
-            for ienv = 1:nenv
-                display(['LL env ',num2str(ienv)]);
-                frag2.addEnv(env{ienv});
-            end
-            LL{ipar,1} = frag2;
-            
-            % LL 2
-            config.template = 'ethane1-gen';
-            config.basisSet = 'GEN';
-            config.par = [par 0.9 0.9 0.9 0.9 0.9];
-            frag3 = Fragment([root,'data\ethane\ethane1'], config);
-            for ienv = 1:nenv
-                display(['LL env ',num2str(ienv)]);
-                frag3.addEnv(env{ienv});
-            end
-            LL{ipar,2} = frag3;
-            % LL 3
-            config.template = 'ethane1-gen';
-            config.basisSet = 'GEN';
-            config.par = [par 1.05 1.05 1.05 1.05 1.05];
-            frag4 = Fragment([root,'data\ethane\ethane1'], config);
-            for ienv = 1:nenv
-                display(['LL env ',num2str(ienv)]);
-                frag4.addEnv(env{ienv});
-            end
-            LL{ipar,3} = frag4;
-        end
-    %catch
-    end
+for ipar = 1:size(pars,2)
+   par = pars{ipar};
+   disp(['rcc ',num2str(par(1)), ...
+      ' rch ',num2str(par(2)), ...
+      ' angle ',num2str(par(3))]);
+   
+   config = Fragment.defaultConfig();
+   config.method = 'MP2';
+   config.par = par;
+   
+   % HL
+   for ihl = 1:size(HLbasis,2)
+      config.template = 'ethane1';
+      config.basisSet = HLbasis{ihl};
+      disp(['ipar ',num2str(ipar),' loading HL ',num2str(ihl)]);
+      frag1 = Fragment([root,'ethane4mp2'], config);
+      for ienv = 1:nenv
+         display(['HL env ',num2str(ienv)]);
+         frag1.addEnv(env{ienv});
+      end
+      HL{ipar,ihl} = frag1;
+   end
+   % LL 1
+   config.basisSet = 'STO-3G';
+   frag2 = Fragment([root,'ethane4mp2'], config);
+   disp(['ipar ',num2str(ipar),' loading LL 1']);
+   for ienv = 1:nenv
+      display(['LL env ',num2str(ienv)]);
+      frag2.addEnv(env{ienv});
+   end
+   LL{ipar,1} = frag2;
+   
+   % LL 2
+   config.template = 'ethane1-gen';
+   config.basisSet = 'GEN';
+   config.par = [par 0.9 0.9 0.9 0.9 0.9];
+   frag3 = Fragment([root,'ethane4mp2'], config);
+   disp(['ipar ',num2str(ipar),' loading LL 2']);
+   for ienv = 1:nenv
+      display(['LL env ',num2str(ienv)]);
+      frag3.addEnv(env{ienv});
+   end
+   LL{ipar,2} = frag3;
+   % LL 3
+   config.template = 'ethane1-gen';
+   config.basisSet = 'GEN';
+   config.par = [par 1.1 1.1 1.1 1.1 1.1];
+   disp(['ipar ',num2str(ipar),' loading LL 3']);
+   frag4 = Fragment([root,'ethane4mp2'], config);
+   for ienv = 1:nenv
+      display(['LL env ',num2str(ienv)]);
+      frag4.addEnv(env{ienv});
+   end
+   LL{ipar,3} = frag4;
 end
-%%
-save('ethaneDat.mat');
 
-%%
-load('temp1.mat');
-%% trying the new aggregator fit stuff
+%% since even loading all the files will take time, we'll dave everything
+save('ethane4mp2/ethaneDat.mat');
+
+%% Aggregator fits
 %clear classes;
-load('temp1.mat');
+load('ethaneDat.mat');
 agg = Aggregator;
 for ipar = 1:1 %size(HL,1)
    agg.addFrags(HL{ipar},LL{ipar,1},LL{ipar,2});
@@ -90,7 +104,7 @@ clear classes;
 load('temp1.mat');
 agg = Aggregator;
 for ipar = [1 4 5]%size(HL,1) %%%need this to work for multiple parameters
-    %add second low level into calculation
+   %add second low level into calculation
    agg.addFrags(HL{ipar},LL{ipar,1},LL{ipar,2});
 end
 %[diff, ehigh, epred, elow]  = agg.err2([0 1 1 1 1 1 1 1]);%%add in list of environmet, env
@@ -110,8 +124,8 @@ for ipar = 1:7
    frag = HL{ipar,1};
    Eenv = zeros(1,frag.nenv);
    for ienv = 1:frag.nenv
-     Eenv(ienv) = sum(sum( frag.density(ienv).*frag.H1Env(:,:,ienv) ) );
-     Eenv(ienv) = Eenv(ienv) + frag.HnucEnv(ienv);
+      Eenv(ienv) = sum(sum( frag.density(ienv).*frag.H1Env(:,:,ienv) ) );
+      Eenv(ienv) = Eenv(ienv) + frag.HnucEnv(ienv);
    end
    EHL{ipar,1} = Eenv;
 end
@@ -133,13 +147,13 @@ end
 figure(101);
 sym = {'ro','bo','go','ko','rx','bx','gx'};
 for ipar = 1:1 %size(HL,1)
-    etotal =  HL{ipar,1}.EhfEnv;
-    emol = etotal - EHL{ipar,1};
-    hold off;
-    plot(etotal,'bo');
-    hold on;
-    plot(emol,'ro');
-    %plot(LL{ipar}.EhfEnv,HL{ipar}.EhfEnv,sym{ipar});
+   etotal =  HL{ipar,1}.EhfEnv;
+   emol = etotal - EHL{ipar,1};
+   hold off;
+   plot(etotal,'bo');
+   hold on;
+   plot(emol,'ro');
+   %plot(LL{ipar}.EhfEnv,HL{ipar}.EhfEnv,sym{ipar});
 end
 %mean = edifft;
 
@@ -148,13 +162,13 @@ npar = size(HL,1);
 figure(90);
 sym={'ro','bo','go'};
 for ipar = 1:3
-    for ienv = 1:LL{ipar,3}.nenv
-        hold on;
-        %plot(HL{ipar}.EhfEnv(ienv), LL{ipar,1}.EhfEnv(ienv),'b.');
-        plot(ienv,norm(LL{ipar}.dipoleEnv(:,ienv)),sym{ipar});
-    end
+   for ienv = 1:LL{ipar,3}.nenv
+      hold on;
+      %plot(HL{ipar}.EhfEnv(ienv), LL{ipar,1}.EhfEnv(ienv),'b.');
+      plot(ienv,norm(LL{ipar}.dipoleEnv(:,ienv)),sym{ipar});
+   end
 end
-%%  Look at energy versus some key variables 
+%%  Look at energy versus some key variables
 econv = 627.509; % kcal/mole per hartree
 x = zeros(3,1);
 y = zeros(3,1);
@@ -187,7 +201,7 @@ for ienv = 0:HL{1,1}.nenv
       end
    end
 end
-%% used above to find intersection of good environments for 
+%% used above to find intersection of good environments for
 % HL, LL{:,1} and LL{:,3}. This gave me 87 environments.
 save('ethane2\realGood','realGood');
 %% correlation between LL and HL data for barrier heights
@@ -203,7 +217,7 @@ figure(100);
 plot(-barrierLL,-barrierHL,'b.');
 hold on;
 plot(-barrierHL,-barrierHL,'k-');
-   
+
 %% Can we build a lame model to do the above
 econv = 627.509; % kcal/mole per hartree
 nenv = 100;
@@ -216,7 +230,7 @@ for ienv = 1:100
    if ((barrierLL(ienv) < -2) || (barrierLL(ienv)> -0.8) )
       
    else
-      for ipar = 1:3  % dihedral angles        
+      for ipar = 1:3  % dihedral angles
          idata = idata+1;
          x(idata,1) = (LL{ipar,1}.EhfEnv(ienv)-ELL{ipar,1}(ienv)) * econv;
          x(idata,2) = (LL{ipar,2}.EhfEnv(ienv)-ELL{ipar,2}(ienv)) * econv;
@@ -274,12 +288,12 @@ par = [ 0 0 0 0];
 %%
 par = [ 0 0 0 0];
 for i=1:5
-    m2.updateDensity(par);
-    par = lsqnonlin(@m2.errApprox, par);
-    errFit = m2.errApprox(par);
-    errReal = m2.err(par);
-    disp(['iter ',num2str(i),' par ',num2str(par)]);
-    disp([' errorApprox ',...
-        num2str(max(errFit)),' errorReal ',num2str(max(errReal))]);
+   m2.updateDensity(par);
+   par = lsqnonlin(@m2.errApprox, par);
+   errFit = m2.errApprox(par);
+   errReal = m2.err(par);
+   disp(['iter ',num2str(i),' par ',num2str(par)]);
+   disp([' errorApprox ',...
+      num2str(max(errFit)),' errorReal ',num2str(max(errReal))]);
 end
 

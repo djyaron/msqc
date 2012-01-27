@@ -20,6 +20,7 @@ if (nargin < 3)
    operator = obj.H1(env);
 end
 if (nargin < 4)
+   % this is for atom decomposition by default
    arange = cell(obj.natom,1);
    for iatom = 1:obj.natom
       arange{iatom} = find(obj.basisAtom == iatom);

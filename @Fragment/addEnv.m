@@ -9,6 +9,8 @@ function ifile = addEnv(obj, envTarget)
 ifile = 0;
 found = false;
 failed = false;
+tempDir = tempname([obj.gaussianPath,filesep,'Scratch']);
+mkdir(tempDir);
 while (~failed && ~found)
    ifile = ifile + 1;
    fileEnvPrefix = [obj.fileprefix,'\env_',int2str(ifile)];
@@ -37,6 +39,7 @@ else
    disp(['not found, generating ',calcfilename]);
    
    % Do the calculation and read in data
+   setenv('GAUSS_EXEDIR', obj.gaussianPath);
    jobname = 'env';
    newline = char(10);
    
@@ -91,13 +94,13 @@ else
    end
    
    gjf_file = [jobname,'.gjf'];
-   origdir = cd(obj.dataPath);
+   origdir = cd(tempDir);
    fid1 = fopen(gjf_file,'w');
    fwrite(fid1, ctext, 'char');
    fclose(fid1);
    
-   dataPath = obj.dataPath;
-   resp1 = 1; resp2 = 1; count = 1; failed = 0;
+   dataPath = tempDir;
+   system([obj.gaussianPath,filesep,obj.gaussianExe,' ',gjf_file]);
    while ( resp1 ~= 0 || resp2 ~= 0 )
        count = count + 1;
        try
@@ -128,7 +131,7 @@ else
    %if ~failed
        % read in data from formatted checkpoint file
        try
-          fid1 = fopen([dataPath,'\temp.fch'],'r');
+      fid1 = fopen([dataPath,filesep,'temp.fch'],'r');
           if (fid1 == -1)
              error('could not find fch file');
           end
@@ -144,9 +147,9 @@ else
        end
        % read in data from the polyatom output file
        try
-          fid1 = fopen([dataPath,'\fort.32'],'r');
+      fid1 = fopen([dataPath,filesep,'fort.32'],'r');%,'b');
           if (fid1 == -1)
-             error(['could not find ',dataPath,'\fort.32']);
+         error(['could not find ',dataPath,filesep,'fort.32']);
           end
           [~, H1e, ~, ~, Hnuce] = Fragment.readpolyatom(fid1);
           fclose(fid1);
@@ -163,6 +166,7 @@ else
        envResults.Hnuc  = Hnuce;
        envResults.dipole = dipolee;
        % cleanup files
+   rmdir(tempDir,'s');
        %    delete([dataPath,'\fort.32'], [dataPath,'\env.gjf'], ...
        %       [dataPath,'\env.out'], [dataPath,'\temp.chk'], ...
        %       [dataPath,'\temp.fch']);

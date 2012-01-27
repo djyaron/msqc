@@ -32,34 +32,37 @@ S  = obj.S;
 Enuc = obj.Hnuc(ienv);
 Nelec = obj.frag.nelec;
 
-Nbasis = size(H1,1); %#ok<NASGU> %Getting size of basis set
+Nbasis = size(H1,1); %Getting size of basis set
 
  %step 3 -- Calculate transformation matrix (eq. 3.167)
 X = inv(sqrtm(S));
 
  %step 4 -- Guess at density matrix -- all zeros right now
-Pn = zeros(obj.nbasis); % starting density matrix
-for iatom = 1:obj.natom
-   charge = obj.Z(iatom);
-   if (charge == 1) % hydrogen
-      b1 = find(obj.basisAtom == iatom);
-      if (size(b1,1) ~= 1)
-         error('hartreeFock.m: only works for sto-3g');
-      end
-      Pn(b1(1),b1(1)) = 1.0;
-   else
-      b1 = find(obj.basisAtom == iatom);
-      if (size(b1,1) ~= 5)
-         error('hartreeFock.m: only works for sto-3g');
-      end
-      Pn(b1(1),b1(1)) = 2.0;
-      valence = (charge-2.0)/4;
-      for i1 = 2:5
-         Pn(b1(i1),b1(i1)) = valence;
+if (size(obj.densitySave{ienv+1},1) == 0)
+   Pn = zeros(obj.nbasis); % starting density matrix
+   for iatom = 1:obj.natom
+      charge = obj.Z(iatom);
+      if (charge == 1) % hydrogen
+         b1 = find(obj.basisAtom == iatom);
+         if (size(b1,1) ~= 1)
+            error('hartreeFock.m: only works for sto-3g');
+         end
+         Pn(b1(1),b1(1)) = 1.0;
+      else
+         b1 = find(obj.basisAtom == iatom);
+         if (size(b1,1) ~= 5)
+            error('hartreeFock.m: only works for sto-3g');
+         end
+         Pn(b1(1),b1(1)) = 2.0;
+         valence = (charge-2.0)/4;
+         for i1 = 2:5
+            Pn(b1(i1),b1(i1)) = valence;
+         end
       end
    end
+else
+   Pn = obj.densitySave{ienv+1};
 end
-
 
 Plast = Pn; % previous density matrix
 iter = 0;
@@ -123,6 +126,7 @@ end
 
 if (iter < maxIter)
    P = Pn; %for convenience
+   obj.densitySave{ienv+1} = P;
    
    %Step 12: Output
    
