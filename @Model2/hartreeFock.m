@@ -38,7 +38,8 @@ Nbasis = size(H1,1); %Getting size of basis set
 X = inv(sqrtm(S));
 
  %step 4 -- Guess at density matrix -- all zeros right now
-if (size(obj.densitySave{ienv+1},1) == 0)
+if ((size(obj.densitySave{ienv+1},1) == 0) && ...
+      (size(obj.densitySave{1},1) == 0))
    Pn = zeros(obj.nbasis); % starting density matrix
    for iatom = 1:obj.natom
       charge = obj.Z(iatom);
@@ -60,6 +61,8 @@ if (size(obj.densitySave{ienv+1},1) == 0)
          end
       end
    end
+elseif (size(obj.densitySave{ienv+1},1) == 0)
+   Pn = obj.densitySave{1};
 else
    Pn = obj.densitySave{ienv+1};
 end
