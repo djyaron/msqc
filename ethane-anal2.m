@@ -146,8 +146,10 @@ for ipar = 1:7
    start = zeros(1,16);
    limits = 3 * ones(1,16);
    pt{ipar} = lsqnonlin(@f1.errDiffs, start,-limits,limits);
-   err{ipar} = f1.err(pt{ipar});
+   err{ipar} = f1.errDiffs(pt{ipar});
    corrPlot(f1,pt{ipar}, 0, 800+ipar);
+   figure(810);
+   hold on;
+   [LL1{ipar}, HL1{ipar}] = corrPlot(f1,pt{ipar}, 0, 810);
 end
-%%
-save('ethane4/fit11.mat','pt','err');
+save('ethane4/fit12.mat','pt','err','LL1','HL1');

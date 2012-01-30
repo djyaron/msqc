@@ -109,8 +109,8 @@ classdef Fitme < handle
             LL0 = obj.models{imod}.partitionE1(0 , ...
                   obj.models{imod}.KE, sumRange);
             HL0 =  obj.HLKE{1,imod}(1);
-            ic = ic+1;
-            res(ic) = LL0-HL0;
+            %ic = ic+1;
+            %res(ic) = LL0-HL0;
             for ienv = 1:obj.models{imod}.nenv
                ic = ic + 1;
                res(ic) = (obj.models{imod}.partitionE1(ienv , ...
@@ -121,8 +121,8 @@ classdef Fitme < handle
                LL0 = obj.models{imod}.partitionE1(0, ...
                      obj.models{imod}.H1en(iatom), sumRange);
                HL0 =  obj.HLEN{1,imod}(iatom,1);
-               ic = ic+1;
-               res(ic) = LL0-HL0;
+               %ic = ic+1;
+               %res(ic) = LL0-HL0;
                for ienv = 0:obj.models{imod}.nenv
                   ic = ic+1;
                   res(ic) = (obj.models{imod}.partitionE1(ienv, ...
