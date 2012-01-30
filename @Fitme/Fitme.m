@@ -8,6 +8,8 @@ classdef Fitme < handle
       includeKE % include kinetic energy in fit
       includeEN % include individual electron-nuclear operators
       exactDensity % re-evaluate density matrix on every call to err()
+      
+      parHF   % Last parameters for which HF was solved
    end
    methods
       function res = Fitme
@@ -41,17 +43,29 @@ classdef Fitme < handle
             obj.models{i}.setPar(par);
             obj.models{i}.solveHF();
          end
+         obj.parHF = par;
       end
       function res = err(obj,par)
          disp(['Fitme.err called with par = ',num2str(par)]);
-         ic = 0;
-         % Do sum over all orbitals
-         sumRange = cell(1,1);
          for imod = 1:obj.nmodels
             obj.models{imod}.setPar(par);
-            if (obj.exactDensity)
+         end
+         if (size(obj.parHF,1) == 0)
+            dpar = 1;
+         else
+            dpar = max(abs(obj.parHF-par));
+         end
+         if (obj.exactDensity && (dpar > 1.0e-4))
+            disp(['solving for density matrices']);
+            for imod = 1:obj.nmodels
                obj.models{imod}.solveHF();
             end
+            obj.parHF = par;
+         end
+         % Do sum over all orbitals
+         sumRange = cell(1,1);
+         ic = 0;
+         for imod = 1:obj.nmodels
             sumRange{1,1} = 1:obj.models{imod}.nbasis;
             for ienv = 0:obj.models{imod}.nenv
                ic = ic + 1;
@@ -70,7 +84,55 @@ classdef Fitme < handle
          end
          disp(['RMS err = ',num2str(sqrt(res*res')/ic)]);
       end
-   end
-   
+      function res = errDiffs(obj,par)
+         disp(['Fitme.err called with par = ',num2str(par)]);
+         for imod = 1:obj.nmodels
+            obj.models{imod}.setPar(par);
+         end
+         if (size(obj.parHF,1) == 0)
+            dpar = 1;
+         else
+            dpar = max(abs(obj.parHF-par));
+         end
+         if (obj.exactDensity && (dpar > 1.0e-4))
+            disp(['solving for density matrices']);
+            for imod = 1:obj.nmodels
+               obj.models{imod}.solveHF();
+            end
+            obj.parHF = par;
+         end
+         % Do sum over all orbitals
+         sumRange = cell(1,1);
+         ic = 0;
+         for imod = 1:obj.nmodels
+            sumRange{1,1} = 1:obj.models{imod}.nbasis;
+            LL0 = obj.models{imod}.partitionE1(0 , ...
+                  obj.models{imod}.KE, sumRange);
+            HL0 =  obj.HLKE{1,imod}(1);
+            ic = ic+1;
+            res(ic) = LL0-HL0;
+            for ienv = 1:obj.models{imod}.nenv
+               ic = ic + 1;
+               res(ic) = (obj.models{imod}.partitionE1(ienv , ...
+                  obj.models{imod}.KE, sumRange)-LL0) - ...
+                  (obj.HLKE{1,imod}(ienv+1)-HL0);
+            end
+            for iatom = 1:obj.models{imod}.natom
+               LL0 = obj.models{imod}.partitionE1(0, ...
+                     obj.models{imod}.H1en(iatom), sumRange);
+               HL0 =  obj.HLEN{1,imod}(iatom,1);
+               ic = ic+1;
+               res(ic) = LL0-HL0;
+               for ienv = 0:obj.models{imod}.nenv
+                  ic = ic+1;
+                  res(ic) = (obj.models{imod}.partitionE1(ienv, ...
+                     obj.models{imod}.H1en(iatom), sumRange)-LL0) - ...
+                     (obj.HLEN{1,imod}(iatom,ienv+1)-HL0);
+               end
+            end
+         end
+         disp(['RMS err = ',num2str(sqrt(res*res')/ic)]);
+      end
+   end   
 end
 
