@@ -121,11 +121,35 @@ for ipar = 1:7
 end
 f1.exactDensity = 1;
 %pt{1} = [0 0.75 0.75 0 0.75 0.75 0.75 0.75  0  0  0 0.75 0.75 0 0 0];
-pt{1} = [0.59959     -1.4638     0.70091    0.041315     0.49848     0.50381      1.1166      0.0      0.0     0.97819     0.63104     0.79428     0.99788    -0.13183     0.12354     0.18347];
+%pt{1} = [0.59959     -1.4638     0.70091    0.041315     0.49848     0.50381      1.1166      0.0      0.0     0.97819     0.63104     0.79428     0.99788    -0.13183     0.12354     0.18347];
+pt{1} = zeros(1,16);
 f1.updateDensity(pt{1});
 err{1} = f1.err(pt{1});
 nerr = size(err{1},1)*size(err{1},2);
 disp([' starting rms err = ',num2str(sqrt(err{1}*err{1}')/nerr)]);
-pt{2} = lsqnonlin(@f1.err, pt{1});
+limits = 3 * ones(1,16);
+pt{2} = lsqnonlin(@f1.errDiffs, pt{1},-limits,limits);
 err{2} = f1.err(pt{2});
 disp(['KE=0 SP=0 rms err = ',num2str(sqrt(err{2}*err{2}')/nerr)]);
+
+%%
+f1.corrPlot(0);
+%% Fit each geometry separately
+for ipar = 1:7
+   disp(['starting fit on geometry ',num2str(ipar)]);
+   f1 = Fitme;
+   mod{ipar} = Model2(LL{ipar,1},LL{ipar,2},LL{ipar,3});
+   mod{ipar}.sepKE = 1;
+   mod{ipar}.sepSP = 1;
+   f1.addFrag(mod{ipar},HL{ipar,3});
+   f1.exactDensity = 1;
+   start = zeros(1,16);
+   limits = 3 * ones(1,16);
+   pt{ipar} = lsqnonlin(@f1.errDiffs, start,-limits,limits);
+   err{ipar} = f1.errDiffs(pt{ipar});
+   corrPlot(f1,pt{ipar}, 0, 800+ipar);
+   figure(810);
+   hold on;
+   [LL1{ipar}, HL1{ipar}] = corrPlot(f1,pt{ipar}, 0, 810);
+end
+save('ethane4/fit12.mat','pt','err','LL1','HL1');
