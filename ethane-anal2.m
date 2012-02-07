@@ -135,7 +135,7 @@ disp(['KE=0 SP=0 rms err = ',num2str(sqrt(err{2}*err{2}')/nerr)]);
 %%
 f1.corrPlot(0);
 %% Fit each geometry separately
-for ipar = 1:7
+for ipar = 6:6
    disp(['starting fit on geometry ',num2str(ipar)]);
    f1 = Fitme;
    mod{ipar} = Model2(LL{ipar,1},LL{ipar,2},LL{ipar,3});
@@ -153,3 +153,5 @@ for ipar = 1:7
    [LL1{ipar}, HL1{ipar}] = corrPlot(f1,pt{ipar}, 0, 810);
 end
 save('ethane4/fit12.mat','pt','err','LL1','HL1');
+%%
+load('ethane4/fit12.mat');
