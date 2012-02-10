@@ -2,20 +2,30 @@
 clear classes;
 root = 'c:\Users\Alex\Programming\msqc\';
 % Generate environments for production runs
-if (exist('ethane4mp2/env2.mat','file'))
+if (exist('ethane5mp2/env2.mat','file'))
    disp('loading existing environments');
-   load('ethane4mp2/env2.mat');
+   load('ethane5mp2/env2.mat');
 else
-   mag = 15.0;
-   nenv = 100;
-   cubSize = [6,6,6];
-   cent = [0.77; 0; 0];
-   for ienv = 1:nenv
-      temp = Environment.newCube(cubSize,mag);
-      temp.displace(cent);
-      env{ienv} = temp;
-   end
-   save('ethane4mp2/env2.mat','env');
+    nenv = 100;
+    fieldType = [ 1 0 0; 0 1 0; 0 0 1; 2 0 0; 0 2 0; 0 0 2; 1 1 0; 1 0 1; ...
+                  0 1 1; 3 0 0; 0 3 0; 0 0 3; 2 1 0; 1 2 0; 2 0 1; 1 0 2; ...
+                  0 2 1; 0 1 2; 1 1 1; 4 0 0; 0 4 0; 0 0 4; 3 1 0; 1 3 0; ...
+                  3 0 1; 1 0 3; 0 3 1; 0 1 3; 2 2 0; 2 0 2; 0 2 2 ];
+    i = 1;
+    for ifield = 1:nenv
+        new = Environment;
+        new.nfield = 1;
+        tmp = 0;
+        while tmp == 0
+            tmp = int16(rand * size(fieldType,1));
+        end
+        new.fieldType = fieldType(tmp, :);
+        new.fieldMag = int16(rand * 650) + 50;
+        %disp(new.fieldMag)
+        new.ncharge = 0; new.rho = 0; new.r = 0;
+        env{ifield} = new;
+    end
+    save('ethane5mp2/env2.mat','env');
 end
 nenv = size(env,2);
 pars{1} = [1.54 1.12 60];
@@ -30,9 +40,9 @@ HLbasis = {'6-31G' '6-31G*' '6-31G**'};
 HL = cell(npar,3);
 LL = cell(npar,3);
 %%
-if (exist('ethane4mp2/ethaneDat.mat','file'))
+if (exist('ethane5mp2/ethaneDat.mat','file'))
    disp('loading existing data');
-   load('ethane4mp2/ethaneDat.mat');
+   load('ethane5mp2/ethaneDat.mat');
 else
    for ipar = 1:size(pars,2)
       par = pars{ipar};
@@ -49,7 +59,7 @@ else
          config.template = 'ethane1';
          config.basisSet = HLbasis{ihl};
          disp(['ipar ',num2str(ipar),' loading HL ',num2str(ihl)]);
-         frag1 = Fragment([root,'ethane4mp2'], config);
+         frag1 = Fragment([root,'ethane5mp2'], config);
          for ienv = 1:nenv
             display(['HL env ',num2str(ienv)]);
             frag1.addEnv(env{ienv});
@@ -58,7 +68,7 @@ else
       end
       % LL 1
       config.basisSet = 'STO-3G';
-      frag2 = Fragment([root,'ethane4mp2'], config);
+      frag2 = Fragment([root,'ethane5mp2'], config);
       disp(['ipar ',num2str(ipar),' loading LL 1']);
       for ienv = 1:nenv
          display(['LL env ',num2str(ienv)]);
@@ -70,7 +80,7 @@ else
       config.template = 'ethane1-gen';
       config.basisSet = 'GEN';
       config.par = [par 0.9 0.9 0.9 0.9 0.9];
-      frag3 = Fragment([root,'ethane4mp2'], config);
+      frag3 = Fragment([root,'ethane5mp2'], config);
       disp(['ipar ',num2str(ipar),' loading LL 2']);
       for ienv = 1:nenv
          display(['LL env ',num2str(ienv)]);
@@ -82,7 +92,7 @@ else
       config.basisSet = 'GEN';
       config.par = [par 1.05 1.05 1.05 1.05 1.05];
       disp(['ipar ',num2str(ipar),' loading LL 3']);
-      frag4 = Fragment([root,'ethane4mp2'], config);
+      frag4 = Fragment([root,'ethane5mp2'], config);
       for ienv = 1:nenv
          display(['LL env ',num2str(ienv)]);
          frag4.addEnv(env{ienv});
@@ -91,7 +101,7 @@ else
    end
    
    % since even loading all the files will take time, we'll dave everything
-   save('ethane4mp2/ethaneDat.mat');
+   save('ethane5mp2/ethaneDat.mat');
 end
 %% Single geometry fitmod = Model2(reg,nar,dif);
 f1 = Fitme;
