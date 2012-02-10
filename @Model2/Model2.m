@@ -35,27 +35,18 @@ classdef Model2 < handle
       % model characteristics
       sepKE  % if 1, use different parameters for KE and H1en
       sepSP  % if 1, use different parameters for s and p orbs
+      mixType % if 0, use tanh; if 1, use linear
       
       % Current parameters
       par   % current list of parameters for fitting routine
             % KE diagonal    1: H  2: Cs  3: Cp
             % Hen diagonal   4: H  5: Cs  6: Cp
             % KE bonding     7: H-Cs  8: H-Cp  9: Cs-Cs 10: Cs-Cp 11: Cp-Cp  
-            % Hen bonding   12: H-Cs 13: H-Cp 14: Cs-Cs 15: Cs-Cp 16: Cp-Cp  
+            % Hen bonding   12: H-Cs 13: H-Cp 14: Cs-Cs 15: Cs-Cp 16: Cp-Cp
    end
    properties (Transient)
       densitySave   % cell array {1:nenv+1} of most recent density matrices 
                     % used to start HF iterations
-   end
-   methods (Static)
-      function res = mix(x, v1, v2)
-         % mix objects v1 and v2, using parameter x. 
-         %   for x << 0, we get v1, and x>>0 we get v2, with the 
-         %   switch from v1 to v2 occuring mostly as x=-1..1
-         c1 = (tanh(x)+1)/2.0;
-         c2 = 1-c1;
-         res = c2 * v1 + c1 * v2;
-      end
    end
    methods
       function res = Model2(frag_,fnar_, fdif_)
@@ -73,6 +64,7 @@ classdef Model2 < handle
          res.basisSubType = frag_.basisSubType;
          res.sepKE = 1;
          res.sepSP = 1;
+         res.mixType = 0;
          for iatom = 1:res.natom
             res.onAtom{iatom,1} = find(res.basisAtom == iatom);
          end
@@ -93,6 +85,23 @@ classdef Model2 < handle
             end
          end
          res.densitySave = cell(1,res.nenv+1);
+      end
+      function res = mix(obj, x, v1, v2)
+         if (obj.mixType == 0)
+            % mix objects v1 and v2, using parameter x.
+            %   for x << 0, we get v1, and x>>0 we get v2, with the
+            %   switch from v1 to v2 occuring mostly as x=-1..1
+            c1 = (tanh(x)+1)/2.0;
+            c2 = 1-c1;
+            res = c2 * v1 + c1 * v2;
+         else
+            % want linear mix, with (v1+v2)/2 when x=0
+            % res = (v1+v2)/2 + x (v2-v1)/2
+            % The bounds are: res = v1 at x = -1;
+            %                 res = v2 at x = 1;
+            % potentially faster (since v's are matrices while x is scalar)
+            res = ((1.0-x)/2.0) * v1 + ((1.0+x)/2.0) * v2;
+         end
       end
       function res = npar(obj,pIn)
          if (obj.sepKE && obj.sepSP)
@@ -226,11 +235,11 @@ classdef Model2 < handle
             for itype = 1:maxType
                ran = obj.valAtom{iatom,itype}; % range of valence orbs (1s)
                res(ran,ran) = res(ran,ran) - obj.frag.KE(ran,ran) ...
-                  + Model2.mix( diagParKE(obj.frag.Z(iatom),itype), ...
+                  + obj.mix( diagParKE(obj.frag.Z(iatom),itype), ...
                   obj.fnar.KE(ran,ran), ...
                   obj.fdif.KE(ran,ran) );
                res(ran,ran) = res(ran,ran) - obj.frag.H1en(ran,ran,iatom) ...
-                  + Model2.mix( diagParEN(obj.frag.Z(iatom),itype), ...
+                  + obj.mix( diagParEN(obj.frag.Z(iatom),itype), ...
                   obj.fnar.H1en(ran,ran,iatom),...
                   obj.fdif.H1en(ran,ran,iatom));
             end
@@ -325,7 +334,7 @@ classdef Model2 < handle
             for itype = 1:maxType
                ran = obj.valAtom{iatom,itype}; % range of valence orbs (1s)
                res(ran,ran) = res(ran,ran) - obj.frag.KE(ran,ran) ...
-                  + Model2.mix( diagParKE(obj.frag.Z(iatom),itype), ...
+                  + obj.mix( diagParKE(obj.frag.Z(iatom),itype), ...
                   obj.fnar.KE(ran,ran), ...
                   obj.fdif.KE(ran,ran) );
             end
@@ -390,7 +399,7 @@ classdef Model2 < handle
          for itype = 1:imaxType
             ran = obj.valAtom{iatom,itype}; % range of valence orbs (1s)
             res(ran,ran) = res(ran,ran) - obj.frag.H1en(ran,ran,iatom) ...
-               + Model2.mix( diagParEN(obj.frag.Z(iatom),itype), ...
+               + obj.mix( diagParEN(obj.frag.Z(iatom),itype), ...
                obj.fnar.H1en(ran,ran,iatom),...
                obj.fdif.H1en(ran,ran,iatom));
          end
