@@ -1,6 +1,6 @@
 %% Load data
 clear classes;
-root = 'c:\dave\apoly\msqc\';
+root = 'C:\Users\Matteus\Research\msqc\';
 % Generate environments for production runs
 if (exist('ethane4/env2.mat','file'))
    disp('loading existing environments');
