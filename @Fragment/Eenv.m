@@ -1,5 +1,5 @@
 function res = Eenv(obj,ienv)
-% energy of interaction of the molecule with the environment
+% energy of interaction of the molecule with the environment ienv
 
 res = sum(sum( obj.density(ienv).*obj.H1Env(:,:,ienv) ) );
 res = res + frag.HnucEnv(ienv);

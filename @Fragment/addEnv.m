@@ -151,12 +151,14 @@ end % if (found)
 obj.nenv = obj.nenv + 1;
 obj.env(1,obj.nenv) = envTarget;
 obj.H1Env(:,:,obj.nenv) = envResults.H1Env;
-obj.MP2Env(1,obj.nenv) = envResults.MP2;
+if (isfield(envResults,'MP2'))
+   obj.MP2Env(1,obj.nenv) = envResults.MP2;
+end
 obj.EhfEnv(1,obj.nenv)  = envResults.Ehf;
-obj.CorrEenv(1,obj.nenv)   = envResults.CorrE;
+if (isfield(envResults,'CorrE'))
+   obj.CorrEenv(1,obj.nenv)   = envResults.CorrE;
+end
 obj.EorbEnv(:,obj.nenv) = envResults.Eorb;
 obj.HnucEnv(:,obj.nenv) = envResults.Hnuc;
 obj.orbEnv(:,:,obj.nenv)  = envResults.orb;
 obj.dipoleEnv(:,obj.nenv) = envResults.dipole;
-
-

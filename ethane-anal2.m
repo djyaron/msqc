@@ -1,11 +1,13 @@
 %% Load data
 clear classes;
-root = 'C:\Users\Matteus\Research\msqc\';
+%root = 'C:\Users\Matteus\Research\msqc\';
+root = 'C:\dave\apoly\msqc\';
 % Generate environments for production runs
-if (exist('ethane4mp2/env2.mat','file'))
+if (exist('ethane4/env2.mat','file'))
    disp('loading existing environments');
-   load('ethane4mp2/env2.mat');
+   load('ethane4/env2.mat');
 else
+   error('no env found');
    mag = 15.0;
    nenv = 100;
    cubSize = [6,6,6];
@@ -15,7 +17,7 @@ else
       temp.displace(cent);
       env{ienv} = temp;
    end
-   save('ethane4mp2/env2.mat','env');
+   save('ethane4/env2.mat','env');
 end
 nenv = size(env,2);
 pars{1} = [1.54 1.12 60];
@@ -26,15 +28,15 @@ pars{5} = [1.69 1.12 60];
 pars{6} = [1.54 0.97 60];
 pars{7} = [1.54 1.27 60];
 npar = size(pars,2);
-HLbasis = {'6-31G' '6-31G*' '6-31G**'};
+HLbasis = {'6-31G'}; %{'6-31G' '6-31G*' '6-31G**'};
 HL = cell(npar,3);
 LL = cell(npar,3);
 %%
-if (exist('ethane4mp2/ethaneDat.mat','file'))
+if (exist('ethane4/ethaneDat.mat','file'))
    disp('loading existing data');
-   load('ethane4mp2/ethaneDat.mat');
+   load('ethane4/ethaneDat.mat');
 else
-   for ipar = 6:size(pars,2)
+   for ipar = 1:size(pars,2)
       par = pars{ipar};
       disp(['rcc ',num2str(par(1)), ...
          ' rch ',num2str(par(2)), ...
@@ -91,7 +93,7 @@ else
    end
    
    % since even loading all the files will take time, we'll dave everything
-   save('ethane4mp2/ethaneDat.mat');
+   save('ethane4/ethaneDat.mat');
 end
 %% Single geometry fitmod = Model2(reg,nar,dif);
 f1 = Fitme;
@@ -135,16 +137,20 @@ disp(['KE=0 SP=0 rms err = ',num2str(sqrt(err{2}*err{2}')/nerr)]);
 %%
 f1.corrPlot(0);
 %% Fit each geometry separately
+clear classes;
+load('ethane4/ethanedat.mat');
 for ipar = 6:6
    disp(['starting fit on geometry ',num2str(ipar)]);
    f1 = Fitme;
    mod{ipar} = Model2(LL{ipar,1},LL{ipar,2},LL{ipar,3});
    mod{ipar}.sepKE = 1;
    mod{ipar}.sepSP = 1;
-   f1.addFrag(mod{ipar},HL{ipar,3});
+   mod{ipar}.rhodep = 1;
+   f1.addFrag(mod{ipar},HL{ipar,1});
    f1.exactDensity = 1;
-   start = zeros(1,16);
-   limits = 3 * ones(1,16);
+   nfitpar = mod{ipar}.npar;
+   start = zeros(1,nfitpar);
+   limits = 3 * ones(1,nfitpar);
    pt{ipar} = lsqnonlin(@f1.errDiffs, start,-limits,limits);
    err{ipar} = f1.errDiffs(pt{ipar});
    corrPlot(f1,pt{ipar}, 0, 800+ipar);
@@ -152,6 +158,31 @@ for ipar = 6:6
    hold on;
    [LL1{ipar}, HL1{ipar}] = corrPlot(f1,pt{ipar}, 0, 810);
 end
+%%
 save('ethane4/fit12.mat','pt','err','LL1','HL1');
 %%
 load('ethane4/fit12.mat');
+
+%% Plots versus mulliken charges
+ipar = 1;
+mod = Model2(LL{ipar,1},LL{ipar,2},LL{ipar,3});
+hl = HL{ipar,1};
+%%
+clear classes;
+load('ethane4/ethanedat.mat');
+ipar = 1;
+ll = LL{ipar,1};
+hl = HL{ipar,1};
+%%
+m1 = zeros(ll.nenv,ll.natom);
+m2 = m1;
+for ienv = 1:ll.nenv
+  m1(ienv,:) = ll.mcharge(ienv);
+  mdiff(ienv) = m1(ienv,2) - m1(ienv,1);
+  llke(ienv) = ll.EKE(ienv);
+  hlke(ienv) = hl.EKE(ienv);
+  d1(ienv) = norm(ll.dipoleEnv(:,ienv));
+  m2(ienv,:) = hl.mcharge(ienv);
+  m2diff(ienv) = m2(ienv,2) - m2(ienv,1);
+  d2(ienv) = norm(hl.dipoleEnv(:,ienv));
+end

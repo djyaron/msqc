@@ -35,8 +35,8 @@ classdef Model2 < handle
       % model characteristics
       sepKE  % if 1, use different parameters for KE and H1en
       sepSP  % if 1, use different parameters for s and p orbs
+      rhodep % if 1, parameters have a charge dependence
       mixType % if 0, use tanh; if 1, use linear
-      mcharge % if 1, sepSP=1 and sepKE=1
       
       % Current parameters
       par   % current list of parameters for fitting routine
@@ -45,6 +45,7 @@ classdef Model2 < handle
             % KE bonding     7: H-Cs  8: H-Cp  9: Cs-Cs 10: Cs-Cp 11: Cp-Cp  
             % Hen bonding   12: H-Cs 13: H-Cp 14: Cs-Cs 15: Cs-Cp 16: Cp-Cp
             % KE charge     17: H    18:Cs   19:Cp
+      rhozero % (natom,nenv+1) mulliken charges of frag_ 
    end
    properties (Transient)
       densitySave   % cell array {1:nenv+1} of most recent density matrices 
@@ -66,6 +67,11 @@ classdef Model2 < handle
          res.basisSubType = frag_.basisSubType;
          res.sepKE = 1;
          res.sepSP = 1;
+         res.rhodep = 1;
+         res.rhozero = zeros(frag_.natom,frag_.nenv+1);
+         for ienv = 0:frag_.nenv
+            res.rhozero(:,ienv+1) = frag_.mcharge(ienv)';
+         end
          res.mixType = 0;
          for iatom = 1:res.natom
             res.onAtom{iatom,1} = find(res.basisAtom == iatom);
@@ -88,11 +94,11 @@ classdef Model2 < handle
          end
          res.densitySave = cell(1,res.nenv+1);
       end
-      function res = mulliken(obj)
+      function res = mcharge(obj, ienv)
           % Calculates the mulliken charges on each atom
           Q = zeros(size(obj.Z));
           GAP = zeros(1,obj.natom);
-          P = obj.density.*obj.S;
+          P = obj.density(ienv).*obj.S;
           GOP = sum(P,1);
           arange = cell(obj.natom,1);
           for iatom = 1:obj.natom
@@ -102,6 +108,7 @@ classdef Model2 < handle
               GAP(i) = sum(GOP(1,arange{i}));
               Q(i) = obj.Z(i)-GAP(i);
           end
+          res = Q;
       end
       function res = mix(obj, x, v1, v2)
          if (obj.mixType == 0)
@@ -120,8 +127,11 @@ classdef Model2 < handle
             res = ((1.0-x)/2.0) * v1 + ((1.0+x)/2.0) * v2;
          end
       end
-      function res = npar(obj,pIn)
-         if (obj.sepKE && obj.sepSP)
+      function res = npar(obj)
+         if (obj.sepKE && obj.sepSP && obj.rhodep)
+            res = 19;
+         end
+         if (obj.sepKE && obj.sepSP && ~obj.rhodep)
             res = 16;
          end
          if (~obj.sepKE && ~obj.sepSP)
@@ -135,7 +145,7 @@ classdef Model2 < handle
          end
       end    
       function res = setPar(obj,pIn)
-         if (obj.sepKE && obj.sepSP)
+         if (obj.sepKE && obj.sepSP && obj.rhodep)
             obj.par = pIn;
          end
          if (~obj.sepKE && ~obj.sepSP)
@@ -312,7 +322,7 @@ classdef Model2 < handle
          if (nargin < 2)
             ienv = 0;
          end
-         res = obj.KE;
+         res = obj.KE(ienv);
          for iatom = 1:obj.natom
             res = res + obj.H1en(iatom);
          end
@@ -320,12 +330,16 @@ classdef Model2 < handle
             res = res + obj.frag.H1Env(:,:,ienv);
          end
       end
-      function res = KE(obj)
+      function res = KE(obj,ienv)
          par = obj.par;
          diagParKE = zeros(6,2); % element and type(s,p)
          diagParKE(1,1) = par(1); % diagonal for H
          diagParKE(6,1) = par(2); % s diagonal for C
          diagParKE(6,2) = par(3); % p diagonal for C
+         diagParKErho = zeros(6,2);
+         diagParKErho(1,1) = par(17);
+         diagParKErho(6,1) = par(18);
+         diagParKErho(6,2) = par(19);
          % Bonding parameters between atoms
          bondParKE = zeros(6,2,6,2);
          bondParKE(1,1,6,1) = par(7); % H Cs bonds
@@ -349,9 +363,15 @@ classdef Model2 < handle
                maxType = 2;
             end
             for itype = 1:maxType
+               mixpar = diagParKE(obj.frag.Z(iatom),itype);
+               if (obj.rhodep == 1)
+                   mixpar = mixpar + ...
+                     diagParKErho(obj.frag.Z(iatom),itype) * ...
+                     obj.rhozero(iatom,ienv+1);
+               end
                ran = obj.valAtom{iatom,itype}; % range of valence orbs (1s)
                res(ran,ran) = res(ran,ran) - obj.frag.KE(ran,ran) ...
-                  + obj.mix( diagParKE(obj.frag.Z(iatom),itype), ...
+                  + obj.mix( mixpar, ...
                   obj.fnar.KE(ran,ran), ...
                   obj.fdif.KE(ran,ran) );
             end

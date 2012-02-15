@@ -107,14 +107,14 @@ classdef Fitme < handle
          for imod = 1:obj.nmodels
             sumRange{1,1} = 1:obj.models{imod}.nbasis;
             LL0 = obj.models{imod}.partitionE1(0 , ...
-                  obj.models{imod}.KE, sumRange);
+                  obj.models{imod}.KE(0), sumRange);
             HL0 =  obj.HLKE{1,imod}(1);
             %ic = ic+1;
             %res(ic) = LL0-HL0;
             for ienv = 1:obj.models{imod}.nenv
                ic = ic + 1;
                res(ic) = (obj.models{imod}.partitionE1(ienv , ...
-                  obj.models{imod}.KE, sumRange)-LL0) - ...
+                  obj.models{imod}.KE(ienv), sumRange)-LL0) - ...
                   (obj.HLKE{1,imod}(ienv+1)-HL0);
             end
             for iatom = 1:obj.models{imod}.natom

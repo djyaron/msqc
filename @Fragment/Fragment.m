@@ -22,7 +22,7 @@ classdef Fragment < handle
             
       Ehf     % Hartree Fock energy
       MP2     % MP2 Energy
-      CorrE   % Correlation Energy (MP2-Ehf)
+      %CorrE   % Correlation Energy (MP2-Ehf)
       Eorb    % (nbasis,1)      molecular orbital energies
       orb     % (nbasis,nbasis) molecular orbital coefficients
       dipole  % (3,1)   dipole moment of molecule
@@ -36,7 +36,7 @@ classdef Fragment < handle
 
       EhfEnv   % (1,nenv)        Hartree-Fock energy in env
       MP2Env   % (1,nenv)        MP2 energy in env
-      CorrEenv % (1,nenv)        Correlation energy in env (MP2env-HFenv)
+      %CorrEenv % (1,nenv)        Correlation energy in env (MP2env-HFenv)
       EorbEnv; % (nbasis,nenv)   molecular orbital energies in env
       orbEnv;  % (nbasis,nbasis,nenv) molecular orbitals in env
       dipoleEnv % (3,nenv) dipole moment in the environment
