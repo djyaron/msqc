@@ -36,6 +36,7 @@ classdef Model2 < handle
       sepKE  % if 1, use different parameters for KE and H1en
       sepSP  % if 1, use different parameters for s and p orbs
       mixType % if 0, use tanh; if 1, use linear
+      mcharge % if 1, sepSP=1 and sepKE=1
       
       % Current parameters
       par   % current list of parameters for fitting routine
@@ -43,6 +44,7 @@ classdef Model2 < handle
             % Hen diagonal   4: H  5: Cs  6: Cp
             % KE bonding     7: H-Cs  8: H-Cp  9: Cs-Cs 10: Cs-Cp 11: Cp-Cp  
             % Hen bonding   12: H-Cs 13: H-Cp 14: Cs-Cs 15: Cs-Cp 16: Cp-Cp
+            % KE charge     17: H    18:Cs   19:Cp
    end
    properties (Transient)
       densitySave   % cell array {1:nenv+1} of most recent density matrices 
@@ -85,6 +87,21 @@ classdef Model2 < handle
             end
          end
          res.densitySave = cell(1,res.nenv+1);
+      end
+      function res = mulliken(obj)
+          % Calculates the mulliken charges on each atom
+          Q = zeros(size(obj.Z));
+          GAP = zeros(1,obj.natom);
+          P = obj.density.*obj.S;
+          GOP = sum(P,1);
+          arange = cell(obj.natom,1);
+          for iatom = 1:obj.natom
+              arange{iatom} = find(obj.basisAtom == iatom);
+          end
+          for i = 1:obj.natom
+              GAP(i) = sum(GOP(1,arange{i}));
+              Q(i) = obj.Z(i)-GAP(i);
+          end
       end
       function res = mix(obj, x, v1, v2)
          if (obj.mixType == 0)
