@@ -70,7 +70,7 @@ classdef Fitme < handle
             for ienv = 0:obj.models{imod}.nenv
                ic = ic + 1;
                res(ic) = obj.models{imod}.partitionE1(ienv , ...
-                  obj.models{imod}.KE, sumRange) - ...
+                  obj.models{imod}.KE(ienv), sumRange) - ...
                   obj.HLKE{1,imod}(ienv+1);
             end
             for ienv = 0:obj.models{imod}.nenv
@@ -83,6 +83,8 @@ classdef Fitme < handle
             end
          end
          disp(['RMS err = ',num2str(sqrt(res*res')/ic)]);
+         figure(101)
+         plot(res,'r.');
       end
       function res = errDiffs(obj,par)
          disp(['Fitme.err called with par = ',num2str(par)]);
@@ -130,6 +132,8 @@ classdef Fitme < handle
                      (obj.HLEN{1,imod}(iatom,ienv+1)-HL0);
                end
             end
+            figure(101)
+            plot(res,'r.');
          end
          disp(['RMS err = ',num2str(sqrt(res*res')/ic)]);
       end

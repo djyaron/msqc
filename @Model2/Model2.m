@@ -145,7 +145,7 @@ classdef Model2 < handle
          end
       end    
       function res = setPar(obj,pIn)
-         if (obj.sepKE && obj.sepSP && obj.rhodep)
+         if (obj.sepKE && obj.sepSP)
             obj.par = pIn;
          end
          if (~obj.sepKE && ~obj.sepSP)
@@ -336,10 +336,12 @@ classdef Model2 < handle
          diagParKE(1,1) = par(1); % diagonal for H
          diagParKE(6,1) = par(2); % s diagonal for C
          diagParKE(6,2) = par(3); % p diagonal for C
-         diagParKErho = zeros(6,2);
-         diagParKErho(1,1) = par(17);
-         diagParKErho(6,1) = par(18);
-         diagParKErho(6,2) = par(19);
+         if (obj.rhodep == 1)
+            diagParKErho = zeros(6,2);
+            diagParKErho(1,1) = par(17);
+            diagParKErho(6,1) = par(18);
+            diagParKErho(6,2) = par(19);
+         end
          % Bonding parameters between atoms
          bondParKE = zeros(6,2,6,2);
          bondParKE(1,1,6,1) = par(7); % H Cs bonds
