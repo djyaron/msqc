@@ -6,7 +6,7 @@ classdef Fitme < handle
       HLEN    % {1,nmodels}(natom,nenv+1) electron-nuclear interaction
       
       includeKE % include kinetic energy in fit
-      includeEN % include individual electron-nuclear operators
+      includeEN % {1,natoms} include individual electron-nuclear operators
       exactDensity % re-evaluate density matrix on every call to err()
       
       parHF   % Last parameters for which HF was solved
