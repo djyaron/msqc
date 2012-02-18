@@ -1,5 +1,6 @@
 %%
 clear classes;
+% Need to have frag, fnar and fdif stored in temp.mat
 load('temp.mat');
 m = Model3(frag,fnar,fdif);
 m.addKEmodDiag(6,[1,2]);
@@ -90,5 +91,11 @@ for iatom = 1:m.natom
    disp(['EN diff ',num2str(iatom),' ',num2str( max(max(abs(m2.H1en(iatom)-m.H1en(iatom)))))]);
 end
 
+%%
+disp('m.solveHF');
+m.solveHF;
+%disp('m2.solveHF');
+%m2.solveHF;
+%disp(['orbital energy diffs ',num2str(max(max(abs(m.EorbEnv - m2.EorbEnv))))]);
 
 
