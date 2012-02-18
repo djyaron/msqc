@@ -16,7 +16,9 @@ classdef Fitme < handle
          res.models = cell(0,0);
          res.HLs    = cell(0,0);
          res.HLKE   = cell(0,0);
-         exactDensity = 0;
+         res.exactDensity = 0;
+         res.includeKE = 1;
+         res.includeEN = [];
       end
       function addFrag(obj,model,HL)
          obj.models{1,end+1} = model;
@@ -34,6 +36,9 @@ classdef Fitme < handle
             end
          end
          obj.HLEN{1,end+1} = en;
+         if (size(obj.includeEN,1) == 0)
+            obj.includeEN = ones(1,HL.natom);
+         end
       end
       function res = nmodels(obj)
          res = size(obj.models,2);
@@ -55,7 +60,7 @@ classdef Fitme < handle
          else
             dpar = max(abs(obj.parHF-par));
          end
-         if (obj.exactDensity && (dpar > 1.0e-4))
+         if (obj.exactDensity && (dpar > -1))
             disp(['solving for density matrices']);
             for imod = 1:obj.nmodels
                obj.models{imod}.solveHF();
@@ -67,18 +72,22 @@ classdef Fitme < handle
          ic = 0;
          for imod = 1:obj.nmodels
             sumRange{1,1} = 1:obj.models{imod}.nbasis;
-            for ienv = 0:obj.models{imod}.nenv
-               ic = ic + 1;
-               res(ic) = obj.models{imod}.partitionE1(ienv , ...
-                  obj.models{imod}.KE(ienv), sumRange) - ...
-                  obj.HLKE{1,imod}(ienv+1);
+            if (obj.includeKE == 1)
+               for ienv = 0:obj.models{imod}.nenv
+                  ic = ic + 1;
+                  res(ic) = obj.models{imod}.partitionE1(ienv , ...
+                     obj.models{imod}.KE(ienv), sumRange) - ...
+                     obj.HLKE{1,imod}(ienv+1);
+               end
             end
-            for ienv = 0:obj.models{imod}.nenv
-               for iatom = 1:obj.models{imod}.natom
-                  ic = ic+1;
-                  res(ic) = obj.models{imod}.partitionE1(ienv, ...
-                     obj.models{imod}.H1en(iatom), sumRange) - ...
-                     obj.HLEN{1,imod}(iatom,ienv+1);
+            for iatom = 1:obj.models{imod}.natom
+               if (obj.includeEN(iatom) == 1)
+                  for ienv = 0:obj.models{imod}.nenv
+                     ic = ic+1;
+                     res(ic) = obj.models{imod}.partitionE1(ienv, ...
+                        obj.models{imod}.H1en(iatom), sumRange) - ...
+                        obj.HLEN{1,imod}(iatom,ienv+1);
+                  end
                end
             end
          end
@@ -96,7 +105,7 @@ classdef Fitme < handle
          else
             dpar = max(abs(obj.parHF-par));
          end
-         if (obj.exactDensity && (dpar > 1.0e-4))
+         if (obj.exactDensity && (dpar > -1))
             disp(['solving for density matrices']);
             for imod = 1:obj.nmodels
                obj.models{imod}.solveHF();
@@ -107,29 +116,33 @@ classdef Fitme < handle
          sumRange = cell(1,1);
          ic = 0;
          for imod = 1:obj.nmodels
-            sumRange{1,1} = 1:obj.models{imod}.nbasis;
-            LL0 = obj.models{imod}.partitionE1(0 , ...
+            if (obj.includeKE)
+               sumRange{1,1} = 1:obj.models{imod}.nbasis;
+               LL0 = obj.models{imod}.partitionE1(0 , ...
                   obj.models{imod}.KE(0), sumRange);
-            HL0 =  obj.HLKE{1,imod}(1);
-            %ic = ic+1;
-            %res(ic) = LL0-HL0;
-            for ienv = 1:obj.models{imod}.nenv
-               ic = ic + 1;
-               res(ic) = (obj.models{imod}.partitionE1(ienv , ...
-                  obj.models{imod}.KE(ienv), sumRange)-LL0) - ...
-                  (obj.HLKE{1,imod}(ienv+1)-HL0);
-            end
-            for iatom = 1:obj.models{imod}.natom
-               LL0 = obj.models{imod}.partitionE1(0, ...
-                     obj.models{imod}.H1en(iatom), sumRange);
-               HL0 =  obj.HLEN{1,imod}(iatom,1);
+               HL0 =  obj.HLKE{1,imod}(1);
                %ic = ic+1;
                %res(ic) = LL0-HL0;
-               for ienv = 0:obj.models{imod}.nenv
-                  ic = ic+1;
-                  res(ic) = (obj.models{imod}.partitionE1(ienv, ...
-                     obj.models{imod}.H1en(iatom), sumRange)-LL0) - ...
-                     (obj.HLEN{1,imod}(iatom,ienv+1)-HL0);
+               for ienv = 1:obj.models{imod}.nenv
+                  ic = ic + 1;
+                  res(ic) = (obj.models{imod}.partitionE1(ienv , ...
+                     obj.models{imod}.KE(ienv), sumRange)-LL0) - ...
+                     (obj.HLKE{1,imod}(ienv+1)-HL0);
+               end
+            end
+            for iatom = 1:obj.models{imod}.natom
+               if (obj.includeEN(iatom))
+                  LL0 = obj.models{imod}.partitionE1(0, ...
+                     obj.models{imod}.H1en(iatom), sumRange);
+                  HL0 =  obj.HLEN{1,imod}(iatom,1);
+                  %ic = ic+1;
+                  %res(ic) = LL0-HL0;
+                  for ienv = 0:obj.models{imod}.nenv
+                     ic = ic+1;
+                     res(ic) = (obj.models{imod}.partitionE1(ienv, ...
+                        obj.models{imod}.H1en(iatom), sumRange)-LL0) - ...
+                        (obj.HLEN{1,imod}(iatom,ienv+1)-HL0);
+                  end
                end
             end
             figure(101)
