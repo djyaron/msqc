@@ -4,6 +4,7 @@ classdef Mixer < handle
       mixType % 0 for sigmoidal, 1 for linear
       par     % (1,npar) current parameters
       desc    % string description
+      fixed   % (1,npar) 0 if parameter should be fit, 1 if fixed
    end
    
    methods
@@ -16,10 +17,15 @@ classdef Mixer < handle
           end
           obj.par = parIn;
           obj.mixType = mixType;
+          obj.fixed = 0;
       end
       function res = npar(obj)
-         res = size(obj.par,2);
-      end
+         if (obj.fixed == 0)
+            res = size(obj.par,2);
+         else
+            res = 0;
+         end
+         end
       function res = mix(obj, v1, v2)
          x = obj.par(1);
          if (obj.mixType == 0)

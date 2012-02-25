@@ -84,36 +84,34 @@ classdef Model3 < handle
             res.ENmods{1,i} = cell(0,0);
          end
          res.densitySave = cell(1,res.nenv+1);
-         res.mixers = [];
+         res.mixers = cell(0,0);
       end
       function res = npar(obj)
          res = 0;
          for i=1:size(obj.mixers,2)
-            res = res + obj.mixers(1,i).npar;
+            res = res + obj.mixers{1,i}.npar;
          end
       end
       function addMixer(obj, mix)
          add = 1;
          for i=1:size(obj.mixers,2)
-            if (mix == obj.mixers(1,i))
+            if (mix == obj.mixers{1,i})
                add = 0;
                break;
             end
          end
          if (add == 1)
-            if (size(obj.mixers,1) == 0)
-               obj.mixers = mix;
-            else
-               obj.mixers(1,end+1) = mix;
-            end
+            obj.mixers{1,end+1} = mix;
          end
       end
       function setPar(obj, pars)
          ic = 1;
          for i = 1:size(obj.mixers,2)
-            mtemp = obj.mixers(1,i);
-            mtemp.par = pars(ic:(ic+mtemp.npar-1));
-            ic = ic + mtemp.npar;
+            mtemp = obj.mixers{1,i};
+            if (mtemp.fixed == 0)
+               mtemp.par = pars(ic:(ic+mtemp.npar-1));
+               ic = ic + mtemp.npar;
+            end
          end
       end
       function res = H1(obj, ienv)
