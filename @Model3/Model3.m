@@ -31,6 +31,7 @@ classdef Model3 < handle
       valAtom    % {natom,type} list of valence basis functions of type
       %              (1-s 2-p) on iatom
       isBonded   % (natom,natom)  1 if atoms are bonded, 0 otherwise
+      charges    % (natom,nenv+1)  current charges on the atoms
       
       mixers     % (1,n)   cell array of mixers that are currently in use
       KEmods     % {1,n}   cell array of modifications to KE operator
@@ -85,6 +86,10 @@ classdef Model3 < handle
          end
          res.densitySave = cell(1,res.nenv+1);
          res.mixers = cell(0,0);
+         res.charges = zeros(res.natom,res.nenv+1);
+         for ienv = 0:res.nenv
+            res.charges(:,ienv+1) = res.frag.mcharge(ienv)';
+         end
       end
       function res = npar(obj)
          res = 0;
@@ -108,10 +113,8 @@ classdef Model3 < handle
          ic = 1;
          for i = 1:size(obj.mixers,2)
             mtemp = obj.mixers{1,i};
-            if (mtemp.fixed == 0)
-               mtemp.par = pars(ic:(ic+mtemp.npar-1));
-               ic = ic + mtemp.npar;
-            end
+            mtemp.setPars( pars(ic:(ic+mtemp.npar-1)));
+            ic = ic + mtemp.npar;
          end
       end
       function res = H1(obj, ienv)
@@ -135,7 +138,8 @@ classdef Model3 < handle
             ii = mod.ilist;
             jj = mod.jlist;
             res(ii,jj) = res(ii,jj) - obj.frag.KE(ii,jj) ...
-               + mod.mixer.mix(obj.fnar.KE(ii,jj), obj.fdif.KE(ii,jj));
+               + mod.mixer.mix(obj.fnar.KE(ii,jj), obj.fdif.KE(ii,jj), ...
+               obj,ii,jj,ienv);
          end
       end
       function mixUsed = addKEmodDiag(obj,Zs,types,mix)
