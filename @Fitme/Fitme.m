@@ -145,9 +145,9 @@ classdef Fitme < handle
                   end
                end
             end
-            figure(101)
-            plot(res,'r.');
          end
+         figure(101)
+         plot(res,'r.');
          disp(['RMS err = ',num2str(sqrt(res*res')/ic)]);
       end
    end   
