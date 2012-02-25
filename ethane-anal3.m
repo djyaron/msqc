@@ -45,8 +45,8 @@ ipar = 1;
 m = Model3(LL{ipar,1},LL{ipar,2},LL{ipar,3});
 
 mixKE = Mixer(0,1); % linear interpolation of entire KE operator
-m.addKEmodDiag(1,1,mixKE);
-m.addKEmodDiag(6,[1,2],mixKE);
+%m.addKEmodDiag(1,1,mixKE);
+%m.addKEmodDiag(6,[1,2],mixKE);
 m.addKEmodBonded(1,6,[1],[1 2],mixKE);
 m.addKEmodBonded(6,6,[1 2],[1 2],mixKE);
 
@@ -59,13 +59,50 @@ plot(x,LL{ipar,3}.EKE,'y.');
 sym = {'r.','g.','c.'};
 ic = 0;
 
-for p = -1:1:1
+for p = -1 %:1:1
    m.setPar(p);
    disp(['solving HF for ',num2str(p)]);
    m.solveHF;
    ic = ic+1;
    plot(x,m.EKE,sym{ic});
 end
+
+hold on;
+plot(x,HL{ipar,3}.EKE,'rx')
+
+%% Checking out charge dependence
+ipar = 1;
+m = Model3(LL{ipar,1},LL{ipar,2},LL{ipar,3});
+% replace charges with difference from having no environment
+for ienv = 0:m.nenv
+   m.charges(:,ienv+1) = m.charges(:,ienv+1) - m.charges(:,1);
+end
+
+mixKE = Mixer([0 0],2); % linear interpolation of entire KE operator
+mixKE.fixed = [1 0];
+m.addKEmodDiag(1,1,mixKE);
+m.addKEmodDiag(6,[1,2],mixKE);
+
+figure(200)
+x = LL{ipar,1}.EKE;
+plot(x,x,'k.');
+hold on;
+plot(x,LL{ipar,2}.EKE,'b.');
+plot(x,LL{ipar,3}.EKE,'y.');
+sym = {'r.','g.','c.'};
+ic = 0;
+
+for p = -10:10:10
+   m.setPar(p);
+   disp(['solving HF for ',num2str(p)]);
+   m.solveHF;
+   ic = ic+1;
+   hold on;
+   plot(x,m.EKE,sym{ic});
+end
+
+hold on;
+plot(x,HL{ipar,3}.EKE,'rx')
 
 
 %%
