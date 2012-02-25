@@ -6,5 +6,5 @@ end
 n = size(envs,2);
 res = zeros(1,n);
 for ienv = 1:n
-   res(ienv) = sum(sum( obj.density(ienv).*obj.H1en(:,:,iatom) ));
+   res(ienv) = sum(sum( obj.density(ienv).*obj.H1en(iatom) ));
 end
