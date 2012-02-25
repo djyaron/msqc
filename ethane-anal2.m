@@ -32,7 +32,8 @@ HLbasis = {'6-31G'}; %{'6-31G' '6-31G*' '6-31G**'};
 HL = cell(npar,3);
 LL = cell(npar,3);
 %%
-if (exist('ethane4/ethaneDat.mat','file'))
+nenv = 10;
+if (exist('ethane4/ethaneDat10env.mat','file'))
    disp('loading existing data');
    load('ethane4/ethaneDat.mat');
 else
@@ -93,7 +94,7 @@ else
    end
    
    % since even loading all the files will take time, we'll dave everything
-   save('ethane4/ethaneDat.mat');
+   save('ethane4/ethaneDat10env.mat');
 end
 %% Single geometry fitmod = Model2(reg,nar,dif);
 f1 = Fitme;
