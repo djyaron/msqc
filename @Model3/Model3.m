@@ -23,6 +23,9 @@ classdef Model3 < handle
       rcart   % (3,natom) cartesian coordinates of the atoms
       nenv
       
+      H2j     % {nbasis,nbasis} cell array of coulomb integrals
+      H2k     % {nbasis,nbasis} cell array of exchange integrals
+      
       nbasis  % number of atomic (and molecular) basis functions
       basisAtom  % (nbasis,1) atom # on which the function is centered
       basisType  % (nbasis,1) l quantum number: 0=s 1=p 2=d 3=d etc
@@ -89,6 +92,14 @@ classdef Model3 < handle
          res.charges = zeros(res.natom,res.nenv+1);
          for ienv = 0:res.nenv
             res.charges(:,ienv+1) = res.frag.mcharge(ienv)';
+         end
+         res.H2j = cell(res.nbasis,res.nbasis);
+         res.H2k = cell(res.nbasis,res.nbasis);
+         for i=1:res.nbasis
+            for j=1:res.nbasis
+               res.H2j{i,j} = squeeze(frag_.H2(i,j,:,:));
+               res.H2k{i,j} = squeeze(frag_.H2(i,:,:,j));
+            end
          end
       end
       function res = npar(obj)

@@ -1,4 +1,4 @@
-function [orb,Eorb,Ehf] = hartreeFock(obj,ienv,eps,maxIter,minIter)
+function [orb,Eorb,Ehf] = hartreeFockSlow(obj,ienv,eps,maxIter,minIter)
 % Solve Hartree Fock equations
 % Input:
 %   obj:  Holds hamiltonian information (H1,H2,S,nelec,Hnuc,H1env,HnucEnv)
@@ -53,27 +53,21 @@ finished = false;
 %Begin iteration through 
 while (~finished) %step 11 -- Test convergence
     
-   P = 0.5 * Pn + 0.5 * Plast;
-   %step 5 -- Build 2-electron components of Fock matrix
-   G = zeros(Nbasis);
-   %     for i = 1:Nbasis
-   %         for j = 1:Nbasis
-   %             for k = 1:Nbasis
-   %                 for l = 1:Nbasis
-   %
-   %                 G(i,j) = G(i,j) + P(k,l)*(H2(i,j,l,k)-(1/2)*H2(i,k,l,j));
-   %
-   %                 end
-   %             end
-   %         end
-   %     end
-   for i=1:Nbasis
-      for j=1:Nbasis
-         t1 = sum(sum( P'.* obj.H2j{i,j} ));
-         t2 = sum(sum( P'.* obj.H2k{i,j} ));
-         G(i,j) = G(i,j) + t1 - t2/2;
-      end
-   end
+    P = 0.5 * Pn + 0.5 * Plast;  
+    %step 5 -- Build 2-electron components of Fock matrix
+    G = zeros(Nbasis);
+    for i = 1:Nbasis
+        for j = 1:Nbasis
+            for k = 1:Nbasis
+                for l = 1:Nbasis
+                    
+                G(i,j) = G(i,j) + P(k,l)*(H2(i,j,l,k)-(1/2)*H2(i,k,l,j));
+           
+                end
+            end
+        end
+    end
+    
     %step 6 -- Obtain F (fock matrix)
     F = H1 + G;
     
@@ -92,17 +86,15 @@ while (~finished) %step 11 -- Test convergence
     %step 10 -- Calculate the new density matrix
     Plast = Pn;
     Pn = zeros(Nbasis);
-    %Cj = conj(C);
-    filled = 1:(Nelec/2);
-    Pn = 2* C(:,filled)*( C(:,filled)');
-%     for i = 1:Nbasis
-%         for j = 1:Nbasis
-%             for a = 1:(Nelec/2)
-%                 Pn(i,j) = Pn(i,j) + (C(i,a)*Cj(j,a));
-%             end
-%             Pn(i,j) = Pn(i,j)*2;
-%         end
-%     end
+    Cj = conj(C);
+    for i = 1:Nbasis
+        for j = 1:Nbasis
+            for a = 1:(Nelec/2)
+                Pn(i,j) = Pn(i,j) + (C(i,a)*Cj(j,a));
+            end
+            Pn(i,j) = Pn(i,j)*2;
+        end
+    end
     iter = iter + 1;
     %disp(['den change ',num2str( max(max(abs(P-Pn))))]);
     if (iter > maxIter)
@@ -123,13 +115,12 @@ if (iter < maxIter)
    
    %Total energy
    %3.184: E0 = 1/2 Sum(i,j) {P(j,i)[H1(i,j) + F(i,j)]}
-%    Ee = 0;
-%    for i = 1:Nbasis
-%       for j = 1:Nbasis
-%          Ee = Ee + P(j,i)*(H1(i,j)+F(i,j));
-%       end
-%    end
-   Ee = sum(sum(P.*(H1+F)));
+   Ee = 0;
+   for i = 1:Nbasis
+      for j = 1:Nbasis
+         Ee = Ee + P(j,i)*(H1(i,j)+F(i,j));
+      end
+   end
    Ehf = Ee/2 + Enuc;
    
    %Orbital energies
