@@ -105,43 +105,77 @@ hold on;
 plot(x,HL{ipar,3}.EKE,'rx')
 
 
-%%
-
+%% hand fit charge dep mixers
+clear classes;
+load('ethane4/ethaneDat.mat');
 ipar = 7;
-disp(['starting fit on geometry ',num2str(ipar)]);
+
+lke = LL{ipar,1}.EKE;
+hke = HL{ipar,1}.EKE;
+
 m = Model3(LL{ipar,1},LL{ipar,2},LL{ipar,3});
 
-mixKE = Mixer(0,1); 
-m.addKEmodDiag(1,1,mixKE);
-m.addKEmodDiag(6,[1,2],mixKE);
-m.addKEmodBonded(1,6,[1],[1 2],mixKE);
-m.addKEmodBonded(6,6,[1 2],[1 2],mixKE);
+
+mixKEh = Mixer([0,0],2); 
+mixKEc = Mixer([0,0],2); 
+m.addKEmodDiag(1,1,mixKEh);
+m.addKEmodDiag(6,[1,2],mixKEc);
+%m.addKEmodBonded(1,6,[1],[1 2]);
+%m.addKEmodBonded(6,6,[1 2],[1 2]);
+
+% hand fit
+p = [0 0];
+while 0
+   p(1) = input('H constant');
+   p(2) = input('H slope');
+   p(3) = input('C constant');
+   p(4) = input('C slope');
+   m.setPar(p);
+   m.solveHF;
+   mke = m.EKE;
+   figure(100);
+   hold off;
+   plot(lke,hke,'r.');
+   hold on;
+   plot(lke,lke,'k.');
+   plot(lke,mke,'b.');
+   figure(200);
+   plot(mke,hke,'g.');
+end
+
+% general fit
 
 f1 = Fitme;
-f1.addFrag(m,HL{ipar,3});
+f1.addFrag(m,HL{ipar,1});
 f1.exactDensity = 1;
 f1.includeEN = zeros(1,m.natom);
 
-% ic = 0;
-% for p = -1:0.25:1
-%    ic = ic+1;
-%    e1{ic} = f1.errDiffs(p);
-%    x1(ic) = p;
-%    y1(ic) = norm(e1{ic});
-% end
-
 nfitpar = m.npar;
-start = zeros(1,nfitpar);
-start(1) = 0.0;
+%start = zeros(1,nfitpar);
+%start(1) = 0.0;
+start = [1.4962 -5 0 0]; % Fit of all four gives [1.1734  -3 1.1326 2.6529]
 limits = 3 * ones(1,nfitpar);
 options = optimset('DiffMinChange',1.0e-5);
-pt = lsqnonlin(@f1.errDiffs, start,-limits,limits,options);
+pt = lsqnonlin(@f1.err, start,-limits,limits,options);
 err = f1.errDiffs(pt);
-corrPlot(f1,pt, 0, 800+ipar);
 
+m.setPar(pt);
+m.solveHF;
+mke = m.EKE;
+figure(100);
+hold off;
+plot(lke,hke,'r.');
+hold on;
+plot(lke,lke,'k.');
+plot(lke,mke,'b.');
+figure(200);
+plot(mke,hke,'g.');
 %% Plots versus various parameters
 clear classes;
 load('ethane4/ethaneDat10env.mat');
+
+lke = LL{ipar,1}.EKE;
+hke = HL{ipar,1}.EKE;
 
 ipar = 1;
 m = Model3(LL{ipar,1},LL{ipar,2},LL{ipar,3});
@@ -165,7 +199,7 @@ f1.includeEN = zeros(1,m.natom);
 %    x1(ic) = p;
 %    y1(ic) = norm(e1);
 % end
-
+%%
 nfitpar = m.npar;
 start = zeros(1,nfitpar);
 limits = 3 * ones(1,nfitpar);
