@@ -51,6 +51,11 @@ classdef Fitme < handle
          obj.parHF = par;
       end
       function res = err(obj,par)
+         flip = 0;
+         if (size(par,1)>size(par,2))
+            par = par';
+            flip = 1;
+         end
          disp(['Fitme.err called with par = ',num2str(par)]);
          for imod = 1:obj.nmodels
             obj.models{imod}.setPar(par);
@@ -92,8 +97,11 @@ classdef Fitme < handle
             end
          end
          disp(['RMS err = ',num2str(sqrt(res*res')/ic)]);
-         figure(101)
-         plot(res,'r.');
+         % figure(101)
+         % plot(res,'r.');
+         if (flip == 1)
+            res = res';
+         end
       end
       function res = errDiffs(obj,par)
          disp(['Fitme.err called with par = ',num2str(par)]);

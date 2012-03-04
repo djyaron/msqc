@@ -108,31 +108,64 @@ plot(x,HL{ipar,3}.EKE,'rx')
 %% hand fit charge dep mixers
 clear classes;
 load('ethane4/ethaneDat.mat');
-ipar = 7;
 
-lke = LL{ipar,1}.EKE;
-hke = HL{ipar,1}.EKE;
+%%
+%mixKEh = Mixer([0,0],2); 
+%mixKEc = Mixer([0,0],2);
+mixKEh = Mixer(0,1); 
+mixKEcs = Mixer(0,1);
+mixKEcp = Mixer(0,1);
+mixKEchs = Mixer(0,1);
+mixKEchp = Mixer(0,1);
+mixKEccss = Mixer(0,1);
+mixKEccpp = Mixer(0,1);
+mixKEccsp = Mixer(0,1);
 
-m = Model3(LL{ipar,1},LL{ipar,2},LL{ipar,3});
+m = cell(1,7);
+ic = 0;
+for ipar = 1:7
+   t1 = LL{ipar,1}.EKE;
+   lke(ic+1:ic+size(t1,2)) = t1;
+   hke(ic+1:ic+size(t1,2)) = HL{ipar,1}.EKE;
+   
+   m{ipar} = Model3(LL{ipar,1},LL{ipar,2},LL{ipar,3});
+   %m{ipar}.addKEmodDiag(1,1,mixKEh);
+   %m{ipar}.addKEmodDiag(6,[1,2],mixKEc);
+   %m{ipar}.addKEmodBonded(1,6,[1],[1 2], mixKEch);
+   %m{ipar}.addKEmodBonded(6,6,[1 2],[1 2], mixKEcc);
+   m{ipar}.addKEmodDiag(1,1,mixKEh);
+   m{ipar}.addKEmodDiag(6,1,mixKEcs);
+   m{ipar}.addKEmodDiag(6,2,mixKEcp);
+   m{ipar}.addKEmodBonded(1,6,1,1, mixKEchs);
+   m{ipar}.addKEmodBonded(1,6,1,2, mixKEchp);
+   m{ipar}.addKEmodBonded(6,6,1,1, mixKEccss);
+   m{ipar}.addKEmodBonded(6,6,2,2, mixKEccpp);
+   m{ipar}.addKEmodBonded(6,6,1,2, mixKEccsp);
+   ic = ic+size(t1,2);
+end
 
-
-mixKEh = Mixer([0,0],2); 
-mixKEc = Mixer([0,0],2); 
-m.addKEmodDiag(1,1,mixKEh);
-m.addKEmodDiag(6,[1,2],mixKEc);
-%m.addKEmodBonded(1,6,[1],[1 2]);
-%m.addKEmodBonded(6,6,[1 2],[1 2]);
-
+% adjust charges
+for ipar = 1:7
+   for ienv = 0:m{ipar}.nenv
+      m{ipar}.charges(:,ienv+1) = m{ipar}.charges(:,ienv+1) - m{1}.charges(:,1);
+   end
+end
 % hand fit
-p = [0 0];
 while 0
-   p(1) = input('H constant');
-   p(2) = input('H slope');
-   p(3) = input('C constant');
-   p(4) = input('C slope');
-   m.setPar(p);
-   m.solveHF;
-   mke = m.EKE;
+   p(1) = input('H constant ');
+   p(2) = input('H slope    ');
+   p(3) = input('C constant ');
+   p(4) = input('C slope    ');
+   p = [1.2353   -4.7202    0.4195   -7.0583];
+   ic = 0;
+   for ipar = 1:7
+      disp(['starting calc on ipar ',num2str(ipar)]);
+      m{ipar}.setPar(p);
+      m{ipar}.solveHF;
+      t1 = m{ipar}.EKE;
+      mke(ic+1:ic+size(t1,2)) = t1;
+      ic = ic + size(t1,2);
+   end
    figure(100);
    hold off;
    plot(lke,hke,'r.');
@@ -146,19 +179,45 @@ end
 % general fit
 
 f1 = Fitme;
-f1.addFrag(m,HL{ipar,1});
+for ipar = 1:7
+   f1.addFrag(m{ipar},HL{ipar,1});
+end
 f1.exactDensity = 1;
-f1.includeEN = zeros(1,m.natom);
+f1.includeEN = zeros(1,m{1}.natom);
 
-nfitpar = m.npar;
-%start = zeros(1,nfitpar);
+nfitpar = m{1}.npar;
+start = zeros(1,nfitpar);
 %start(1) = 0.0;
-start = [1.4962 -5 0 0]; % Fit of all four gives [1.1734  -3 1.1326 2.6529]
+%start = [1.4962 -5 0 0]; % Fit of all four gives [1.1734  -3 1.1326 2.6529]
 limits = 3 * ones(1,nfitpar);
 options = optimset('DiffMinChange',1.0e-5);
-pt = lsqnonlin(@f1.err, start,-limits,limits,options);
-err = f1.errDiffs(pt);
+%pt = lsqnonlin(@f1.err, start,-limits,limits,options);
+options = LMFnlsq;
+options.Display =1;
+options.FunTol = 1.0e-5;
+options.XTol = 1.0e-4;
+[pt, Ssq, CNT, Res, XY] = LMFnlsq(@f1.err,start',options);
+%%
+ic = 0;
+for ipar = 1:7
+   disp(['starting calc on ipar ',num2str(ipar)]);
+   m{ipar}.setPar(pt);
+   m{ipar}.solveHF;
+   t1 = m{ipar}.EKE;
+   mke(ic+1:ic+size(t1,2)) = t1;
+   ic = ic + size(t1,2);
+end
+figure(100);
+hold off;
+plot(lke,hke,'r.');
+hold on;
+plot(lke,lke,'k.');
+plot(lke,mke,'b.');
+figure(200);
+plot(mke,hke,'g.');
 
+%%
+% pt = [1.1734  -3 1.1326 2.6529];
 m.setPar(pt);
 m.solveHF;
 mke = m.EKE;
