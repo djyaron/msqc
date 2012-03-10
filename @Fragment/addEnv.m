@@ -9,8 +9,6 @@ function ifile = addEnv(obj, envTarget)
 ifile = 0;
 found = false;
 failed = false;
-tempDir = tempname([obj.gaussianPath,filesep,'Scratch']);
-mkdir(tempDir);
 while (~failed && ~found)
    ifile = ifile + 1;
    fileEnvPrefix = [obj.fileprefix,'\env_',int2str(ifile)];
@@ -37,7 +35,8 @@ if (found)
    load(calcfilename, 'envResults')
 else
    disp(['not found, generating ',calcfilename]);
-   
+   tempDir = tempname([obj.gaussianPath,filesep,'Scratch']);
+   mkdir(tempDir);
    % Do the calculation and read in data
    setenv('GAUSS_EXEDIR', obj.gaussianPath);
    jobname = 'env';
@@ -128,7 +127,6 @@ else
    
    envResults.H1Env = H1e - obj.H1;
    envResults.Ehf   = Ehfe;
-   envResults.CorrE = CorrEe;
    envResults.MP2   = MP2e;
    envResults.Eorb  = Eorbe;
    envResults.orb   = orbe;
@@ -155,9 +153,6 @@ if (isfield(envResults,'MP2'))
    obj.MP2Env(1,obj.nenv) = envResults.MP2;
 end
 obj.EhfEnv(1,obj.nenv)  = envResults.Ehf;
-if (isfield(envResults,'CorrE'))
-   obj.CorrEenv(1,obj.nenv)   = envResults.CorrE;
-end
 obj.EorbEnv(:,obj.nenv) = envResults.Eorb;
 obj.HnucEnv(:,obj.nenv) = envResults.Hnuc;
 obj.orbEnv(:,:,obj.nenv)  = envResults.orb;
