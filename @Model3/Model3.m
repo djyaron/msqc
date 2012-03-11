@@ -134,7 +134,7 @@ classdef Model3 < handle
          end
          res = obj.KE(ienv);
          for iatom = 1:obj.natom
-            res = res + obj.H1en(iatom);
+            res = res + obj.H1en(iatom,ienv);
          end
          if (ienv > 0)
             res = res + obj.frag.H1Env(:,:,ienv);
@@ -225,7 +225,7 @@ classdef Model3 < handle
          obj.addMixer(mix);
          mixUsed = mix;
       end
-      function res = H1en(obj, iatom)
+      function res = H1en(obj, iatom, ienv)
          % start with H1 matrix of unmodified STO-3G
          res   = obj.frag.H1en(:,:,iatom);
          
@@ -236,7 +236,7 @@ classdef Model3 < handle
             jj = mod.jlist;
             res(ii,jj) = res(ii,jj) - obj.frag.H1en(ii,jj,iatom) ...
                + mod.mixer.mix(obj.fnar.H1en(ii,jj,iatom), ...
-               obj.fdif.H1en(ii,jj,iatom) );
+               obj.fdif.H1en(ii,jj,iatom), obj, ii, jj, ienv );
          end
       end
       function mixUsed = addENmodDiag(obj,Zs,types,mix)
