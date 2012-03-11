@@ -1,12 +1,14 @@
 clear classes;
 reload = 1;
+nhl = 2;
 plotCorrelations = 0;
-modelType = 'noCharge';
+includeKEmods = 1;
+includeENmods = 1;
 handFit = 0;
 doFit = 1;
 plotResults = 1;
 useStart = 1;
-pstart =  [-0.5 3 7];
+pstart =  [-0.5 3 7 0 0 0];
 params = 2:7;
 
 if (reload)
@@ -18,8 +20,8 @@ if (plotCorrelations)
    cll=zeros(2,100*size(params,2));
    ic = 0;
    for ipar = params
-      ll = HL{ipar,1};
-      hl = HL{ipar,2};
+      ll = LL{ipar,1};
+      hl = HL{ipar,nhl};
       t1 = ll.EKE;
       rr = (ic+1):(ic+size(t1,2));
       lke(ic+1:ic+size(t1,2)) = t1;
@@ -65,13 +67,25 @@ end
 
 if (doFit || handFit)
    disp('building models');
-   mixKEdiag = Mixer([0 0],2);
-   mixKEbond = Mixer(0,1);
    m = cell(1,size(params,2));
    for ipar = params
       m{ipar} = Model3(LL{ipar,1},LL{ipar,2},LL{ipar,3});
-      m{ipar}.addKEmodDiag(1,1,mixKEdiag);
-      m{ipar}.addKEmodBonded(1,1,1,1,mixKEbond);
+   end
+   if (includeKEmods)
+      mixKEdiag = Mixer([0 0],2);
+      mixKEbond = Mixer(0,1);
+      for ipar = params
+         m{ipar}.addKEmodDiag(1,1,mixKEdiag);
+         m{ipar}.addKEmodBonded(1,1,1,1,mixKEbond);
+      end
+   end
+   if (includeENmods)
+      mixENdiag = Mixer([0 0],2);
+      mixENbond = Mixer(0,1);
+      for ipar = params
+         m{ipar}.addENmodDiag(1,1,mixENdiag);
+         m{ipar}.addENmodBonded(1,1,1,1,mixENbond);
+      end
    end
 end
 
@@ -79,7 +93,7 @@ if (handFit)
    ic = 0;
    for ipar = params
       ll = LL{ipar,1};
-      hl = HL{ipar,1};
+      hl = HL{ipar,nhl};
       t1 = ll.EKE;
       rr = (ic+1):(ic+size(t1,2));
       lke(rr) = t1;
@@ -114,11 +128,12 @@ if (doFit)
    disp('Starting to do parameter fitting');
    f1 = Fitme;
    for ipar = params
-      f1.addFrag(m{ipar},HL{ipar,1});
+      f1.addFrag(m{ipar},HL{ipar,nhl});
    end
    f1.exactDensity = 1;
    nn = params(1);
-   f1.includeEN = zeros(1,m{nn}.natom);
+   f1.includeKE = includeKEmods;
+   f1.includeEN = includeENmods * ones(1,m{nn}.natom);
    
    nfitpar = m{nn}.npar;
    start = zeros(1,nfitpar);
@@ -146,16 +161,18 @@ if (plotResults)
    ic = 0;
    for ipar = params
       ll = LL{ipar,1};
-      hl = HL{ipar,1};
+      hl = HL{ipar,nhl};
       t1 = ll.EKE;
       rr = (ic+1):(ic+size(t1,2));
       lke(rr) = t1;
       hke(rr) = hl.EKE;
+      le1(rr) = ll.Een(1);
+      he1(rr) = hl.Een(1);
       disp(['starting calc on ipar ',num2str(ipar)]);
       m{ipar}.setPar(pt);
       m{ipar}.solveHF;
-      t1 = m{ipar}.EKE;
-      mke(rr) = t1;
+      mke(rr) = m{ipar}.EKE;
+      me1(rr) = m{ipar}.Een(1);
       ic = ic + size(t1,2);
    end
    figure(100);
@@ -164,6 +181,19 @@ if (plotResults)
    hold on;
    plot(lke,lke,'k.');
    plot(lke,mke,'b.');
+   title('ke')
    figure(200);
    plot(mke,hke,'g.');
+   title('ke')
+   
+   figure(101);
+   hold off;
+   plot(le1,he1,'r.');
+   hold on;
+   plot(le1,le1,'k.');
+   plot(le1,me1,'b.');
+   title('EN')
+   figure(201);
+   plot(me1,he1,'g.');
+   title('EN')
 end
