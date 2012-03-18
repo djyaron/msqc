@@ -35,8 +35,10 @@ if (found)
    load(calcfilename, 'envResults')
 else
    disp(['not found, generating ',calcfilename]);
-   
+   tempDir = tempname([obj.gaussianPath,filesep,'Scratch']);
+   mkdir(tempDir);
    % Do the calculation and read in data
+   setenv('GAUSS_EXEDIR', obj.gaussianPath);
    jobname = 'env';
    newline = char(10);
    
@@ -91,107 +93,75 @@ else
    end
    
    gjf_file = [jobname,'.gjf'];
-   origdir = cd(obj.dataPath);
+   origdir = cd(tempDir);
    fid1 = fopen(gjf_file,'w');
    fwrite(fid1, ctext, 'char');
    fclose(fid1);
    
-   dataPath = obj.dataPath;
-   resp1 = 1; resp2 = 1; count = 1; failed = 0;
-   while ( resp1 ~= 0 || resp2 ~= 0 )
-       count = count + 1;
-       try
-           resp1 = system([obj.gaussianPath,'\',obj.gaussianExe,' ',gjf_file]);
-           % convert checkpoint file to a formatted checkpoint file
-           resp2 = system([obj.gaussianPath,'\formchk.exe temp.chk temp.fch']);
-           %disp( resp1 );
-           %disp( resp2 );
-           if ( resp1 == 1 )
-               disp( '  Error Termination' );
-           end
-           if ( resp1 == 2057 )
-               disp( '  removing temporary files' );
-               delete( 'fort.6', 'gxx.d2e', 'gxx.inp', 'gxx.int', 'gxx.scr', ...
-                   'temp.chk', 'temp.fch', 'temp.rwf' )
-           end
-       catch
-           disp( 'Failed, retrying...' );
-           resp1 = 1; resp2 = 1;
-       end
-       if ( count > 10 )
-           disp( 'CANNOT COMPLETE CALCULATION. CONTINUING.' );
-           failed = 1;
-           break;
-       end
-   end
+   dataPath = tempDir;
+   system([obj.gaussianPath,filesep,obj.gaussianExe,' ',gjf_file]);
+   % convert checkpoint file to a formatted checkpoint file
+   system([obj.gaussianPath,'\formchk.exe temp.chk temp.fch']);
    cd(origdir);
-   %if ~failed
-       % read in data from formatted checkpoint file
-       try
-          fid1 = fopen([dataPath,'\temp.fch'],'r');
-          if (fid1 == -1)
-             error('could not find fch file');
-          end
-          [MP2e,Ehfe, Eorbe, orbe, ~,  ~, ~, ...
-             dipolee, ~, ~, ~, ...
-             ~, ~, ~] = ...
-             Fragment.readfchk(fid1);
-          fclose(fid1);
-       catch
-          disp('caught some stupid error');
-          fclose(fid1);
-          error('failed during env fchk read');
-       end
-       % read in data from the polyatom output file
-       try
-          fid1 = fopen([dataPath,'\fort.32'],'r');
-          if (fid1 == -1)
-             error(['could not find ',dataPath,'\fort.32']);
-          end
-          [~, H1e, ~, ~, Hnuce] = Fragment.readpolyatom(fid1);
-          fclose(fid1);
-       catch
-          fclose(fid1);
-          error('failed during polyatom read');
-       end
+   % read in data from formatted checkpoint file
+   try
+      fid1 = fopen([dataPath,filesep,'temp.fch'],'r');
+      if (fid1 == -1)
+         error('could not find fch file');
+      end
 
-       envResults.H1Env = H1e - obj.H1;
-       envResults.Ehf   = Ehfe;
-       envResults.MP2   = MP2e;
-       envResults.Eorb  = Eorbe;
-       envResults.orb   = orbe;
-       envResults.Hnuc  = Hnuce;
-       envResults.dipole = dipolee;
-       % cleanup files
-       %    delete([dataPath,'\fort.32'], [dataPath,'\env.gjf'], ...
-       %       [dataPath,'\env.out'], [dataPath,'\temp.chk'], ...
-       %       [dataPath,'\temp.fch']);
-
-       % save environment ot the cfg file
-       envFile = envTarget;
-       save(cfgfilename,'envFile');
-       % save envResults to calcfile
-       save(calcfilename,'envResults');
-%    else
-%        envResults.H1Env = 0;
-%        envResults.Ehf   = 0;
-%        envResults.MP2   = 0;
-%        envResults.Eorb  = 0;
-%        envResults.orb   = 0;
-%        envResults.Hnuc  = 0;
-%        envResults.dipole = 0;
-%    end
+   [CorrEe, MP2e, Ehfe, Eorbe, orbe, junk,  junk2, junk3, ...
+    dipolee, junk4, junk5, junk6, ...
+    junk7, junk8, junk9] = ...
+    Fragment.readfchk(fid1);
+      fclose(fid1);
+   catch
+      disp('caught some stupid error');
+      fclose(fid1);
+      error('failed during env fchk read');
+   end
+   % read in data from the polyatom output file
+   try
+      fid1 = fopen([dataPath,filesep,'fort.32'],'r');%,'b');
+      if (fid1 == -1)
+         error(['could not find ',dataPath,filesep,'fort.32']);
+      end
+      [junk1, H1e, junk2, junk3, Hnuce] = Fragment.readpolyatom(fid1);
+      fclose(fid1);
+   catch
+      fclose(fid1);
+      error('failed during polyatom read');
+   end
+   
+   envResults.H1Env = H1e - obj.H1;
+   envResults.Ehf   = Ehfe;
+   envResults.MP2   = MP2e;
+   envResults.Eorb  = Eorbe;
+   envResults.orb   = orbe;
+   envResults.Hnuc  = Hnuce;
+   envResults.dipole = dipolee;
+   % cleanup files
+   rmdir(tempDir,'s');
+   %    delete([dataPath,'\fort.32'], [dataPath,'\env.gjf'], ...
+   %       [dataPath,'\env.out'], [dataPath,'\temp.chk'], ...
+   %       [dataPath,'\temp.fch']);
+   
+   % save environment ot the cfg file
+   envFile = envTarget;
+   save(cfgfilename,'envFile');
+   % save envResults to calcfile
+   save(calcfilename,'envResults');
 end % if (found)
 
 % save data in the object
 obj.nenv = obj.nenv + 1;
 obj.env(1,obj.nenv) = envTarget;
 obj.H1Env(:,:,obj.nenv) = envResults.H1Env;
-obj.MP2Env(1,obj.nenv) = envResults.MP2;
+if (isfield(envResults,'MP2'))
+   obj.MP2Env(1,obj.nenv) = envResults.MP2;
+end
 obj.EhfEnv(1,obj.nenv)  = envResults.Ehf;
 obj.EorbEnv(:,obj.nenv) = envResults.Eorb;
 obj.HnucEnv(:,obj.nenv) = envResults.Hnuc;
 obj.orbEnv(:,:,obj.nenv)  = envResults.orb;
 obj.dipoleEnv(:,obj.nenv) = envResults.dipole;
-
-

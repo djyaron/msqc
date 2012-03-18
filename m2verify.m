@@ -1,6 +1,6 @@
 %% Get some test fragments
 clear all;
-root = 'c:\dave\apoly\msqc\';
+root = 'C:\Users\Matteus\Research\msqc\';
 load('ethane4/env2.mat');
 config = Fragment.defaultConfig();
 par = [1.54 1.12 60];

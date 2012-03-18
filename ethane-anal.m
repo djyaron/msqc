@@ -1,13 +1,15 @@
 %% Load data
 clear classes;
-root = 'c:\dave\apoly\msqc\';
+
+root = 'c:\Users\Matteus\Research\msqc\';
+%load('ethane2/env2.mat');
 % Generate environments for production runs
-if (exist('ethane4/env2.mat','file'))
+if (exist('ethane4mp2/env2.mat','file'))
    disp('loading existing environments');
-   load('ethane4/env2.mat');
+   load('ethane4mp2/env2.mat');
 else
    mag = 15.0;
-   nenv = 100;
+   nenv = 50;
    cubSize = [6,6,6];
    cent = [0.77; 0; 0];
    for ienv = 1:nenv
@@ -15,8 +17,9 @@ else
       temp.displace(cent);
       env{ienv} = temp;
    end
-   save('ethane4/env2.mat','env');
+   save('ethane4mp2/env2.mat','env');
 end
+
 nenv = size(env,2);
 pars{1} = [1.54 1.12 60];
 pars{2} = [1.54 1.12 30];
@@ -26,11 +29,14 @@ pars{5} = [1.69 1.12 60];
 pars{6} = [1.54 0.97 60];
 pars{7} = [1.54 1.27 60];
 npar = size(pars,2);
-HLbasis = {'6-31G' '6-31G*' '6-31G**'};
+
+HLmethod = 'HF';
+HLbasis = {'6-31G**'}; %{'6-31G' '6-31G*' '6-31G**'};
+
 HL = cell(npar,3);
 LL = cell(npar,3);
 %%
-for ipar = 1:size(pars,2)
+for ipar = 1:npar
    par = pars{ipar};
    disp(['rcc ',num2str(par(1)), ...
       ' rch ',num2str(par(2)), ...
@@ -44,6 +50,7 @@ for ipar = 1:size(pars,2)
    for ihl = 1:size(HLbasis,2)
       config.template = 'ethane1';
       config.basisSet = HLbasis{ihl};
+      config.method = 'HF';
       disp(['ipar ',num2str(ipar),' loading HL ',num2str(ihl)]);
       frag1 = Fragment([root,'ethane4mp2'], config);
       for ienv = 1:nenv
@@ -54,6 +61,7 @@ for ipar = 1:size(pars,2)
    end
    % LL 1
    config.basisSet = 'STO-3G';
+   config.method = 'HF';
    frag2 = Fragment([root,'ethane4mp2'], config);
    disp(['ipar ',num2str(ipar),' loading LL 1']);
    for ienv = 1:nenv
@@ -86,8 +94,10 @@ for ipar = 1:size(pars,2)
    LL{ipar,3} = frag4;
 end
 
+
 %% since even loading all the files will take time, we'll dave everything
 save('ethane4mp2/ethaneDat.mat');
+
 
 %% Aggregator fits
 %clear classes;
@@ -113,14 +123,17 @@ fit = lsqnonlin(@agg.err2, [1 1 1 1 1 1 1 1]);
 %%
 [diff, ehigh, epred]  = agg.err1(fit);
 %%
-save([root,'ethane2\data3.mat'],'HL','LL');
+%save([root,'ethane2\datamp2.mat'],'HL','LL');
 %%
-clear classes;
-%root = 'c:\dave\apoly\msqc\';
-load(['ethane2\data3.mat']);
+%clear classes;
+%load(['ethane2\datamp2.mat']);
+
 %% determine the energy of interaction with the environment
-EHL = cell(7,1);
-for ipar = 1:7
+ihl = size(HL,1);
+ill = size(LL,1);
+
+EHL = cell(ihl,1);
+for ipar = 1:ihl
    frag = HL{ipar,1};
    Eenv = zeros(1,frag.nenv);
    for ienv = 1:frag.nenv
@@ -129,8 +142,8 @@ for ipar = 1:7
    end
    EHL{ipar,1} = Eenv;
 end
-ELL = cell(7,3);
-for ipar = 1:7
+ELL = cell(ill,3);
+for ipar = 1:ill
    for i2 = 1:3
       frag = LL{ipar,i2};
       Eenv = zeros(1,frag.nenv);
@@ -267,13 +280,13 @@ plot(-BHHL,-BHpred,'rx');
 %plot(-BHHL,-BHHL,'k-');
 
 %% PLaying with model2
-clear classes;
-load('ethanefixed.mat');
+%clear classes;
+%load('ethane4/ethaneDat.mat');
 
 f1 = LL{1,1};
 f2 = LL{1,2};
 f3 = LL{1,3};
-fhl = LL{1,1};
+fhl = HL{1,1};
 
 m2 = Model2(f1, f2, f3, fhl);
 m2.par = [0 0 0 0];

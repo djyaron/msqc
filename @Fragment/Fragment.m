@@ -22,6 +22,7 @@ classdef Fragment < handle
             
       Ehf     % Hartree Fock energy
       MP2     % MP2 Energy
+      %CorrE   % Correlation Energy (MP2-Ehf)
       Eorb    % (nbasis,1)      molecular orbital energies
       orb     % (nbasis,nbasis) molecular orbital coefficients
       dipole  % (3,1)   dipole moment of molecule
@@ -35,6 +36,7 @@ classdef Fragment < handle
 
       EhfEnv   % (1,nenv)        Hartree-Fock energy in env
       MP2Env   % (1,nenv)        MP2 energy in env
+      %CorrEenv % (1,nenv)        Correlation energy in env (MP2env-HFenv)
       EorbEnv; % (nbasis,nenv)   molecular orbital energies in env
       orbEnv;  % (nbasis,nbasis,nenv) molecular orbitals in env
       dipoleEnv % (3,nenv) dipole moment in the environment
@@ -77,7 +79,7 @@ classdef Fragment < handle
          res.par      = [];
       end
       [found,fileprefix] = findCalc(dataPath,config)
-      [MP2, Ehf, Eorb, orb, Nelectrons,  Z, rcart, ...
+      [CorrE, MP2, Ehf, Eorb, orb, Nelectrons,  Z, rcart, ...
          dipole, mulliken, ...
        atom, type, subtype, nprims, prims ] = readfchk(fid1)
       [Eorb, orb, atom, Nelectrons, Ehf] = oldreadfchk(fid1)
@@ -139,6 +141,7 @@ classdef Fragment < handle
          obj.H1Env = zeros(obj.nbasis, obj.nbasis, nenvIn);
          obj.EhfEnv = zeros(1,nenvIn);
          obj.MP2Env = zeros(1,nenvIn);
+         obj.CorrEenv  = zeros(1,nenvIn);
          obj.EorbEnv = zeros(obj.nbasis, nenvIn);
          obj.orbEnv  = zeros(obj.nbasis,obj.nbasis,nenvIn);
          obj.dipoleEnv = zeros(3,nenvIn);

@@ -40,27 +40,7 @@ X = inv(sqrtm(S));
  %step 4 -- Guess at density matrix -- all zeros right now
 if ((size(obj.densitySave{ienv+1},1) == 0) && ...
       (size(obj.densitySave{1},1) == 0))
-   Pn = zeros(obj.nbasis); % starting density matrix
-   for iatom = 1:obj.natom
-      charge = obj.Z(iatom);
-      if (charge == 1) % hydrogen
-         b1 = find(obj.basisAtom == iatom);
-         if (size(b1,1) ~= 1)
-            error('hartreeFock.m: only works for sto-3g');
-         end
-         Pn(b1(1),b1(1)) = 1.0;
-      else
-         b1 = find(obj.basisAtom == iatom);
-         if (size(b1,1) ~= 5)
-            error('hartreeFock.m: only works for sto-3g');
-         end
-         Pn(b1(1),b1(1)) = 2.0;
-         valence = (charge-2.0)/4;
-         for i1 = 2:5
-            Pn(b1(i1),b1(i1)) = valence;
-         end
-      end
-   end
+   Pn = obj.frag.density(ienv);
 elseif (size(obj.densitySave{ienv+1},1) == 0)
    Pn = obj.densitySave{1};
 else
@@ -70,24 +50,51 @@ end
 Plast = Pn; % previous density matrix
 iter = 0;
 finished = false;
+
+% For use in updating charges
+% arange = cell(obj.natom,1);
+% for iatom = 1:obj.natom
+%    arange{iatom} = find(obj.basisAtom == iatom);
+% end
+
 %Begin iteration through 
 while (~finished) %step 11 -- Test convergence
-    
-    P = 0.5 * Pn + 0.5 * Plast;  
-    %step 5 -- Build 2-electron components of Fock matrix
-    G = zeros(Nbasis);
-    for i = 1:Nbasis
-        for j = 1:Nbasis
-            for k = 1:Nbasis
-                for l = 1:Nbasis
-                    
-                G(i,j) = G(i,j) + P(k,l)*(H2(i,j,l,k)-(1/2)*H2(i,k,l,j));
-           
-                end
-            end
-        end
-    end
-    
+
+   P = 0.5 * Pn + 0.5 * Plast;
+   
+   % update charges
+%    if (iter > 0)
+%       Q = zeros(size(obj.Z));
+%       GAP = zeros(1,obj.natom);
+%       P1 = P.*obj.S;
+%       GOP = sum(P,1);
+%       for i = 1:obj.natom
+%          GAP(i) = sum(GOP(1,arange{i}));
+%          Q(i) = obj.Z(i)-GAP(i);
+%       end
+%       obj.charges(:,ienv+1) = Q;
+%       H1 = obj.H1(ienv);
+%    end
+   %step 5 -- Build 2-electron components of Fock matrix
+   G = zeros(Nbasis);
+   %     for i = 1:Nbasis
+   %         for j = 1:Nbasis
+   %             for k = 1:Nbasis
+   %                 for l = 1:Nbasis
+   %
+   %                 G(i,j) = G(i,j) + P(k,l)*(H2(i,j,l,k)-(1/2)*H2(i,k,l,j));
+   %
+   %                 end
+   %             end
+   %         end
+   %     end
+   for i=1:Nbasis
+      for j=1:Nbasis
+         t1 = sum(sum( P'.* obj.H2j{i,j} ));
+         t2 = sum(sum( P'.* obj.H2k{i,j} ));
+         G(i,j) = G(i,j) + t1 - t2/2;
+      end
+   end
     %step 6 -- Obtain F (fock matrix)
     F = H1 + G;
     
@@ -106,15 +113,17 @@ while (~finished) %step 11 -- Test convergence
     %step 10 -- Calculate the new density matrix
     Plast = Pn;
     Pn = zeros(Nbasis);
-    Cj = conj(C);
-    for i = 1:Nbasis
-        for j = 1:Nbasis
-            for a = 1:(Nelec/2)
-                Pn(i,j) = Pn(i,j) + (C(i,a)*Cj(j,a));
-            end
-            Pn(i,j) = Pn(i,j)*2;
-        end
-    end
+    %Cj = conj(C);
+    filled = 1:(Nelec/2);
+    Pn = 2* C(:,filled)*( C(:,filled)');
+%     for i = 1:Nbasis
+%         for j = 1:Nbasis
+%             for a = 1:(Nelec/2)
+%                 Pn(i,j) = Pn(i,j) + (C(i,a)*Cj(j,a));
+%             end
+%             Pn(i,j) = Pn(i,j)*2;
+%         end
+%     end
     iter = iter + 1;
     %disp(['den change ',num2str( max(max(abs(P-Pn))))]);
     if (iter > maxIter)
@@ -135,12 +144,13 @@ if (iter < maxIter)
    
    %Total energy
    %3.184: E0 = 1/2 Sum(i,j) {P(j,i)[H1(i,j) + F(i,j)]}
-   Ee = 0;
-   for i = 1:Nbasis
-      for j = 1:Nbasis
-         Ee = Ee + P(j,i)*(H1(i,j)+F(i,j));
-      end
-   end
+%    Ee = 0;
+%    for i = 1:Nbasis
+%       for j = 1:Nbasis
+%          Ee = Ee + P(j,i)*(H1(i,j)+F(i,j));
+%       end
+%    end
+   Ee = sum(sum(P.*(H1+F)));
    Ehf = Ee/2 + Enuc;
    
    %Orbital energies

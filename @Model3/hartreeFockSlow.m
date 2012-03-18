@@ -1,4 +1,4 @@
-function [orb,Eorb,Ehf] = hartreeFock(obj,ienv,eps,maxIter,minIter)
+function [orb,Eorb,Ehf] = hartreeFockSlow(obj,ienv,eps,maxIter,minIter)
 % Solve Hartree Fock equations
 % Input:
 %   obj:  Holds hamiltonian information (H1,H2,S,nelec,Hnuc,H1env,HnucEnv)
@@ -40,27 +40,7 @@ X = inv(sqrtm(S));
  %step 4 -- Guess at density matrix -- all zeros right now
 if ((size(obj.densitySave{ienv+1},1) == 0) && ...
       (size(obj.densitySave{1},1) == 0))
-   Pn = zeros(obj.nbasis); % starting density matrix
-   for iatom = 1:obj.natom
-      charge = obj.Z(iatom);
-      if (charge == 1) % hydrogen
-         b1 = find(obj.basisAtom == iatom);
-         if (size(b1,1) ~= 1)
-            error('hartreeFock.m: only works for sto-3g');
-         end
-         Pn(b1(1),b1(1)) = 1.0;
-      else
-         b1 = find(obj.basisAtom == iatom);
-         if (size(b1,1) ~= 5)
-            error('hartreeFock.m: only works for sto-3g');
-         end
-         Pn(b1(1),b1(1)) = 2.0;
-         valence = (charge-2.0)/4;
-         for i1 = 2:5
-            Pn(b1(i1),b1(i1)) = valence;
-         end
-      end
-   end
+   Pn = obj.frag.density(ienv);
 elseif (size(obj.densitySave{ienv+1},1) == 0)
    Pn = obj.densitySave{1};
 else

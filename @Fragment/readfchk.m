@@ -1,4 +1,4 @@
-function [MP2, Ehf, Eorb, orb, Nelectrons, Z, rcart, ...
+function [CorrE, MP2, Ehf, Eorb, orb, Nelectrons, Z, rcart, ...
          dipole, mulliken, ...
           atom, type, subtype, nprims, prims ] = readfchk(fid1)
 % reads contents of a formatted checkpoint file from Gaussian
@@ -76,6 +76,9 @@ if loc == 0
 else
 MP2 = str2double(text{loc+3});
 end
+
+%Correlation Energy
+ CorrE = MP2-Ehf;
 
 % the atomic numbers (Z) are after 'Atomic numbers'
 phrase = {'Atomic','numbers'};
