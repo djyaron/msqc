@@ -8,16 +8,20 @@ classdef Mixer < handle
    end
    
    methods
-      function obj = Mixer(parIn,mixType)
-          if (nargin < 1)
-             parIn = [0];
-          end
-          if (nargin < 2)
-             mixType = 0;
-          end
-          obj.par = parIn;
-          obj.mixType = mixType;
-          obj.fixed = zeros(size(parIn));
+      function obj = Mixer(parIn,mixType,desc)
+         if (nargin < 3)
+            desc = ' ';
+         end
+         if (nargin < 1)
+            parIn = [0];
+         end
+         if (nargin < 2)
+            mixType = 0;
+         end
+         obj.par = parIn;
+         obj.mixType = mixType;
+         obj.fixed = zeros(size(parIn));
+         obj.desc = desc;
       end
       function res = npar(obj)
          res = sum(obj.fixed == 0);
@@ -26,6 +30,14 @@ classdef Mixer < handle
          ic = find(obj.fixed == 0);
          if (size(ic,2) > 0)
             obj.par(ic) = pars;
+         end
+      end
+      function res = getPars(obj)
+         ic = find(obj.fixed == 0);
+         if (size(ic,2) > 0)
+            res = obj.par(ic);
+         else
+            res = [];
          end
       end
       function res = mix(obj, v1, v2, model, ii, jj, ienv)
@@ -67,7 +79,11 @@ classdef Mixer < handle
             error(['unknown mix type in Mixer: ',num2str(obj.mixType)]);
          end
       end
+      function print(obj)
+         types = {'sigmoid','linear','ch-dep'};
+         disp(['Mixer=',obj.desc,' type=',types(obj.mixType),' par=',...
+            num2str(obj.par)]);
+      end
    end
-   
 end
 

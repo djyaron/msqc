@@ -2,161 +2,172 @@ classdef Fitme < handle
    properties
       models  % {1,nmodels}  cell array of models
       HLs     % {1,nmodels}  cell array to fit to
-      HLKE    % {1,nmodels}(1,nenv+1) KE energy
-      HLEN    % {1,nmodels}(natom,nenv+1) electron-nuclear interaction
+      HLKE    % {1,nmodels}(1,nenv) KE energy
+      HLEN    % {1,nmodels}(natom,nenv) electron-nuclear interaction
+      mixers  % {1,nmixer}   cell
       
+      envs      % {1,nmodels} list of environments to include in fit
       includeKE % include kinetic energy in fit
-      includeEN % {1,natoms} include individual electron-nuclear operators
-      exactDensity % re-evaluate density matrix on every call to err()
+      includeEN % {1,Z} include elec-nuc operators for element Z
       
       parHF   % Last parameters for which HF was solved
+      epsDensity % re-evaluate density matrix if par change > eps
    end
    methods
       function res = Fitme
          res.models = cell(0,0);
          res.HLs    = cell(0,0);
          res.HLKE   = cell(0,0);
-         res.exactDensity = 0;
+         res.epsDensity = 0.0;
          res.includeKE = 1;
-         res.includeEN = [];
+         res.includeEN = zeros(1,6);
+         res.parHF = [];
+      end
+      function addMixer(obj, mix)
+         add = 1;
+         for i=1:size(obj.mixers,2)
+            if (mix == obj.mixers{1,i})
+               add = 0;
+               break;
+            end
+         end
+         if (add == 1)
+            obj.mixers{1,end+1} = mix;
+         end
+      end
+      function addMixers(obj,mixersIn)
+         % mixes is a cell array (1,:) of mixers
+         for i=1:size(mixersIn,2)
+            obj.addMixer(mixersIn{i});
+         end
       end
       function addFrag(obj,model,HL)
          obj.models{1,end+1} = model;
+         obj.addMixers(model.mixers);
          obj.HLs{1,end+1} = HL;
-         ke = zeros(1,HL.nenv+1);
-         for ienv = 0:HL.nenv
-            ke(1,ienv+1) = sum(sum( HL.partitionE1(ienv, HL.KE) ));
+      end
+      function setEnvs(obj,envsIn)
+         % currently assumes same environments for every frag/model
+         obj.envs = cell(1,obj.nmodels);
+         for i=1:obj.nmodels
+            obj.envs{1,i} = envsIn;
          end
-         obj.HLKE{1,end+1} = ke;
-         en = zeros(HL.natom, HL.nenv+1);
-         for iatom = 1:HL.natom
-            for ienv = 0:HL.nenv
-               en(iatom,ienv+1) = sum(sum( HL.partitionE1(ienv, ...
-                  HL.H1en(:,:,iatom)) ));
+         obj.HLKE = cell(0,0);
+         obj.HLEN = cell(0,0);
+         for imod = 1:obj.nmodels
+            envs1 = obj.envs{1,i};
+            HL = obj.HLs{imod};
+            obj.HLKE{1,end+1} = HL.EKE(envs1);
+            nenv = size(envs1,2);
+            en = zeros(HL.natom, nenv);
+            for iatom = 1:HL.natom
+               en(iatom,:) = HL.Een(iatom,envs1);
             end
+            obj.HLEN{1,end+1} = en;
          end
-         obj.HLEN{1,end+1} = en;
-         if (size(obj.includeEN,1) == 0)
-            obj.includeEN = ones(1,HL.natom);
-         end
+         obj.parHF = [];
       end
       function res = nmodels(obj)
          res = size(obj.models,2);
       end
-      function updateDensity(obj,par)
-         for i = 1:obj.nmodels
-            obj.models{i}.setPar(par);
-            obj.models{i}.solveHF();
+      function res = npar(obj)
+         res = 0;
+         for i=1:size(obj.mixers,2)
+            res = res + obj.mixers{i}.npar;
          end
-         obj.parHF = par;
+      end
+      function res = getPars(obj)
+         res = zeros(1,obj.npar);
+         ic = 1;
+         for i = 1:size(obj.mixers,2)
+            mtemp = obj.mixers{1,i};
+            np = mtemp.npar;
+            if (np > 0)
+               res(ic:(ic+np-1)) = mtemp.getPars;
+            end
+            ic = ic + np;
+         end
+      end
+      function setPars(obj,par)
+         % sets parameters, and updates densities
+         if (size(par,2) ~= obj.npar)
+            error(['Fitme.SetPars called with ',num2str(size(par,2)), ...
+               ' parameters when ',num2str(obj.npar),' are needed ']);
+         end
+         ic = 1;
+         for i = 1:size(obj.mixers,2)
+            mtemp = obj.mixers{1,i};
+            np = mtemp.npar;
+            if (np > 0)
+               mtemp.setPars( par(ic:(ic+np-1)));
+            end
+            ic = ic + np;
+         end
+      end
+      function updateDensity(obj)
+         par = obj.getPars;
+         if (size(obj.parHF,1) == 0)
+            dpar = 1e10;
+         else
+            dpar = max(abs(obj.parHF-par));
+         end
+         if (dpar > obj.epsDensity)
+            disp(['solving for density matrices']);
+            for imod = 1:obj.nmodels
+               obj.models{imod}.solveHF(obj.envs{1,imod});
+            end
+            obj.parHF = par;
+         end
+      end
+      function res = ndata(obj)
+         ic = 0;
+         for imod = 1:obj.nmodels
+            if (obj.includeKE == 1)
+               ic = ic + size(obj.HLKE{1,imod},2);
+            end
+            for iatom = 1:obj.HLs{imod}.natom
+               if (obj.includeEN( obj.HLs{imod}.Z(iatom) ))
+                  ic = ic + size(obj.HLEN{imod}(iatom,:),2);
+               end
+            end
+         end
+         res = ic;
       end
       function res = err(obj,par)
-         flip = 0;
+         flip = 0; % to handle fit routines that pass row or column
          if (size(par,1)>size(par,2))
             par = par';
             flip = 1;
          end
          disp(['Fitme.err called with par = ',num2str(par)]);
+         obj.setPars(par);
+         obj.updateDensity();
+
+         ic = 1;
+         ndat = obj.ndata;
+         res = zeros(1,ndat);
          for imod = 1:obj.nmodels
-            obj.models{imod}.setPar(par);
-         end
-         if (size(obj.parHF,1) == 0)
-            dpar = 1;
-         else
-            dpar = max(abs(obj.parHF-par));
-         end
-         if (obj.exactDensity && (dpar > -1))
-            disp(['solving for density matrices']);
-            for imod = 1:obj.nmodels
-               obj.models{imod}.solveHF();
-            end
-            obj.parHF = par;
-         end
-         % Do sum over all orbitals
-         sumRange = cell(1,1);
-         ic = 0;
-         for imod = 1:obj.nmodels
-            sumRange{1,1} = 1:obj.models{imod}.nbasis;
             if (obj.includeKE == 1)
-               for ienv = 0:obj.models{imod}.nenv
-                  ic = ic + 1;
-                  res(ic) = obj.models{imod}.partitionE1(ienv , ...
-                     obj.models{imod}.KE(ienv), sumRange) - ...
-                     obj.HLKE{1,imod}(ienv+1);
-               end
+               t1 = obj.HLKE{1,imod} - ...
+                  obj.models{imod}.EKE(obj.envs{1,imod});
+               n = size(t1,2);
+               res(1,ic:(ic+n-1))= t1;
+               ic = ic + n;
             end
-            for iatom = 1:obj.models{imod}.natom
-               if (obj.includeEN(iatom) == 1)
-                  for ienv = 0:obj.models{imod}.nenv
-                     ic = ic+1;
-                     res(ic) = obj.models{imod}.partitionE1(ienv, ...
-                        obj.models{imod}.H1en(iatom,ienv), sumRange) - ...
-                        obj.HLEN{1,imod}(iatom,ienv+1);
-                  end
+            for iatom = 1:obj.HLs{imod}.natom
+               if (obj.includeEN( obj.HLs{imod}.Z(iatom) ))
+                  t1 = obj.HLEN{imod}(iatom,:) - ...
+                     obj.models{imod}.Een(iatom,obj.envs{1,imod});
+                  n = size(t1,2);
+                  res(1,ic:(ic+n-1)) = t1;
+                  ic = ic + n;
                end
             end
          end
-         disp(['RMS err = ',num2str(sqrt(res*res')/ic)]);
-         % figure(101)
-         % plot(res,'r.');
+         disp(['RMS err/ndata = ',num2str(sqrt(res*res')/ndat)]);
          if (flip == 1)
             res = res';
          end
-      end
-      function res = errDiffs(obj,par)
-         disp(['Fitme.err called with par = ',num2str(par)]);
-         for imod = 1:obj.nmodels
-            obj.models{imod}.setPar(par);
-         end
-         if (size(obj.parHF,1) == 0)
-            dpar = 1;
-         else
-            dpar = max(abs(obj.parHF-par));
-         end
-         if (obj.exactDensity && (dpar > -1))
-            disp(['solving for density matrices']);
-            for imod = 1:obj.nmodels
-               obj.models{imod}.solveHF();
-            end
-            obj.parHF = par;
-         end
-         % Do sum over all orbitals
-         sumRange = cell(1,1);
-         ic = 0;
-         for imod = 1:obj.nmodels
-            if (obj.includeKE)
-               sumRange{1,1} = 1:obj.models{imod}.nbasis;
-               LL0 = obj.models{imod}.partitionE1(0 , ...
-                  obj.models{imod}.KE(0), sumRange);
-               HL0 =  obj.HLKE{1,imod}(1);
-               %ic = ic+1;
-               %res(ic) = LL0-HL0;
-               for ienv = 1:obj.models{imod}.nenv
-                  ic = ic + 1;
-                  res(ic) = (obj.models{imod}.partitionE1(ienv , ...
-                     obj.models{imod}.KE(ienv), sumRange)-LL0) - ...
-                     (obj.HLKE{1,imod}(ienv+1)-HL0);
-               end
-            end
-            for iatom = 1:obj.models{imod}.natom
-               if (obj.includeEN(iatom))
-                  LL0 = obj.models{imod}.partitionE1(0, ...
-                     obj.models{imod}.H1en(iatom), sumRange);
-                  HL0 =  obj.HLEN{1,imod}(iatom,1);
-                  %ic = ic+1;
-                  %res(ic) = LL0-HL0;
-                  for ienv = 0:obj.models{imod}.nenv
-                     ic = ic+1;
-                     res(ic) = (obj.models{imod}.partitionE1(ienv, ...
-                        obj.models{imod}.H1en(iatom), sumRange)-LL0) - ...
-                        (obj.HLEN{1,imod}(iatom,ienv+1)-HL0);
-                  end
-               end
-            end
-         end
-         figure(101)
-         plot(res,'r.');
-         disp(['RMS err = ',num2str(sqrt(res*res')/ic)]);
       end
    end   
 end
