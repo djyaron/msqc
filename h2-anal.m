@@ -1,15 +1,16 @@
 clear classes;
 reload = 1;
-nhl = 2;
+nhl = 1;
 plotCorrelations = 0;
 includeKEmods = 1;
-includeENmods = 1;
+includeENmods = 0;
 handFit = 0;
 doFit = 1;
 plotResults = 1;
 useStart = 1;
-pstart =  [-0.5 3 7 0 0 0];
-params = 2:7;
+pstart =  [-0.5 3 7];% 0 0 0];
+params = 2:7; % geometries to include
+envs = 0:20; % environments to include in fit
 
 if (reload)
    load('h2/h2Dat.mat');
@@ -30,13 +31,11 @@ if (plotCorrelations)
       le2(ic+1:ic+size(t1,2)) = ll.Een(2);
       he1(ic+1:ic+size(t1,2)) = hl.Een(1);
       he2(ic+1:ic+size(t1,2)) = hl.Een(2);
-      c1 = zeros(2,100);
-      c2 = zeros(2,100);
-      for ienv = 1:hl.nenv
+      for ienv = 0:hl.nenv
          mh = hl.mcharge(ienv);
          ml = ll.mcharge(ienv);
-         ch(:,ienv) = mh(1,:);
-         cl(:,ienv) = ml(1,:);
+         ch(:,ienv+1) = mh(1,:);
+         cl(:,ienv+1) = ml(1,:);
       end
       chl(:,rr) = ch;
       cll(:,rr) = cl;
@@ -101,13 +100,17 @@ if (handFit)
       ic = ic + size(t1,2);
    end
    while 1
-      p(1) = input('diag const ');
-      p(2) = input('diag charge ');
-      p(3) = input('bond const ');
+      
+      p(1) = input('KE diag const ');
+      p(2) = input('KE diag charge ');
+      p(3) = input('KE bond const ');
+      p(4) = input('EN diag const ');
+      p(5) = input('EN diag charge ');
+      p(6) = input('EN bond const ');
       ic = 0;
       for ipar = params
          disp(['starting calc on ipar ',num2str(ipar)]);
-         m{ipar}.setPar(p);
+         m{ipar}.setPars(p);
          m{ipar}.solveHF;
          t1 = m{ipar}.EKE;
          mke(ic+1:ic+size(t1,2)) = t1;
@@ -130,12 +133,10 @@ if (doFit)
    for ipar = params
       f1.addFrag(m{ipar},HL{ipar,nhl});
    end
-   f1.exactDensity = 1;
-   nn = params(1);
    f1.includeKE = includeKEmods;
-   f1.includeEN = includeENmods * ones(1,m{nn}.natom);
-   
-   nfitpar = m{nn}.npar;
+   f1.includeEN = includeENmods * ones(1,6);
+   f1.setEnvs(envs);
+   nfitpar = f1.npar;
    start = zeros(1,nfitpar);
    if (useStart)
       start = pstart;
@@ -169,7 +170,7 @@ if (plotResults)
       le1(rr) = ll.Een(1);
       he1(rr) = hl.Een(1);
       disp(['starting calc on ipar ',num2str(ipar)]);
-      m{ipar}.setPar(pt);
+      m{ipar}.setPars(pt);
       m{ipar}.solveHF;
       mke(rr) = m{ipar}.EKE;
       me1(rr) = m{ipar}.Een(1);
