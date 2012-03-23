@@ -81,7 +81,7 @@ classdef Mixer < handle
       end
       function print(obj)
          types = {'sigmoid','linear','ch-dep'};
-         disp(['Mixer=',obj.desc,' type=',types(obj.mixType),' par=',...
+         disp(['Mixer=',obj.desc,' type=',types(obj.mixType+1),' par=',...
             num2str(obj.par)]);
       end
    end
