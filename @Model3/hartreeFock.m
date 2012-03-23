@@ -52,10 +52,10 @@ iter = 0;
 finished = false;
 
 % For use in updating charges
-% arange = cell(obj.natom,1);
-% for iatom = 1:obj.natom
-%    arange{iatom} = find(obj.basisAtom == iatom);
-% end
+arange = cell(obj.natom,1);
+for iatom = 1:obj.natom
+   arange{iatom} = find(obj.basisAtom == iatom);
+end
 
 %Begin iteration through 
 while (~finished) %step 11 -- Test convergence
@@ -63,18 +63,18 @@ while (~finished) %step 11 -- Test convergence
    P = 0.5 * Pn + 0.5 * Plast;
    
    % update charges
-%    if (iter > 0)
-%       Q = zeros(size(obj.Z));
-%       GAP = zeros(1,obj.natom);
-%       P1 = P.*obj.S;
-%       GOP = sum(P,1);
-%       for i = 1:obj.natom
-%          GAP(i) = sum(GOP(1,arange{i}));
-%          Q(i) = obj.Z(i)-GAP(i);
-%       end
-%       obj.charges(:,ienv+1) = Q;
-%       H1 = obj.H1(ienv);
-%    end
+   if (iter > 0)
+      Q = zeros(size(obj.Z));
+      GAP = zeros(1,obj.natom);
+      P1 = P.*obj.S;
+      GOP = sum(P1,1);
+      for i = 1:obj.natom
+         GAP(i) = sum(GOP(1,arange{i}));
+         Q(i) = obj.Z(i)-GAP(i);
+      end
+      obj.charges(:,ienv+1) = Q;
+      H1 = obj.H1(ienv);
+   end
    %step 5 -- Build 2-electron components of Fock matrix
    G = zeros(Nbasis);
    %     for i = 1:Nbasis
