@@ -13,6 +13,9 @@ gaussianPath = obj.gaussianPath;
 gaussianExe  = obj.gaussianExe;
 % ___________________________________________________________
 % header for the Gaussian job file (input file)
+%  Note: for single atom calcs below, 'scf=conventional' is replaced
+%        so if this keyword in header is changed, it needs to be changed
+%        there as well
 header = ['%rwf=temp.rwf',newline,...
    '%nosave',newline,...
    '%chk=temp.chk',newline,...
@@ -129,6 +132,9 @@ obj.H1en = zeros(n1,n2,natom);
 for iatom = 1:natom
    disp(['doing calc for atom ',num2str(iatom)]);
    ctext = header;
+   % SCF can have trouble converging for these single-atom calculations
+   % so we add a qc keyword, to help ensure convergence
+   ctext = strrep(ctext,'scf=conventional','scf=(conventional,qc)');
    % charge and spin come next
    % To keep even number of electrons (and so spin 1), add an electron
    % by increasing the charge
@@ -154,7 +160,7 @@ for iatom = 1:natom
       t1 = strrep(t1, ['PAR',num2str(ipar)], num2str(par(ipar),'%23.12f'));
    end
    ctext = [ctext, t1];
-
+   
    % Do the calculation and read in data
    jobname = ['atom',num2str(iatom)];
    gjf_file = [jobname,'.gjf'];
