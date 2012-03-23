@@ -101,6 +101,9 @@ classdef Model3 < handle
                res.H2k{i,j} = squeeze(frag_.H2(i,:,:,j));
             end
          end
+         res.EhfEnv  = zeros(1,res.nenv);
+         res.EorbEnv = zeros(res.nbasis,res.nenv);
+         res.orbEnv  = zeros(res.nbasis,res.nbasis,res.nenv);
       end
       function res = npar(obj)
          res = 0;
@@ -120,14 +123,17 @@ classdef Model3 < handle
             obj.mixers{1,end+1} = mix;
          end
       end
-      function setPar(obj, pars)
-         ic = 1;
-         for i = 1:size(obj.mixers,2)
-            mtemp = obj.mixers{1,i};
-            mtemp.setPars( pars(ic:(ic+mtemp.npar-1)));
-            ic = ic + mtemp.npar;
-         end
-      end
+       function setPars(obj, pars)
+          ic = 1;
+          for i = 1:size(obj.mixers,2)
+             mtemp = obj.mixers{1,i};
+             n = mtemp.npar;
+             if (n > 0)
+                mtemp.setPars( pars(ic:(ic+n-1)));
+             end
+             ic = ic + n;
+          end
+       end
       function res = H1(obj, ienv)
          if (nargin < 2)
             ienv = 0;
@@ -159,10 +165,11 @@ classdef Model3 < handle
          end
          if (nargin < 4)
             mix = Mixer;
+            % create a mix object for these blocks
             mix.desc = ['KE Diag Zs [',num2str(Zs),'] types [', ...
                num2str(types),']'];
          end
-         % create a mix object that will be the same for all these blocks
+         mixerAdded = 0;
          for iZ = Zs % loop over all desired elements
             for iatom = find(obj.Z == iZ) % loop over atoms of this element
                ilist = []; % orbitals of "types" on this atom
@@ -174,10 +181,15 @@ classdef Model3 < handle
                mod.jlist = ilist;
                mod.mixer = mix;
                obj.KEmods{1,end+1} = mod;
+               mixerAdded = 1;
             end
          end
-         obj.addMixer(mix);
-         mixUsed = mix;
+         if (mixerAdded)
+            obj.addMixer(mix);
+            mixUsed = [];
+         else
+            mixUsed = mix;
+         end
       end
       function mixUsed = addKEmodBonded(obj,Z1,Z2,types1,types2, mix)
          if (nargin < 4)
@@ -192,7 +204,7 @@ classdef Model3 < handle
                num2str(types1),'] with Z [',num2str(Z2),'] types [', ...
                num2str(types2),']'];
          end
-         
+         mixerAdded = 0;
          for iatom = 1:obj.natom
             for jatom = 1:obj.natom
                if (obj.isBonded(iatom,jatom))
@@ -212,6 +224,7 @@ classdef Model3 < handle
                             end
                         end
                         if (addmods)
+                           mixerAdded = 1;
                            mod.ilist = obj.valAtom{iatom,itype}';
                            mod.jlist = obj.valAtom{jatom,jtype}';
                            mod.mixer = mix;
@@ -222,8 +235,12 @@ classdef Model3 < handle
                end
             end
          end
-         obj.addMixer(mix);
-         mixUsed = mix;
+         if (mixerAdded)
+            obj.addMixer(mix);
+            mixUsed = [];
+         else
+            mixUsed = mix;
+         end
       end
       function res = H1en(obj, iatom, ienv)
          % start with H1 matrix of unmodified STO-3G
@@ -248,6 +265,7 @@ classdef Model3 < handle
             mix.desc = ['EN Diag Zs [',num2str(Zs),'] types [', ...
                num2str(types),']'];
          end
+         mixerAdded = 0;
          % create a mix object that will be the same for all these blocks
          for iZ = Zs % loop over all desired elements
             for iatom = find(obj.Z == iZ) % loop over atoms of this element
@@ -260,10 +278,15 @@ classdef Model3 < handle
                mod.jlist = ilist;
                mod.mixer = mix;
                obj.ENmods{iatom}{1,end+1} = mod;
+               mixerAdded = 1;
             end
          end
-         obj.addMixer(mix);
-         mixUsed = mix;
+         if (mixerAdded)
+            obj.addMixer(mix);
+            mixUsed = [];
+         else
+            mixUsed = mix;
+         end
       end
       function mixUsed = addENmodBonded(obj,Z1,Z2,types1,types2, mix)
          if (nargin < 4)
@@ -278,6 +301,7 @@ classdef Model3 < handle
                num2str(types1),'] with Z ',num2str(Z2),' types [', ...
                num2str(types2),']'];
          end
+         mixerAdded = 0;
          for operAtom = 1:obj.natom
             for iatom = 1:obj.natom
                for jatom = 1:obj.natom
@@ -303,6 +327,7 @@ classdef Model3 < handle
                               mod.jlist = obj.valAtom{jatom,jtype}';
                               mod.mixer = mix;
                               obj.ENmods{1,operAtom}{1,end+1} = mod;
+                              mixerAdded = 1;
                            end
                         end
                      end
@@ -310,35 +335,12 @@ classdef Model3 < handle
                end
             end
          end
-         
-%          for iatom = 1:obj.natom
-%             for jatom = 1:obj.natom
-%                 if (obj.isBonded(iatom,jatom))
-%                   if ( ((obj.Z(iatom) == Z1) && (obj.Z(jatom) == Z2)) || ...
-%                         ((obj.Z(iatom) == Z2) && (obj.Z(jatom) == Z1)))
-%                      ilist = [];
-%                      for itype = types1
-%                         ilist = [ilist obj.valAtom{iatom,itype}'];
-%                      end
-%                      jlist = [];
-%                      for jtype = types2
-%                         jlist = [jlist obj.valAtom{jatom,jtype}'];
-%                      end
-%                      
-%                      mod.ilist = ilist;
-%                      mod.jlist = jlist;
-%                      mod.mixer = mix;
-%                      obj.ENmods{1,iatom}{1,end+1} = mod;
-%                      mod.ilist = jlist;
-%                      mod.jlist = ilist;
-%                      mod.mixer = mix;
-%                      obj.ENmods{1,iatom}{1,end+1} = mod;
-%                   end
-%                 end
-%             end
-%          end
-         obj.addMixer(mix);
-         mixUsed = mix;
+         if (mixerAdded)
+            obj.addMixer(mix);
+            mixUsed = [];
+         else
+            mixUsed = mix;
+         end
       end
       function res = Hnuc(obj,ienv)
          if (ienv == 0)

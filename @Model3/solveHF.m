@@ -1,19 +1,22 @@
-function solveHF(obj,eps)
-
+function solveHF(obj,envs,eps)
+% envs: list of environments in which to solve HF (0=no environment)
+% eps: tolerance for the HF convergence
 if (nargin < 2)
-   eps = 1.0e-8;
+   envs = 0:obj.nenv;
+end
+if (nargin < 3)
+   eps = 1.0e-6;
 end
 
-[obj.orb,obj.Eorb,obj.Ehf] = obj.hartreeFock(0,eps);
-
-%
-obj.EhfEnv  = zeros(1,obj.nenv);
-obj.EorbEnv = zeros(obj.nbasis,obj.nenv);
-obj.orbEnv  = zeros(obj.nbasis,obj.nbasis,obj.nenv);
-
-for ienv = 1:obj.nenv
+nenv = size(envs,2);
+for i = 1:nenv
+   ienv = envs(i);
+   if (ienv == 0)
+      [obj.orb,obj.Eorb,obj.Ehf] = obj.hartreeFock(0,eps);
+   else
     [obj.orbEnv(:,:,ienv), obj.EorbEnv(:,ienv), obj.EhfEnv(1,ienv)] = ...
        obj.hartreeFock(ienv,eps);
+   end
 end
 
 
