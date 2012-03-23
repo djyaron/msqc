@@ -47,7 +47,7 @@ for iatom = obj.natom:-1:1
    t1 = strrep(t1, ['ATOM',num2str(iatom)], ' ');
 end
 % And replace all PAR# with the parameter values
-for ipar = 1:obj.npar
+for ipar = obj.npar:-1:1
    t1 = strrep(t1, ['PAR',num2str(ipar)], num2str(par(ipar),'%23.12f'));
 end
 ctext = [ctext, t1];
@@ -156,7 +156,7 @@ for iatom = 1:natom
       end
    end
    % And replace all PAR# with the parameter values
-   for ipar = 1:obj.npar
+   for ipar = obj.npar:-1:1
       t1 = strrep(t1, ['PAR',num2str(ipar)], num2str(par(ipar),'%23.12f'));
    end
    ctext = [ctext, t1];
