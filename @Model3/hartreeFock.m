@@ -17,7 +17,7 @@ if (nargin < 2)
    ienv = 0;
 end
 if (nargin < 3)
-   eps = 1.0e-8;
+   eps = 1.0e-6;
 end
 if (nargin < 4)
    maxIter = 1000;
@@ -126,6 +126,8 @@ while (~finished) %step 11 -- Test convergence
 %     end
     iter = iter + 1;
     %disp(['den change ',num2str( max(max(abs(P-Pn))))]);
+    %disp(['diag Pn ',num2str(diag(Pn)')]);
+    %Pn-Plast
     if (iter > maxIter)
        finished = true;
     elseif (iter > minIter)
@@ -162,6 +164,7 @@ else
    Ehf = NaN;
    Eorb = NaN;
    orb = NaN;
+   throw('HF failed to converge');
 end
 
 %{
