@@ -4,15 +4,15 @@ nhl = 1;
 plotCorrelations = 0;
 includeKEmods = 1;
 includeENmods = 1;
-debugModel = 1;
+debugModel = 0;
 handFit = 0;
 doFit = 1;
 plotResults = 1;
-useStart = 1;
+useStart = 0;
 pstart =  [-0.5 3 7 0 0 0];
-envs = 0:20; % environments to include in fit
-geomsH2 = [];%2:7;
-geomsCH4 = 1:3;
+envs = 0:5; % environments to include in fit
+geomsH2 = [];
+geomsCH4 = 1:3;% 1:3;
 
 if (reload)
    load('h2/h2Dat.mat');
