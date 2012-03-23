@@ -3,16 +3,18 @@ reload = 1;
 nhl = 1;
 plotCorrelations = 0;
 includeKEmods = 1;
-includeENmods = 1;
+includeENmods = 0;
+useDeltaCharges = 1;
 debugModel = 0;
-handFit = 0;
-doFit = 1;
-plotResults = 1;
+handFit = 1;
+doFit = 0;
+plotResults = 0;
 useStart = 0;
 pstart =  [-0.5 3 7 0 0 0];
-envs = 0:5; % environments to include in fit
-geomsH2 = [];
+envs = 0:6; % environments to include in fit
+geomsH2 = []; %2:7;
 geomsCH4 = 1:3;% 1:3;
+geomsEthane = 1:7;
 
 if (reload)
    load('h2/h2Dat.mat');
@@ -21,6 +23,9 @@ if (reload)
    load('ch4/ch4Dat.mat');
    LLch4 = LL;
    HLch4 = HL;
+   load('ethane4/ethaneDat.mat');
+   LLeth = LL;
+   HLeth = HL;
    LL = cell(0,0);
    HL = cell(0,0);
    ic = 0;
@@ -40,6 +45,15 @@ if (reload)
       end
       for j = 1:size(HLch4,2)
          HL{ic,j} = HLch4{i,j};
+      end
+   end
+   for i = geomsEthane
+      ic = ic+1;
+      for j = 1:size(LLeth,2)
+         LL{ic,j} = LLeth{i,j};
+      end
+      for j = 1:size(HLeth,2)
+         HL{ic,j} = HLeth{i,j};
       end
    end
    params = 1:ic;
@@ -74,6 +88,14 @@ if (doFit || handFit || debugModel)
          m{ipar}.addENmodDiag(6,[1 2],mixENdiagC);
          m{ipar}.addENmodBonded(1,1,1,1,mixENbondHH);
          m{ipar}.addENmodBonded(1,6,1,[1 2],mixENbondCH);
+      end
+   end
+   if (useDeltaCharges)
+      for ipar = params
+         for ienv = 1:m{ipar}.nenv
+            m{ipar}.charges(:,ienv+1) = m{ipar}.charges(:,ienv+1) - m{ipar}.charges(:,1);
+         end
+          m{ipar}.charges(:,1) = m{ipar}.charges(:,1) - m{ipar}.charges(:,1);
       end
    end
 end
@@ -114,11 +136,11 @@ if (handFit)
    while 1
       
       p(1) = input('KE diag const H  ');
-      p(2) = input('KE diag charge H ');
-      p(3) = input('KE diag const C  ');
-      p(4) = input('KE diag charge C ');
-      p(5) = input('KE bond const HH ');
-      p(6) = input('KE bond const CC ');
+       p(2) = input('KE diag charge H ');
+       p(3) = input('KE diag const C  ');
+       p(4) = input('KE diag charge C ');
+       p(5) = input('KE bond const HH ');
+       p(6) = input('KE bond const CC ');
       %p(4) = input('EN diag const ');
       %p(5) = input('EN diag charge ');
       %p(6) = input('EN bond const ');
