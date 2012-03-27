@@ -4,17 +4,17 @@ nhl = 1;
 plotCorrelations = 0;
 includeKEmods = 1;
 includeENmods = 1;
-useDeltaCharges = 0;
+useDeltaCharges = 1;
 debugModel = 0;
 handFit = 0;
 doFit = 1;
 plotResults = 1;
-useStart = 1;
+useStart = 0;
 pstart =  [7.2274 9.0707 -22.1916 -14.9135 4.2480  6.6412 22.2263 14.5396  1.2623  5.9730  -2.8560 -2.5580 1.2478 3.4480 2.0505 2.4942 0 0];
 envs = 0:50; % environments to include in fit
-geomsH2 = 2:7; %2:7;
+geomsH2 = []; %2:7;
 geomsCH4 = 1:19;% 1:3;
-geomsEthane = [];
+geomsEthane = 1:7;
 
 if (reload)
    load('h2/h2Dat.mat');
@@ -73,6 +73,7 @@ if (doFit || handFit || debugModel)
       mixKEbondHH = Mixer(0,1,'KEbondHH');
       mixKEbondCH  = Mixer(0,1,'KEbondCH');
       mixKEbondCHp  = Mixer(0,1,'KEbondCHp');
+      mixKEbondCC  = Mixer(0,1,'KEbondCC');
       for ipar = params
          m{ipar}.addKEmodDiag(1,1,mixKEdiagH);
          m{ipar}.addKEmodDiag(6,1,mixKEdiagC);
@@ -80,6 +81,7 @@ if (doFit || handFit || debugModel)
          m{ipar}.addKEmodBonded(1,1,1,1,mixKEbondHH);
          m{ipar}.addKEmodBonded(1,6,1,1,mixKEbondCH);
          m{ipar}.addKEmodBonded(1,6,1,2,mixKEbondCHp);
+         m{ipar}.addKEmodBonded(6,6,[1 2],[1 2],mixKEbondCC);         
       end
    end
    if (includeENmods)
@@ -89,6 +91,7 @@ if (doFit || handFit || debugModel)
       mixENbondHH = Mixer(0,1,'ENbondHH');
       mixENbondCH  = Mixer(0,1,'ENbondCH');
       mixENbondCHp  = Mixer(0,1,'ENbondCHp');
+      mixENbondCC  = Mixer(0,1,'ENbondCC');
       for ipar = params
          m{ipar}.addENmodDiag(1,1,mixENdiagH);
          m{ipar}.addENmodDiag(6,1,mixENdiagC);
@@ -96,6 +99,7 @@ if (doFit || handFit || debugModel)
          m{ipar}.addENmodBonded(1,1,1,1,mixENbondHH);
          m{ipar}.addENmodBonded(1,6,1,1,mixENbondCH);
          m{ipar}.addENmodBonded(1,6,1,2,mixENbondCHp);
+         m{ipar}.addKEmodBonded(6,6,[1 2],[1 2],mixENbondCC)
       end
    end
    if (useDeltaCharges)
@@ -196,7 +200,7 @@ if (doFit)
    options.XTol = 1.0e-5;
    [pfit, Ssq, CNT, Res, XY] = LMFnlsq(@f1.err,start',options);
 end
-
+%%
 if (plotResults)
    disp('Starting to do plots');
    if (doFit)
@@ -243,7 +247,7 @@ if (plotResults)
    plot(me1,he1,'g.');
    title('EN')
    
-   %% all plots on one screen
+   % all plots on one screen
    figure(500);
    subplot(2,2,1);
    hold off;
