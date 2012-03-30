@@ -11,9 +11,9 @@ doFit = 1;
 plotResults = 1;
 useStart = 0;
 pstart =  [7.2274 9.0707 -22.1916 -14.9135 4.2480  6.6412 22.2263 14.5396  1.2623  5.9730  -2.8560 -2.5580 1.2478 3.4480 2.0505 2.4942 0 0];
-envs = 0:50; % environments to include in fit
+envs = 0:20; % environments to include in fit
 geomsH2 = []; %2:7;
-geomsCH4 = 1:19;% 1:3;
+geomsCH4 = 1:3;% 1:3;
 geomsEthane = 1:7;
 
 if (reload)
