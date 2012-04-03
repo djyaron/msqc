@@ -3,3 +3,6 @@
 *.mat
 data*
 *.fch
+tmp/*
+*.fig
+*.docx
