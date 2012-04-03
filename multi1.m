@@ -10,11 +10,16 @@ handFit = 0;
 doFit = 1;
 plotResults = 1;
 useStart = 0;
-pstart =  [7.2274 9.0707 -22.1916 -14.9135 4.2480  6.6412 22.2263 14.5396  1.2623  5.9730  -2.8560 -2.5580 1.2478 3.4480 2.0505 2.4942 0 0];
+%pstart =  [7.2274 9.0707 -22.1916 -14.9135 4.2480  6.6412 22.2263 14.5396  1.2623  5.9730  -2.8560 -2.5580 1.2478 3.4480 2.0505 2.4942 0 0];
+%methane and ethane fits
+pstart = [0.517818  8.1441 2.13829 6.56335 0.464458 9.73133 -10.4231 ...
+   7.37763  -0.0349262 7.59848 1.07518 1.11226 0.209319 4.52014  ...
+   -0.594433  1.94629  0.683698  0.890883];
 envs = 0:20; % environments to include in fit
 geomsH2 = []; %2:7;
-geomsCH4 = 1:3;% 1:3;
+geomsCH4 = 1:19;% 1:3;
 geomsEthane = 1:7;
+plotNumber = [];
 
 if (reload)
    load('h2/h2Dat.mat');
@@ -31,6 +36,7 @@ if (reload)
    ic = 0;
    for i = geomsCH4
       ic = ic+1;
+      plotNumber(1,ic) = 801;
       for j = 1:size(LLch4,2)
          LL{ic,j} = LLch4{i,j};
       end
@@ -40,6 +46,7 @@ if (reload)
    end
    for i = geomsH2
       ic = ic+1;
+      plotNumber(1,ic) = 800;
       for j = 1:size(LLh2,2)
          LL{ic,j} = LLh2{i,j};
       end
@@ -49,6 +56,7 @@ if (reload)
    end
    for i = geomsEthane
       ic = ic+1;
+      plotNumber(1,ic) = 802;
       for j = 1:size(LLeth,2)
          LL{ic,j} = LLeth{i,j};
       end
@@ -99,7 +107,7 @@ if (doFit || handFit || debugModel)
          m{ipar}.addENmodBonded(1,1,1,1,mixENbondHH);
          m{ipar}.addENmodBonded(1,6,1,1,mixENbondCH);
          m{ipar}.addENmodBonded(1,6,1,2,mixENbondCHp);
-         m{ipar}.addKEmodBonded(6,6,[1 2],[1 2],mixENbondCC)
+         m{ipar}.addENmodBonded(6,6,[1 2],[1 2],mixENbondCC)
       end
    end
    if (useDeltaCharges)
@@ -180,7 +188,7 @@ if (doFit)
    disp('Starting to do parameter fitting');
    f1 = Fitme;
    for ipar = params
-      f1.addFrag(m{ipar},HL{ipar,nhl});
+      f1.addFrag(m{ipar},HL{ipar,nhl},plotNumber(ipar));
    end
    f1.includeKE = includeKEmods;
    f1.includeEN = includeENmods * ones(1,6);
@@ -191,14 +199,14 @@ if (doFit)
       start = pstart;
    end
    % code from using matlabs optimization toolbox
-   %limits = 3 * ones(1,nfitpar);
-   %options = optimset('DiffMinChange',1.0e-5);
-   %pt = lsqnonlin(@f1.err, start,-limits,limits,options);
-   options = LMFnlsq;
-   options.Display =1;
-   options.FunTol = 1.0e-6;
-   options.XTol = 1.0e-5;
-   [pfit, Ssq, CNT, Res, XY] = LMFnlsq(@f1.err,start',options);
+   limits = [4 10 4 10 4 10 4 4 4 10 4 10 4 10 4 4 4 4];
+   options = optimset('DiffMinChange',1.0e-5);
+   pt = lsqnonlin(@f1.err, start,-limits,limits,options);
+%    options = LMFnlsq;
+%    options.Display =1;
+%    options.FunTol = 1.0e-6;
+%    options.XTol = 1.0e-5;
+%    [pfit, Ssq, CNT, Res, XY] = LMFnlsq(@f1.err,start',options);
 end
 %%
 if (plotResults)
