@@ -16,6 +16,7 @@ classdef Fitme < handle
       plot       % Plot results on every call to err()
       LLKE       % {1,nmodels}(1,nenv) used only for plots
       LLEN       % {1,nmodels}(natom,nenv) used only for plots
+      plotNumber % (1,nmodels): number fro plot of this model
    end
    methods
       function res = Fitme
@@ -28,6 +29,7 @@ classdef Fitme < handle
          res.includeEN = zeros(1,6);
          res.parHF = [];
          res.plot = 1;
+         res.plotNumber = [];
          res.LLKE = cell(0,0);
          res.LLEN = cell(0,0);
       end
@@ -49,10 +51,14 @@ classdef Fitme < handle
             obj.addMixer(mixersIn{i});
          end
       end
-      function addFrag(obj,model,HL)
+      function addFrag(obj,model,HL,plotnumber)
+         if (nargin < 4)
+            plotnumber = 800;
+         end
          obj.models{1,end+1} = model;
          obj.addMixers(model.mixers);
          obj.HLs{1,end+1} = HL;
+         obj.plotNumber(1,end+1) = plotnumber;
       end
       function setEnvs(obj,envsIn)
          % currently assumes same environments for every frag/model
@@ -120,7 +126,7 @@ classdef Fitme < handle
             ic = ic + np;
          end
       end
-      function updateDensity(obj)
+      function dpar = updateDensity(obj)
          par = obj.getPars;
          if (size(obj.parHF,1) == 0)
             dpar = 1e10;
@@ -157,11 +163,15 @@ classdef Fitme < handle
          end
          disp(['Fitme.err called with par = ',num2str(par)]);
          obj.setPars(par);
-         obj.updateDensity();
+         dpar = obj.updateDensity();
          
-         if (obj.plot)
-            figure(800);
-            clf;
+         doPlots = obj.plot && (dpar > 1.0e-4);
+         
+         if (doPlots)
+            for i=unique(obj.plotNumber)
+               figure(i);
+               clf;
+            end
          end
          
          ic = 1;
@@ -175,7 +185,8 @@ classdef Fitme < handle
                n = size(t1,2);
                res(1,ic:(ic+n-1))= t1;
                ic = ic + n;
-               if (obj.plot)
+               if (doPlots)
+                  figure(obj.plotNumber(imod));
                   subplot(3,2,1);
                   hold on;
                   llevel = obj.LLKE{1,imod};
@@ -184,7 +195,10 @@ classdef Fitme < handle
                   plot(llevel,modpred,'b.');
                   subplot(3,2,2);
                   hold on;
+                  x1 = min(hlevel);
+                  x2 = max(hlevel);
                   plot(hlevel,modpred,'g.');
+                  plot([x1 x2],[x1 x2],'k-');
                end
             end
             for iatom = 1:obj.HLs{imod}.natom
@@ -195,7 +209,7 @@ classdef Fitme < handle
                   n = size(t1,2);
                   res(1,ic:(ic+n-1)) = t1;
                   ic = ic + n;
-                  if (obj.plot)
+                  if (doPlots)
                      if (obj.HLs{imod}.Z(iatom) == 1)
                         frame1 = 3;
                         frame2 = 4;
@@ -211,7 +225,11 @@ classdef Fitme < handle
                      plot(llevel,modpred,'b.');
                      subplot(3,2,frame2);
                      hold on;
+                     x1 = min(hlevel);
+                     x2 = max(hlevel);
                      plot(hlevel,modpred,'g.');
+                     plot(hlevel,modpred,'g.');
+                     plot([x1 x2],[x1 x2],'k-');
                   end
                end
             end
@@ -223,4 +241,3 @@ classdef Fitme < handle
       end
    end   
 end
-
