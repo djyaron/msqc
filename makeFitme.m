@@ -15,6 +15,20 @@ plotNumber = [];
 useDeltaCharges = 1;
 
 % Load data
+load('h2/h2Dat.mat');
+LLh2 = LL;
+HLh2 = HL;
+load('ch4/ch4Dat.mat');
+LLch4 = LL;
+HLch4 = HL;
+load('ethane4/ethaneDat.mat');
+LLeth = LL;
+HLeth = HL;
+LL = cell(0,0);
+HL = cell(0,0);
+ic = 0;
+
+% Load data
 LL1 = cell(0,0);
 HL1 = cell(0,0);
 ic = 0;
@@ -50,6 +64,7 @@ for i = geomsEthane
    end
 end
 params = 1:ic;
+
 
 % build models
 if (doFit || handFit || debugModel)
