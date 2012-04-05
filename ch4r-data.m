@@ -1,5 +1,7 @@
 %% Load data
 clear classes;
+reset(RandStream.getDefaultStream,sum(100*clock))
+
 root = 'c:\dave\apoly\msqc\';
 % Generate environments for production runs
 if (exist('ch4/env2.mat','file'))
@@ -17,43 +19,32 @@ else
    end
    save('ch4/env2.mat','env');
 end
-nenv = size(env,2);
+nenv = 25;
 
-pars{1} = [1.12 1.12 1.12 1.12 109.47 109.47 109.47 120.0 -120.0];
-pars{2} = [0.97 0.97 0.97 0.97 109.47 109.47 109.47 120.0 -120.0];
-pars{3} = [1.27 1.27 1.27 1.27 109.47 109.47 109.47 120.0 -120.0];
+r1  = 1.12 - 0.15;
+r2 = 1.12 + 0.15;
+t1 = 115.0 + 6.0;
+t2 = 115.0 - 6.0;
+p1 = 113.0;
+p2 = 127.0;
 
-pars{4} = [0.98 1.12 1.12 1.12 109.47 109.47 109.47 120.0 -120.0];
-pars{5} = [1.27 1.12 1.12 1.12 109.47 109.47 109.47 120.0 -120.0];
-pars{6} = [0.98 0.98 1.12 1.12 109.47 109.47 109.47 120.0 -120.0];
-pars{7} = [1.27 1.27 1.12 1.12 109.47 109.47 109.47 120.0 -120.0];
-pars{8} = [0.98 1.27 1.12 1.12 109.47 109.47 109.47 120.0 -120.0];
-
-pars{9} = [1.12 1.12 1.12 1.12 104.0 109.47 109.47 120.0 -120.0];
-pars{10} = [1.12 1.12 1.12 1.12 115.0 109.47 109.47 120.0 -120.0];
-pars{11} = [1.12 1.12 1.12 1.12 109.47 109.47 109.47 110.0 -120.0];
-
-pars{12} = [0.98 0.98 1.12 1.12 109.47 109.47 109.47 120.0 -120.0];
-pars{13} = [0.98 0.98 0.98 1.12 109.47 109.47 109.47 120.0 -120.0];
-pars{14} = [0.98 0.98 0.98 0.98 109.47 109.47 109.47 120.0 -120.0];
-pars{15} = [1.27 1.27 1.12 1.12 109.47 109.47 109.47 120.0 -120.0];
-pars{16} = [1.27 1.27 1.27 1.12 109.47 109.47 109.47 120.0 -120.0];
-pars{17} = [1.27 1.27 1.27 1.27 109.47 109.47 109.47 120.0 -120.0];
-pars{18} = [1.27 0.98 1.27 1.12 109.47 109.47 109.47 120.0 -120.0];
-pars{19} = [1.27 0.98 1.27 0.98 109.47 109.47 109.47 120.0 -120.0];
-
-npar = size(pars,2);
+pars = cell(0,0);
+maxpars = 1000;
 HLbasis = {'6-31G' '6-31G*' '6-31G**'};
-HL = cell(npar,3);
-LL = cell(npar,3);
+HL = cell(0,0);
+LL = cell(0,0);
 %%
-if (exist('ch4/ch4Dat.mat','file'))
+if (exist('ch4r/ch4rDat.mat','file'))
    disp('loading existing data');
-   load('ch4/ch4Dat.mat');
+   load('ch4r/ch4rDat.mat');
 else
-   for ipar = 1:size(pars,2)
-      par = pars{ipar};
-      disp(['rch ',num2str(par(1))]);
+   for ipar = 1:maxpars
+      %pars{1} = [1.12 1.12 1.12 1.12 109.47 109.47 109.47 120.0 -120.0];
+      par = [rr1(r1,r2) rr1(r1,r2) rr1(r1,r2) rr1(r1,r2) ...
+         rr1(t1,t2) rr1(t1,t2) rr1(t1,t2) ...
+         rr1(p1,p2) -rr1(p1,p2)];
+      pars{ipar} = par;
+      disp([num2str(ipar),' par = ',num2str(par)]);
       
       config = Fragment.defaultConfig();
       config.method = 'MP2';
@@ -64,7 +55,7 @@ else
          config.template = 'ch4';
          config.basisSet = HLbasis{ihl};
          disp(['ipar ',num2str(ipar),' loading HL ',num2str(ihl)]);
-         frag1 = Fragment([root,'ch4'], config);
+         frag1 = Fragment([root,'ch4r'], config);
          for ienv = 1:nenv
             display(['HL env ',num2str(ienv)]);
             frag1.addEnv(env{ienv});
@@ -73,7 +64,7 @@ else
       end
       % LL 1
       config.basisSet = 'STO-3G';
-      frag2 = Fragment([root,'ch4'], config);
+      frag2 = Fragment([root,'ch4r'], config);
       disp(['ipar ',num2str(ipar),' loading LL 1']);
       for ienv = 1:nenv
          display(['LL env ',num2str(ienv)]);
@@ -85,7 +76,7 @@ else
       config.template = 'ch4-gen';
       config.basisSet = 'GEN';
       config.par = [par 0.9 0.9 0.9 0.9 0.9];
-      frag3 = Fragment([root,'ch4'], config);
+      frag3 = Fragment([root,'ch4r'], config);
       disp(['ipar ',num2str(ipar),' loading LL 2']);
       for ienv = 1:nenv
          display(['LL env ',num2str(ienv)]);
@@ -97,7 +88,7 @@ else
       config.basisSet = 'GEN';
       config.par = [par 1.05 1.05 1.05 1.05 1.05];
       disp(['ipar ',num2str(ipar),' loading LL 3']);
-      frag4 = Fragment([root,'ch4'], config);
+      frag4 = Fragment([root,'ch4r'], config);
       for ienv = 1:nenv
          display(['LL env ',num2str(ienv)]);
          frag4.addEnv(env{ienv});
@@ -106,5 +97,5 @@ else
    end
    
    % since even loading all the files will take time, we'll dave everything
-   save('ch4/ch4Dat.mat');
+   save('ch4r/ch4rDat.mat');
 end

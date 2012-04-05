@@ -12,16 +12,26 @@ classdef Fitme < handle
       
       parHF   % Last parameters for which HF was solved
       epsDensity % re-evaluate density matrix if par change > eps
+    
+      plot       % Plot results on every call to err()
+      LLKE       % {1,nmodels}(1,nenv) used only for plots
+      LLEN       % {1,nmodels}(natom,nenv) used only for plots
+      plotNumber % (1,nmodels): number fro plot of this model
    end
    methods
       function res = Fitme
          res.models = cell(0,0);
          res.HLs    = cell(0,0);
          res.HLKE   = cell(0,0);
+         res.HLEN   = cell(0,0);
          res.epsDensity = 0.0;
          res.includeKE = 1;
          res.includeEN = zeros(1,6);
          res.parHF = [];
+         res.plot = 1;
+         res.plotNumber = [];
+         res.LLKE = cell(0,0);
+         res.LLEN = cell(0,0);
       end
       function addMixer(obj, mix)
          add = 1;
@@ -41,10 +51,14 @@ classdef Fitme < handle
             obj.addMixer(mixersIn{i});
          end
       end
-      function addFrag(obj,model,HL)
+      function addFrag(obj,model,HL,plotnumber)
+         if (nargin < 4)
+            plotnumber = 800;
+         end
          obj.models{1,end+1} = model;
          obj.addMixers(model.mixers);
          obj.HLs{1,end+1} = HL;
+         obj.plotNumber(1,end+1) = plotnumber;
       end
       function setEnvs(obj,envsIn)
          % currently assumes same environments for every frag/model
@@ -54,16 +68,24 @@ classdef Fitme < handle
          end
          obj.HLKE = cell(0,0);
          obj.HLEN = cell(0,0);
+         obj.LLKE = cell(0,0);
+         obj.LLEN = cell(0,0);
          for imod = 1:obj.nmodels
             envs1 = obj.envs{1,i};
             HL = obj.HLs{imod};
+            % will plot against the STO-3G result
+            LL = obj.models{imod}.frag;
             obj.HLKE{1,end+1} = HL.EKE(envs1);
+            obj.LLKE{1,end+1} = LL.EKE(envs1);
             nenv = size(envs1,2);
             en = zeros(HL.natom, nenv);
+            enl = zeros(LL.natom, nenv);
             for iatom = 1:HL.natom
                en(iatom,:) = HL.Een(iatom,envs1);
+               enl(iatom,:) = LL.Een(iatom,envs1);
             end
             obj.HLEN{1,end+1} = en;
+            obj.LLEN{1,end+1} = enl;
          end
          obj.parHF = [];
       end
@@ -104,7 +126,7 @@ classdef Fitme < handle
             ic = ic + np;
          end
       end
-      function updateDensity(obj)
+      function dpar = updateDensity(obj)
          par = obj.getPars;
          if (size(obj.parHF,1) == 0)
             dpar = 1e10;
@@ -141,26 +163,83 @@ classdef Fitme < handle
          end
          disp(['Fitme.err called with par = ',num2str(par)]);
          obj.setPars(par);
-         obj.updateDensity();
-
+         dpar = obj.updateDensity();
+         
+         doPlots = obj.plot && (dpar > 1.0e-4);
+         
+         if (doPlots)
+            for i=unique(obj.plotNumber)
+               figure(i);
+               clf;
+            end
+         end
+         
          ic = 1;
          ndat = obj.ndata;
          res = zeros(1,ndat);
          for imod = 1:obj.nmodels
             if (obj.includeKE == 1)
-               t1 = obj.HLKE{1,imod} - ...
-                  obj.models{imod}.EKE(obj.envs{1,imod});
+               hlevel = obj.HLKE{1,imod};
+               modpred = obj.models{imod}.EKE(obj.envs{1,imod});
+               t1 = hlevel - modpred;
                n = size(t1,2);
                res(1,ic:(ic+n-1))= t1;
                ic = ic + n;
+               if (doPlots)
+                  figure(obj.plotNumber(imod));
+                  subplot(3,2,1);
+                  hold on;
+                  llevel = obj.LLKE{1,imod};
+                  plot(llevel,llevel,'k.');
+                  plot(llevel,hlevel,'r.');
+                  plot(llevel,modpred,'b.');
+                  title('Kinetic E: LL(black) HL(red) model(blue)');
+                  xlabel('LL')
+                  subplot(3,2,2);
+                  hold on;
+                  x1 = min(hlevel);
+                  x2 = max(hlevel);
+                  plot(hlevel,modpred,'g.');
+                  plot([x1 x2],[x1 x2],'k-');
+                  title('Kinetic E: HL(black) model(red)');
+                  xlabel('HL')
+               end
             end
             for iatom = 1:obj.HLs{imod}.natom
                if (obj.includeEN( obj.HLs{imod}.Z(iatom) ))
-                  t1 = obj.HLEN{imod}(iatom,:) - ...
-                     obj.models{imod}.Een(iatom,obj.envs{1,imod});
+                  hlevel = obj.HLEN{imod}(iatom,:);
+                  modpred = obj.models{imod}.Een(iatom,obj.envs{1,imod});
+                  t1 = hlevel - modpred; 
                   n = size(t1,2);
                   res(1,ic:(ic+n-1)) = t1;
                   ic = ic + n;
+                  if (doPlots)
+                     if (obj.HLs{imod}.Z(iatom) == 1)
+                        frame1 = 3;
+                        frame2 = 4;
+                        element = 'H';
+                     else
+                        frame1 = 5;
+                        frame2 = 6;
+                        element = 'C';
+                     end
+                     subplot(3,2,frame1);
+                     hold on;
+                     llevel = obj.LLEN{1,imod}(iatom,:);
+                     plot(llevel,llevel,'k.');
+                     plot(llevel,hlevel,'r.');
+                     plot(llevel,modpred,'b.');
+                     title(['EN for ',element]);
+                     xlabel('LL');
+                     subplot(3,2,frame2);
+                     hold on;
+                     x1 = min(hlevel);
+                     x2 = max(hlevel);
+                     plot(hlevel,modpred,'g.');
+                     plot([x1 x2],[x1 x2],'k-');
+                     title(['EN for ',element]);
+                     xlabel('HL');                  
+                  end
                end
             end
          end
@@ -171,4 +250,3 @@ classdef Fitme < handle
       end
    end   
 end
-

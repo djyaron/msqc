@@ -52,22 +52,26 @@ iter = 0;
 finished = false;
 
 % For use in updating charges
-% arange = cell(obj.natom,1);
-% for iatom = 1:obj.natom
-%    arange{iatom} = find(obj.basisAtom == iatom);
-% end
+arange = cell(obj.natom,1);
+for iatom = 1:obj.natom
+   arange{iatom} = find(obj.basisAtom == iatom);
+end
 
 %Begin iteration through 
 while (~finished) %step 11 -- Test convergence
 
-   P = 0.5 * Pn + 0.5 * Plast;
+   if (iter < maxIter/2)
+      P = 0.5 * Pn + 0.5 * Plast;
+   else
+      P = Pn;
+   end
    
    % update charges
 %    if (iter > 0)
 %       Q = zeros(size(obj.Z));
 %       GAP = zeros(1,obj.natom);
 %       P1 = P.*obj.S;
-%       GOP = sum(P,1);
+%       GOP = sum(P1,1);
 %       for i = 1:obj.natom
 %          GAP(i) = sum(GOP(1,arange{i}));
 %          Q(i) = obj.Z(i)-GAP(i);
@@ -138,7 +142,7 @@ while (~finished) %step 11 -- Test convergence
 end
 %End of iteration of steps 5-11
 
-if (iter < maxIter)
+%if (iter < maxIter)
    P = Pn; %for convenience
    obj.densitySave{ienv+1} = P;
    
@@ -160,13 +164,15 @@ if (iter < maxIter)
    
    %Molecular orbital components
    orb = C;
-else
-   Ehf = NaN;
-   Eorb = NaN;
-   orb = NaN;
-   throw('HF failed to converge');
+% else
+%    Ehf = NaN;
+%    Eorb = NaN;
+%    orb = NaN;
+%    throw(MException('Model3:hartreeFock','exceeded maxIter'));
+% end
+if (iter+1 > maxIter)
+  disp('You are living on the edge.. hartree fock didn''t converge');
 end
-
 %{
 Adapted from "Modern quantum chemistry", by Attila Szabó, Neil S. Ostlund
 Numbered equations also adapted from here.

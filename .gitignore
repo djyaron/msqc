@@ -3,3 +3,7 @@
 *.mat
 data*
 *.fch
+tmp/*
+*.fig
+*.docx
+*.zip
