@@ -1,8 +1,6 @@
 clear classes;
 
 %% H2 fit
-% Do a fit for H2!!
-% Hi, I'm a random comment.
 f1 = makeFitme;
 disp('Starting fit for h2');
 start = zeros(1,f1.npar);
