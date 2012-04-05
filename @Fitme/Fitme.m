@@ -193,12 +193,16 @@ classdef Fitme < handle
                   plot(llevel,llevel,'k.');
                   plot(llevel,hlevel,'r.');
                   plot(llevel,modpred,'b.');
+                  title('Kinetic E: LL(black) HL(red) model(blue)');
+                  xlabel('LL')
                   subplot(3,2,2);
                   hold on;
                   x1 = min(hlevel);
                   x2 = max(hlevel);
                   plot(hlevel,modpred,'g.');
                   plot([x1 x2],[x1 x2],'k-');
+                  title('Kinetic E: HL(black) model(red)');
+                  xlabel('HL')
                end
             end
             for iatom = 1:obj.HLs{imod}.natom
@@ -213,9 +217,11 @@ classdef Fitme < handle
                      if (obj.HLs{imod}.Z(iatom) == 1)
                         frame1 = 3;
                         frame2 = 4;
+                        element = 'H';
                      else
                         frame1 = 5;
                         frame2 = 6;
+                        element = 'C';
                      end
                      subplot(3,2,frame1);
                      hold on;
@@ -223,13 +229,16 @@ classdef Fitme < handle
                      plot(llevel,llevel,'k.');
                      plot(llevel,hlevel,'r.');
                      plot(llevel,modpred,'b.');
+                     title(['EN for ',element]);
+                     xlabel('LL');
                      subplot(3,2,frame2);
                      hold on;
                      x1 = min(hlevel);
                      x2 = max(hlevel);
                      plot(hlevel,modpred,'g.');
-                     plot(hlevel,modpred,'g.');
                      plot([x1 x2],[x1 x2],'k-');
+                     title(['EN for ',element]);
+                     xlabel('HL');                  
                   end
                end
             end
