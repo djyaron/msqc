@@ -65,9 +65,24 @@ fwrite(fid1, [ctext,newline,newline], 'char');
 fclose(fid1);
 
 setenv('GAUSS_EXEDIR', obj.gaussianPath);
-system([gaussianPath,'\',gaussianExe,' ',gjf_file]);
-% convert checkpoint file to a formatted checkpoint file
-system([gaussianPath,'\formchk.exe temp.chk temp.fch']);
+resp1 = 1; resp2 = 1;
+while ( resp1 ~= 0 || resp2 ~= 0 )
+    try
+        resp1 = system([gaussianPath,'\',gaussianExe,' ',gjf_file]);
+        % convert checkpoint file to a formatted checkpoint file
+        resp2 = system([gaussianPath,'\formchk.exe temp.chk temp.fch']);
+        %disp( resp1 );
+        %disp( resp2 );
+        if ( resp1 == 2057 )
+            disp( '  removing temporary files' );
+            delete( 'fort.6', 'gxx.d2e', 'gxx.inp', 'gxx.int', 'gxx.scr', ...
+                    'temp.chk', 'temp.fch', 'temp.rwf' )
+        end
+    catch
+        disp( 'Failed, retrying...' );
+        resp1 = 1; resp2 = 1;
+    end
+end
 cd(origdir);
 % read in data from formatted checkpoint file
 try
@@ -180,12 +195,25 @@ for iatom = 1:natom
 %       end
 %    end
 %    input junk;
-   
-   system([gaussianPath,'\',gaussianExe,' ',gjf_file]);
-   % check if the call to Gaussian failed.
-   if ans ~= 0
-       error( 'Gaussian failed. Check template, Gaussian input file, or Gaussian output file.' );
+   resp1 = 1;
+   while ( resp1 ~= 0 )
+       try
+           resp1 = system([gaussianPath,'\',gaussianExe,' ',gjf_file]);
+           %disp( resp1 )
+           if ( resp1 == 2057 )
+               disp( '  removing temporary files' );
+               delete( 'fort.6', 'gxx.d2e', 'gxx.inp', 'gxx.int', 'gxx.scr', ...
+                   'temp.chk', 'temp.fch', 'temp.rwf' )
+           end
+       catch
+           disp( 'Failed, retrying...' );
+           resp1 = 1;
+       end
    end
+   % check if the call to Gaussian failed.
+   %if ans ~= 0
+   %    error( 'Gaussian failed. Check template, Gaussian input file, or Gaussian output file.' );
+   %end
    cd(origdir);
    % read in data from the polyatom output file
    try

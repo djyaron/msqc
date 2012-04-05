@@ -53,25 +53,33 @@ else
    end
    
    % add the fields
+   % The way that Gaussian does this is really ugly and inconsistant
+   % There may be a better way to do this.
    if envTarget.nfield > 0
       for ifield = 1:envTarget.nfield
          % turn into the format for Gaussian
          tmp = envTarget.fieldType( ifield, : );
-         dir = '';
-         while max( tmp ) > 0
-            switch find( tmp == max( tmp ), 1 )
-               case 1
-                  dir = [ dir, repmat( 'X', 1, tmp( 1 ) ) ];
-                  tmp( 1 ) = 0;
-               case 2
-                  dir = [ dir, repmat( 'Y', 1, tmp( 2 ) ) ];
-                  tmp( 2 ) = 0;
-               case 3
-                  dir = [ dir, repmat( 'Z', 1, tmp( 3 ) ) ];
-                  tmp( 3 ) = 0;
-               otherwise
-                  error( 'Invalid input' );
-            end
+         if ( sum( tmp ) < 4 )
+             dir = [ repmat( 'X', 1, envTarget.fieldType( ifield, 1 ) ), ...
+                     repmat( 'Y', 1, envTarget.fieldType( ifield, 2 ) ), ...
+                     repmat( 'Z', 1, envTarget.fieldType( ifield, 3 ) ) ]; 
+         else
+             dir = '';
+             while max( tmp ) > 0
+                switch find( tmp == max( tmp ), 1 )
+                   case 1
+                      dir = [ dir, repmat( 'X', 1, tmp( 1 ) ) ];
+                      tmp( 1 ) = 0;
+                   case 2
+                      dir = [ dir, repmat( 'Y', 1, tmp( 2 ) ) ];
+                      tmp( 2 ) = 0;
+                   case 3
+                      dir = [ dir, repmat( 'Z', 1, tmp( 3 ) ) ];
+                      tmp( 3 ) = 0;
+                   otherwise
+                      error( 'Invalid input' );
+                end
+             end
          end
          mag = '';
          if envTarget.fieldMag( ifield ) >= 0

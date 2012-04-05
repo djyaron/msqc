@@ -8,18 +8,18 @@ classdef Environment < handle
       r         % (3,ncharges)  position of charge
       nfield    % number of fields
       fieldType % specify orientation and order of multipole as [X,Y,Z]
-      % multiple fields given by additional rows in matrix
-      % ex. [2,1,0;0,1,2] with mags of [10,-10] -> field=XXY+10
-      % field=YZZ-10
+                % multiple fields given by additional rows in matrix
+                % ex. [2,1,0;0,1,2] with mags of [10,-10] -> field=XXY+10
+                % field=YZZ-10
       fieldMag  % corresponding magnitudes of these fields
    end
    
    methods (Static)
       res = newCube(size,mag)
       
-      [ res ctrChg bound ] = newBox( obj, frag, cubeExtension, mag, ncharge )
+      res = newBox( obj, frag, cubeExtension, mag, ncharge )
       goodEnv = testEnv( obf, frag, cubeExtension, mag, ncharge, ntrial )
-      [ res ctrChg bound ] = dipoleEnvironment( frag, cubeExtension, mag, ndipole )
+      res = dipoleEnvironment( frag, cubeExtension, mag, ndipole )
       
    end % static methods
    
@@ -41,15 +41,35 @@ classdef Environment < handle
          end
       end
       function res = compare(obj1, obj2)
-         res = (obj1.ncharge == obj2.ncharge);
-         if (res)
+         if  size( obj1.ncharge, 1 ) == 0 && size(obj2.ncharge, 1 ) == 0
+             chgEq = 1;
+         elseif size( obj1.ncharge, 1 ) == 0 || size(obj2.ncharge, 1 ) == 0
+             chgEq = 0;
+         else
+             chgEq = obj1.ncharge == obj2.ncharge;
+         end
+         if  size( obj1.nfield, 1 ) == 0 && size(obj2.nfield, 1 ) == 0
+             fldEq = 1;
+         elseif size( obj1.nfield, 1 ) == 0 || size(obj2.nfield, 1 ) == 0
+             fldEq = 0;
+         else
+             fldEq = obj1.nfield == obj2.nfield;
+         end
+         if (chgEq && fldEq)
             maxdiff = max(max(abs(obj1.r - obj2.r)));
             maxdiff2 = max(max(abs(obj1.rho-obj2.rho)));
             max2 = max(maxdiff, maxdiff2);
             if (max2 > 1.0e-11)
-               res = false;
+               chgEq = false;
+            end
+            if (sum(sum(obj1.fieldType == obj2.fieldType)) ~= 3 * obj1.nfield )
+                fldEq = 0;
+            end
+            if(max(abs(obj1.fieldMag - obj2.fieldMag)) > 1.0e-11)
+                fldEq = 0;
             end
          end
+         res = chgEq && fldEq;
       end
       function res = gaussianText(obj)
          newline = char(10);
