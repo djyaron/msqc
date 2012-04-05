@@ -1,3 +1,4 @@
+% Only really needed if changes were made to class files
 clear classes;
 
 %% H2 fit
