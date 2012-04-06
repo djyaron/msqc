@@ -24,13 +24,17 @@ diary('tmp/ch4.diary');
 diary on;
 limits = [];
 options = optimset('DiffMinChange',1.0e-5);
+tic
 pt = lsqnonlin(@f1.err, start,-limits,limits,options);
+clockTime = toc
 pt
 diary off;
+% with ch4 1:7 this gives
 % pt =
 %    12.9908   17.3272  -14.3800  -23.6141   -0.3528   14.7917   10.9971   16.6052    1.8722
 %     9.2113   -0.3798   -4.0887   -2.3191    7.6619    0.8430    2.3617
 % RMS err/ndata = 0.00036669
+
 
 %% H2, CH4 and ethane fit
 f1 = makeFitme('ch4',1:7,'ethane',1:7);
