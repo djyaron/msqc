@@ -1,14 +1,14 @@
-clear classes;
+%clear classes;
 reload = 1;
 nhl = 1;
 plotCorrelations = 0;
 includeKEmods = 1;
 includeENmods = 1;
 useDeltaCharges = 1;
-debugModel = 0;
+debugModel = 1;
 handFit = 0;
-doFit = 1;
-plotResults = 1;
+doFit = 0;
+plotResults = 0;
 useStart = 0;
 %pstart =  [7.2274 9.0707 -22.1916 -14.9135 4.2480  6.6412 22.2263 14.5396  1.2623  5.9730  -2.8560 -2.5580 1.2478 3.4480 2.0505 2.4942 0 0];
 %methane and ethane fits
@@ -17,8 +17,8 @@ pstart = [0.517818  8.1441 2.13829 6.56335 0.464458 9.73133 -10.4231 ...
    -0.594433  1.94629  0.683698  0.890883];
 envs = 0:20; % environments to include in fit
 geomsH2 = []; %2:7;
-geomsCH4 = 1:19;% 1:3;
-geomsEthane = 1:7;
+geomsCH4 = 1:2;% 1:3;
+geomsEthane =1:2;% [];
 plotNumber = [];
 
 if (reload)
@@ -79,9 +79,9 @@ if (doFit || handFit || debugModel)
       mixKEdiagC = Mixer([0 0],2,'KEdiagC');
       mixKEdiagCp = Mixer([0 0],2,'KEdiagCp');
       mixKEbondHH = Mixer(0,1,'KEbondHH');
-      mixKEbondCH  = Mixer(0,1,'KEbondCH');
-      mixKEbondCHp  = Mixer(0,1,'KEbondCHp');
-      mixKEbondCC  = Mixer(0,1,'KEbondCC');
+      mixKEbondCH  = Mixer([0 0],3,'KEbondCH');
+      mixKEbondCHp  = Mixer([0 0],3,'KEbondCHp');
+      mixKEbondCC  = Mixer([0 0],3,'KEbondCC');
       for ipar = params
          m{ipar}.addKEmodDiag(1,1,mixKEdiagH);
          m{ipar}.addKEmodDiag(6,1,mixKEdiagC);
@@ -97,9 +97,9 @@ if (doFit || handFit || debugModel)
       mixENdiagC = Mixer([0 0],2,'ENdiagC');
       mixENdiagCp = Mixer([0 0],2,'ENdiagCp');
       mixENbondHH = Mixer(0,1,'ENbondHH');
-      mixENbondCH  = Mixer(0,1,'ENbondCH');
-      mixENbondCHp  = Mixer(0,1,'ENbondCHp');
-      mixENbondCC  = Mixer(0,1,'ENbondCC');
+      mixENbondCH  = Mixer([0 0],3,'ENbondCH');
+      mixENbondCHp  = Mixer([0 0],3,'ENbondCHp');
+      mixENbondCC  = Mixer([0 0],3,'ENbondCC');
       for ipar = params
          m{ipar}.addENmodDiag(1,1,mixENdiagH);
          m{ipar}.addENmodDiag(6,1,mixENdiagC);
@@ -107,7 +107,7 @@ if (doFit || handFit || debugModel)
          m{ipar}.addENmodBonded(1,1,1,1,mixENbondHH);
          m{ipar}.addENmodBonded(1,6,1,1,mixENbondCH);
          m{ipar}.addENmodBonded(1,6,1,2,mixENbondCHp);
-         m{ipar}.addENmodBonded(6,6,[1 2],[1 2],mixENbondCC)
+         m{ipar}.addENmodBonded(6,6,[1 2],[1 2],mixENbondCC);
       end
    end
    if (useDeltaCharges)
@@ -121,6 +121,7 @@ if (doFit || handFit || debugModel)
 end
 
 if (debugModel)
+   input junk;
    f1 = Fitme;
    for ipar = params
       f1.addFrag(m{ipar},HL{ipar,nhl});

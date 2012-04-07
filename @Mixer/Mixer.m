@@ -57,14 +57,24 @@ classdef Mixer < handle
             % potentially faster (since v's are matrices while x is scalar)
             res = ((1.0-x)/2.0) * v1 + ((1.0+x)/2.0) * v2;
          elseif (obj.mixType == 2)
+            % charge dependent mixing
             iatom = model.basisAtom(ii(1));
             ch = model.charges(iatom,ienv+1);
             x0 = obj.par(1);
             xslope = obj.par(2);
             x = x0 + xslope*ch;
             res = ((1.0-x)/2.0) * v1 + ((1.0+x)/2.0) * v2;
-         elseif (obj.mixType == 3)
-            error('still working on mixType 3');
+         elseif (obj.mixType == 3) 
+            % bond order dependent mixing
+            iatom = model.basisAtom(ii(1));
+            jatom = model.basisAtom(jj(1));
+            bo = model.bondOrders(iatom,jatom,ienv+1);
+            x0 = obj.par(1);
+            xslope = obj.par(2);
+            x = x0 + xslope*(bo-1);
+            res = ((1.0-x)/2.0) * v1 + ((1.0+x)/2.0) * v2;
+         elseif (obj.mixType == 4)
+            error('still working on mixType 4');
             x0 = obj.par(1);
             xslope = obj.par(2);
             density = model.density(ienv);

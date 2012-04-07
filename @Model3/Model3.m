@@ -35,6 +35,7 @@ classdef Model3 < handle
       %              (1-s 2-p) on iatom
       isBonded   % (natom,natom)  1 if atoms are bonded, 0 otherwise
       charges    % (natom,nenv+1)  current charges on the atoms
+      bondOrders % (natom,natom,nenv+1) current bond orders
       
       mixers     % (1,n)   cell array of mixers that are currently in use
       KEmods     % {1,n}   cell array of modifications to KE operator
@@ -89,10 +90,16 @@ classdef Model3 < handle
          end
          res.densitySave = cell(1,res.nenv+1);
          res.mixers = cell(0,0);
+         % Initialize charges and bond orders
          res.charges = zeros(res.natom,res.nenv+1);
          for ienv = 0:res.nenv
             res.charges(:,ienv+1) = res.frag.mcharge(ienv)';
          end
+         % Initialize bond orders
+         res.bondOrders = zeros(res.natom,res.natom,res.nenv+1);
+         for ienv = 0:res.nenv
+            res.bondOrders(:,:,ienv+1) = res.frag.calcBO(ienv);
+         end         
          res.H2j = cell(res.nbasis,res.nbasis);
          res.H2k = cell(res.nbasis,res.nbasis);
          for i=1:res.nbasis
