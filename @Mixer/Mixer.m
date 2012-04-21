@@ -23,6 +23,10 @@ classdef Mixer < handle
          obj.fixed = zeros(size(parIn));
          obj.desc = desc;
       end
+      function res = deepCopy(obj)
+         res = Mixer(obj.par,obj.mixType,obj.desc);
+         res.fixed = obj.fixed;
+      end
       function res = npar(obj)
          res = sum(obj.fixed == 0);
       end
@@ -89,10 +93,13 @@ classdef Mixer < handle
             error(['unknown mix type in Mixer: ',num2str(obj.mixType)]);
          end
       end
-      function print(obj)
-         types = {'sigmoid','linear','ch-dep'};
-         disp(['Mixer=',obj.desc,' type=',types(obj.mixType+1),' par=',...
-            num2str(obj.par)]);
+      function res = print(obj)
+         types = {'sigmoid','linear','ch-dep','bo-dep'};            
+         res = [obj.desc,' ',types{obj.mixType+1}];
+         for i = 1:size(obj.par,2)
+            res = [res,' ',num2str(obj.par(i))];
+         end
+         disp(res);
       end
    end
 end
