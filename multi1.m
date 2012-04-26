@@ -1,13 +1,13 @@
-%clear classes;
+clear classes;
 reload = 1;
 nhl = 1;
 plotCorrelations = 0;
 includeKEmods = 1;
 includeENmods = 1;
 useDeltaCharges = 1;
-debugModel = 1;
+debugModel = 0;
 handFit = 0;
-doFit = 0;
+doFit = 1;
 plotResults = 0;
 useStart = 0;
 %pstart =  [7.2274 9.0707 -22.1916 -14.9135 4.2480  6.6412 22.2263 14.5396  1.2623  5.9730  -2.8560 -2.5580 1.2478 3.4480 2.0505 2.4942 0 0];
@@ -17,8 +17,8 @@ pstart = [0.517818  8.1441 2.13829 6.56335 0.464458 9.73133 -10.4231 ...
    -0.594433  1.94629  0.683698  0.890883];
 envs = 0:20; % environments to include in fit
 geomsH2 = []; %2:7;
-geomsCH4 = 1:2;% 1:3;
-geomsEthane =1:2;% [];
+geomsCH4 = 1:7;% 1:3;
+geomsEthane =1:7;% [];
 plotNumber = [];
 
 if (reload)

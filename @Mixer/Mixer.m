@@ -90,9 +90,18 @@ classdef Mixer < handle
          end
       end
       function print(obj)
-         types = {'sigmoid','linear','ch-dep'};
-         disp(['Mixer=',obj.desc,' type=',types(obj.mixType+1),' par=',...
-            num2str(obj.par)]);
+         types = {'sigmoid','linear','ch-dep','BO-dep'};
+         % work around for display not be willing to display long strings
+         if (obj.npar == 1)
+            disp([obj.desc,types(obj.mixType+1),...
+               num2str(obj.par(1))]);
+         elseif (obj.npar == 2)
+            disp([obj.desc,types(obj.mixType+1),...
+               num2str(obj.par(1)),' ',num2str(obj.par(2))]);
+         else
+            disp([obj.desc,types(obj.mixType+1),...
+               num2str(obj.par)]);
+         end
       end
    end
 end
