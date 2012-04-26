@@ -24,13 +24,13 @@ en.CsCs = Mixer(0,1,'en.CC');
 en.CsCp = en.CsCs;
 en.CpCp = en.CsCs;
 
-dataDir = 'tmp/ch4-1/';
-ftest = makeFitme('ch4',[1 3 5],'enstruct',en,'kestruct',ke,'plot',2);
-f1 = makeFitme('ch4',[2 4 6 7],'enstruct',en,'kestruct',ke, ...
+dataDir = 'tmp/c2h4-1/';
+ftest = makeFitme('h2',[],'ethylene',[1 3 5],'enstruct',en,'kestruct',ke,'plot',2);
+f1 = makeFitme('h2',[],'ethylene',[2 4 6 7],'enstruct',en,'kestruct',ke, ...
    'testFitme',ftest);
 disp('Starting fit for H2');
 limits = [];
-options = optimset('DiffMinChange',1.0e-5);
+options = optimset('DiffMinChange',1.0e-5,'TolFun',1.0e-4,'TolX',1.0e-3);
 if (exist(dataDir,'dir') ~= 7)
    status = mkdir(dataDir);
 end
@@ -38,6 +38,9 @@ diary([dataDir,'out.diary']);
 diary on;
 tic
 start = f1.getPars;
+%%
+start = ptsave + 0.02*rand(size(ptsave));
+options = optimset('DiffMinChange',1.0e-5,'TolFun',1.0e-3,'TolX',1.0e-2);
 [pt,resnorm,residual,exitflag,output,lambda,jacobian] = ...
    lsqnonlin(@f1.err, start,-limits,limits,options);
 clockTime = toc
@@ -46,8 +49,8 @@ resnorm
 f1.printMixers;
 diary off;
 figure(799); saveas(gcf,[dataDir,'error.fig']);
-figure(800); saveas(gcf,[dataDir,'h2-train.fig']);
-figure(810); saveas(gcf,[dataDir,'h2-test.fig']);
+figure(800); saveas(gcf,[dataDir,'train.fig']);
+figure(810); saveas(gcf,[dataDir,'test.fig']);
 
 %% >>>>> ADD CH/BO dependence KE <<<<
 dataDir = 'tmp/ch4-2/';

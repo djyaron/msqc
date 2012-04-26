@@ -12,6 +12,7 @@ function fitme = makeFitme(varargin)
 %  h2       2:7              range of h2 geometries to include (1..7)
 %  ch4      []               range of ch4 geometries to include (1..19)
 %  ethane   []               range of ethane geometries to include (1..7)
+%  ethylene []               range of ethylene geometries to include (1..7)
 %  kemods   1                include mixers to modify kinetic energy
 %  enmods   1                include mixers to modify elec-nuc interaction
 %  deltarho 1                based charge dependence on charges induced
@@ -36,6 +37,7 @@ envs = checkForInput(varargin,'envs',0:20);
 geomsH2 = checkForInput(varargin,'h2',2:7); % allowed range is 1:7
 geomsCH4 = checkForInput(varargin,'ch4',[]); % allowed range is 1:19
 geomsEthane = checkForInput(varargin,'ethane',[]); % allowed range is 1:7
+geomsEthylene = checkForInput(varargin,'ethylene',[]); % allowed range is 1:7
 includeKEmods = checkForInput(varargin,'kemods',1);
 includeENmods = checkForInput(varargin,'enmods',1);
 useDeltaCharges = checkForInput(varargin,'deltarho',1);
@@ -48,32 +50,49 @@ LL1 = cell(0,0);
 HL1 = cell(0,0);
 ic = 0;
 plotNumber = [];
-for i = geomsCH4
+if (~isempty(geomsCH4))
    load([dataDir,'/ch4Dat.mat']);
-   ic = ic+1;
-   plotNumber(1,ic) = 801 + 10 * (doPlot-1);
-   for j = 1:size(LL,2)
-      LL1{ic,j} = LL{i,j};
+   for i = geomsCH4
+      ic = ic+1;
+      plotNumber(1,ic) = 801 + 10 * (doPlot-1);
+      for j = 1:size(LL,2)
+         LL1{ic,j} = LL{i,j};
+      end
+      HL1{ic,1} = HL{i,nhl};
    end
-   HL1{ic,1} = HL{i,nhl};
 end
-for i = geomsH2
+if (~isempty(geomsH2))
    load([dataDir,'/h2Dat.mat']);
-   ic = ic+1;
-   plotNumber(1,ic) = 800 + 10 * (doPlot-1);
-   for j = 1:size(LL,2)
-      LL1{ic,j} = LL{i,j};
+   for i = geomsH2
+      ic = ic+1;
+      plotNumber(1,ic) = 800 + 10 * (doPlot-1);
+      for j = 1:size(LL,2)
+         LL1{ic,j} = LL{i,j};
+      end
+      HL1{ic,1} = HL{i,nhl};
    end
-   HL1{ic,1} = HL{i,nhl};
 end
-for i = geomsEthane
-   load([dataDir,'/ethaneDat.mat']);
-   ic = ic+1;
-   plotNumber(1,ic) = 802 + 10 * (doPlot-1);
-   for j = 1:size(LL,2)
-      LL1{ic,j} = LL{i,j};
+if (~isempty(geomsEthane))
+   for i = geomsEthane
+      load([dataDir,'/ethaneDat.mat']);
+      ic = ic+1;
+      plotNumber(1,ic) = 802 + 10 * (doPlot-1);
+      for j = 1:size(LL,2)
+         LL1{ic,j} = LL{i,j};
+      end
+      HL1{ic,1} = HL{i,nhl};
    end
-   HL1{ic,1} = HL{i,nhl};
+end
+if (~isempty(geomsEthylene))
+   for i = geomsEthylene
+      load([dataDir,'/ethyleneDat.mat']);
+      ic = ic+1;
+      plotNumber(1,ic) = 803 + 10 * (doPlot-1);
+      for j = 1:size(LL,2)
+         LL1{ic,j} = LL{i,j};
+      end
+      HL1{ic,1} = HL{i,nhl};
+   end
 end
 params = 1:ic;
 LL = LL1;
