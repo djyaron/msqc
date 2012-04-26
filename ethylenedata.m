@@ -1,11 +1,11 @@
-%function res = ethylenedata()
 %%Load data
-%clear classes;
-root = 'c:\dave\apoly\msqc\';
+clear classes;
+dataroot = 'T:/msqc/ethylene1mp2';
+datasetroot = 'c:/dave/apoly/msqc/datasets';
 % Generate environments for production runs
-if (exist('ethylene1mp2/env2.mat','file'))
+if (exist([dataroot,'/env2.mat'],'file'))
    disp('loading existing environments');
-   load('ethylene1mp2/env2.mat');
+   load([dataroot,'/env2.mat']);
 else
    mag = 15.0;
    nenv = 100;
@@ -16,7 +16,7 @@ else
       temp.displace(cent);
       env{ienv} = temp;
    end
-   save('ethylene1mp2/env2.mat','env');
+   save([dataroot,'/env2.mat'],'env');
 end
 nenv = size(env,2);
 pars{1} = [1.32 1.08 0];
@@ -27,14 +27,14 @@ pars{5} = [1.47 1.08 0];
 pars{6} = [1.32 0.93 0];
 pars{7} = [1.32 1.23 0];
 npar = size(pars,2);
-HLbasis = {'6-31G' '6-31G*' '6-31G**'};
+HLbasis = {'6-31G'};% '6-31G*' '6-31G**'};
 HL = cell(npar,3);
 LL = cell(npar,3);
 
 %%
-if (exist('ethylene1mp2/ethyleneDat.mat','file'))
+if (exist([datasetroot,'/ethyleneDat.mat'],'file'))
    disp('loading existing data');
-   load('ethylene1mp2/ethyleneDat.mat');
+   load([datasetroot,'/ethyleneDat.mat']);
 else
    for ipar = [1 2 3 4 5 6 7] %1:size(pars,2)
       par = pars{ipar};
@@ -51,7 +51,7 @@ else
          config.template = 'ethylene';
          config.basisSet = HLbasis{ihl};
          disp(['ipar ',num2str(ipar),' loading HL ',num2str(ihl)]);
-         frag1 = Fragment([root,'ethylene1mp2'], config);
+         frag1 = Fragment(dataroot, config);
          for ienv = 1:nenv
             display(['HL env ',num2str(ienv)]);
             frag1.addEnv(env{ienv});
@@ -60,7 +60,7 @@ else
       end
       % LL 1
       config.basisSet = 'STO-3G';
-      frag2 = Fragment([root,'ethylene1mp2'], config);
+      frag2 = Fragment(dataroot, config);
       disp(['ipar ',num2str(ipar),' loading LL 1']);
       for ienv = 1:nenv
          display(['LL env ',num2str(ienv)]);
@@ -72,7 +72,7 @@ else
       config.template = 'ethylene-gen';
       config.basisSet = 'GEN';
       config.par = [par 0.9 0.9 0.9 0.9 0.9];
-      frag3 = Fragment([root,'ethylene1mp2'], config);
+      frag3 = Fragment(dataroot, config);
       disp(['ipar ',num2str(ipar),' loading LL 2']);
       for ienv = 1:nenv
          display(['LL env ',num2str(ienv)]);
@@ -84,7 +84,7 @@ else
       config.basisSet = 'GEN';
       config.par = [par 1.05 1.05 1.05 1.05 1.05];
       disp(['ipar ',num2str(ipar),' loading LL 3']);
-      frag4 = Fragment([root,'ethylene1mp2'], config);
+      frag4 = Fragment(dataroot, config);
       for ienv = 1:nenv
          display(['LL env ',num2str(ienv)]);
          frag4.addEnv(env{ienv});
@@ -93,5 +93,5 @@ else
    end
    
    % since even loading all the files will take time, we'll dave everything
-   save('ethylene1mp2/ethyleneDat.mat');
+   save([datasetroot,'/ethyleneDat.mat']);
 end
