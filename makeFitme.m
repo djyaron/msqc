@@ -132,7 +132,7 @@ if (includeKEmods)
          m{ipar}.addKEmodBonded(1,6,1,2,kestruct.CpH);
          m{ipar}.addKEmodBonded(6,6,1,1,kestruct.CsCs);
          m{ipar}.addKEmodBonded(6,6,1,2,kestruct.CsCp);
-         m{ipar}.addKEmodBonded(6,6,1,2,kestruct.CpCp);
+         m{ipar}.addKEmodBonded(6,6,2,2,kestruct.CpCp);
       end
    end
 end
@@ -164,7 +164,7 @@ if (includeENmods)
          m{ipar}.addENmodBonded(1,6,1,2,enstruct.CpH);
          m{ipar}.addENmodBonded(6,6,1,1,enstruct.CsCs);
          m{ipar}.addENmodBonded(6,6,1,2,enstruct.CsCp);
-         m{ipar}.addENmodBonded(6,6,1,2,enstruct.CpCp);
+         m{ipar}.addENmodBonded(6,6,2,2,enstruct.CpCp);
       end      
    end
 end
