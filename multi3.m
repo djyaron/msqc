@@ -16,13 +16,13 @@ trainC{4}  = {'h2',[],'ch4',1:7,'ethane',1:7,'envs',1:10};
 testC{4} = {'h2',[],'ch4',1:7,'ethane',1:7,'envs',20:30};
 filePrefix{4} = 'ch4-c2h6';
 
-trainC{4}  = {'h2',[],'ch4',1:7,'ethane',1:7,'ethylene',1:7,'envs',1:10};
-testC{4} = {'h2',[],'ch4',1:7,'ethane',1:7,'ethylene',1:7,'envs',20:30};
-filePrefix{4} = 'ch4-c2h6-c2h4';
+trainC{5}  = {'h2',[],'ch4',1:7,'ethane',1:7,'ethylene',1:7,'envs',1:10};
+testC{5} = {'h2',[],'ch4',1:7,'ethane',1:7,'ethylene',1:7,'envs',20:30};
+filePrefix{5} = 'ch4-c2h6-c2h4';
 
 commonIn = {};
 
-for iC = 2:4
+for iC = 1:3
    for iPar = 1:4
       trainIn = trainC{iC};
       testIn = testC{iC};
@@ -65,10 +65,10 @@ for iC = 2:4
          ke.CsCp = ke.CsCs.deepCopy(); ke.CsCs.desc ='ke.CsCs'; ke.CsCp.desc = 'ke.CsCp';
          ke.CpCp = ke.CsCs.deepCopy();                          ke.CpCp.desc = 'ke.CpCp';
          
-         en.Cp = ke.Cs.deepCopy();     en.Cs.desc ='en.Cs';     en.Cp.desc = 'en.Cp';
-         en.CpH = ke.CsH.deepCopy();   en.CsH.desc ='en.CsH';   en.CpH.desc = 'en.CpH';
-         en.CsCp = ke.CsCs.deepCopy(); en.CsCs.desc ='en.CsCs'; en.CsCp.desc = 'en.CsCp';
-         en.CpCp = ke.CsCs.deepCopy();                          en.CpCp.desc = 'en.CpCp';
+         en.Cp = en.Cs.deepCopy();     en.Cs.desc ='en.Cs';     en.Cp.desc = 'en.Cp';
+         en.CpH = en.CsH.deepCopy();   en.CsH.desc ='en.CsH';   en.CpH.desc = 'en.CpH';
+         en.CsCp = en.CsCs.deepCopy(); en.CsCs.desc ='en.CsCs'; en.CsCp.desc = 'en.CsCp';
+         en.CpCp = en.CsCs.deepCopy();                          en.CpCp.desc = 'en.CpCp';
          
       end
       
@@ -91,17 +91,18 @@ for iC = 2:4
       pt
       resnorm
       f1.printMixers;
+      save([dataDir,'all.mat']);
       diary off;
       figure(799); saveas(gcf,[dataDir,'error.fig']);
       if (~isempty(find(cellfun(@(x)isequal(lower(x),'ch4'),trainIn)) ))
          figure(801); saveas(gcf,[dataDir,'ch4-train.fig']);
          figure(811); saveas(gcf,[dataDir,'ch4-test.fig']);
       end
-      if (~isempty(find(cellfun(@(x)isequal(lower(x),'c2h6'),trainIn)) ))
+      if (~isempty(find(cellfun(@(x)isequal(lower(x),'ethane'),trainIn)) ))
          figure(802); saveas(gcf,[dataDir,'c2h6-train.fig']);
          figure(812); saveas(gcf,[dataDir,'c2h6-test.fig']);
       end
-      if (~isempty(find(cellfun(@(x)isequal(lower(x),'c2h4'),trainIn)) ))
+      if (~isempty(find(cellfun(@(x)isequal(lower(x),'ethylene'),trainIn)) ))
          figure(803); saveas(gcf,[dataDir,'c2h4-train.fig']);
          figure(813); saveas(gcf,[dataDir,'c2h4-test.fig']);
       end
