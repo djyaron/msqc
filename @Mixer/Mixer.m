@@ -23,6 +23,10 @@ classdef Mixer < handle
          obj.fixed = zeros(size(parIn));
          obj.desc = desc;
       end
+      function res = deepCopy(obj)
+         res = Mixer(obj.par,obj.mixType,obj.desc);
+         res.fixed = obj.fixed;
+      end
       function res = npar(obj)
          res = sum(obj.fixed == 0);
       end
@@ -57,14 +61,24 @@ classdef Mixer < handle
             % potentially faster (since v's are matrices while x is scalar)
             res = ((1.0-x)/2.0) * v1 + ((1.0+x)/2.0) * v2;
          elseif (obj.mixType == 2)
+            % charge dependent mixing
             iatom = model.basisAtom(ii(1));
             ch = model.charges(iatom,ienv+1);
             x0 = obj.par(1);
             xslope = obj.par(2);
             x = x0 + xslope*ch;
             res = ((1.0-x)/2.0) * v1 + ((1.0+x)/2.0) * v2;
-         elseif (obj.mixType == 3)
-            error('still working on mixType 3');
+         elseif (obj.mixType == 3) 
+            % bond order dependent mixing
+            iatom = model.basisAtom(ii(1));
+            jatom = model.basisAtom(jj(1));
+            bo = model.bondOrders(iatom,jatom,ienv+1);
+            x0 = obj.par(1);
+            xslope = obj.par(2);
+            x = x0 + xslope*(bo-1);
+            res = ((1.0-x)/2.0) * v1 + ((1.0+x)/2.0) * v2;
+         elseif (obj.mixType == 4)
+            error('still working on mixType 4');
             x0 = obj.par(1);
             xslope = obj.par(2);
             density = model.density(ienv);
@@ -79,10 +93,13 @@ classdef Mixer < handle
             error(['unknown mix type in Mixer: ',num2str(obj.mixType)]);
          end
       end
-      function print(obj)
-         types = {'sigmoid','linear','ch-dep'};
-         disp(['Mixer=',obj.desc,' type=',types(obj.mixType+1),' par=',...
-            num2str(obj.par)]);
+      function res = print(obj)
+         types = {'sigmoid','linear','ch-dep','bo-dep'};            
+         res = [obj.desc,' ',types{obj.mixType+1}];
+         for i = 1:size(obj.par,2)
+            res = [res,' ',num2str(obj.par(i))];
+         end
+         disp(res);
       end
    end
 end

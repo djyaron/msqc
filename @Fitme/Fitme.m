@@ -16,7 +16,10 @@ classdef Fitme < handle
       plot       % Plot results on every call to err()
       LLKE       % {1,nmodels}(1,nenv) used only for plots
       LLEN       % {1,nmodels}(natom,nenv) used only for plots
-      plotNumber % (1,nmodels): number fro plot of this model
+      plotNumber % (1,nmodels): number for plot of this model
+      plotNumErr % plot number for the error plots (default = 799)
+      errCalls   % number of calls to the err function
+      testFitme  % fitme object that has the test data
    end
    methods
       function res = Fitme
@@ -30,8 +33,10 @@ classdef Fitme < handle
          res.parHF = [];
          res.plot = 1;
          res.plotNumber = [];
+         res.plotNumErr = 799;
          res.LLKE = cell(0,0);
          res.LLEN = cell(0,0);
+         res.errCalls = 0;
       end
       function addMixer(obj, mix)
          add = 1;
@@ -244,9 +249,25 @@ classdef Fitme < handle
             end
          end
          disp(['RMS err/ndata = ',num2str(sqrt(res*res')/ndat)]);
+         
+         if (doPlots && (size(obj.testFitme,1) > 0) )
+            disp('**** TEST SET START ****');
+            err1 = obj.testFitme.err(par);
+            disp('**** TEST SET END ****');
+            figure(obj.plotNumErr);
+            if (obj.errCalls == 0)
+               hold off;
+               title('log10(error) for test (red+) and train (blue o)');
+            else
+               hold on;
+            end
+            plot(obj.errCalls+1, log10(norm(res)/length(res)),'bo');
+            plot(obj.errCalls+1, log10(norm(err1)/length(err1)),'r+');
+         end
          if (flip == 1)
             res = res';
          end
+         obj.errCalls = obj.errCalls + 1;
       end
    end   
 end

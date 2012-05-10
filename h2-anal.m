@@ -1,24 +1,29 @@
 clear classes;
 reload = 1;
-nhl = 1;
+nhl = 2;
+fields = 0;
 plotCorrelations = 0;
 includeKEmods = 1;
 includeENmods = 1;
 handFit = 0;
 doFit = 1;
-plotResults = 1;
+plotResults = 0;
 useStart = 0;
 pstart =  [-0.5 3 7];% 0 0 0];
 params = 2:7; % geometries to include
 envs = 0:20; % environments to include in fit
 
 if (reload)
-   load('h2/h2Dat.mat');
+   if (fields)
+      load('h2fld/h2fldDat.mat');
+   else
+      load('h2/h2Dat.mat');
+   end
 end
 
 if (plotCorrelations)
-   chl=zeros(2,100*size(params,2));
-   cll=zeros(2,100*size(params,2));
+   %chl=zeros(2,100*size(params,2));
+   %cll=zeros(2,100*size(params,2));
    ic = 0;
    for ipar = params
       ll = LL{ipar,1};

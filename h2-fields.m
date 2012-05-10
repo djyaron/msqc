@@ -1,10 +1,11 @@
 %% Load data
 clear classes;
-root = 'c:\Users\Alex\Programming\msqc\';
+%root = 'c:\Users\Alex\Programming\msqc\';
 % Generate environments for production runs
-if (exist('h2fld/env0.mat','file'))
+root = 'c:\dave\apoly\msqc\';
+if (exist('h2fld/env1.mat','file'))
    disp('loading existing environments');
-   load('h2fld/env0.mat');
+   load('h2fld/env1.mat');
 else
     nenv = 10;
     fieldType = [ 1 0 0; 0 1 0; 0 0 1; 2 0 0; 0 2 0; 0 0 2; 1 1 0; 1 0 1; ...
@@ -15,34 +16,36 @@ else
     for ifield = 1:nenv
         new = Environment;
         new.nfield = 1;
-        tmp = 0;
-        while tmp == 0
-            tmp = int16(rand * size(fieldType,1));
-        end
-        new.fieldType = fieldType(tmp, :);
-        new.fieldMag = int16(rand * 650) + 50;
+%         tmp = 0;
+%         while tmp == 0
+%             tmp = int16(rand * size(fieldType,1));
+%         end
+%         new.fieldType = fieldType(tmp, :);
+        new.fieldType = [0 0 1];
+        %new.fieldMag = int16(rand * 80) + 20;
+        new.fieldMag = 100 * ifield;
         %disp(new.fieldMag)
         new.ncharge = 0; new.rho = 0; new.r = 0;
         env{ifield} = new;
     end
-    save('h2fld/env0.mat','env');
+    save('h2fld/env1.mat','env');
 end
 nenv = size(env,2);
-pars{1} = [0.5];
-pars{2} = [0.65];
-pars{3} = [0.7];
-pars{4} = [0.75];
-pars{5} = [0.8];
-pars{6} = [0.85];
-pars{7} = [0.9];
+%pars{1} = [0.5];
+pars{1} = [0.65];
+pars{2} = [0.7];
+pars{3} = [0.75];
+pars{4} = [0.8];
+%pars{6} = [0.85];
+%pars{7} = [0.9];
 npar = size(pars,2);
 HLbasis = {'6-31G' '6-31G**'};
 HL = cell(npar,2);
 LL = cell(npar,3);
 %%
-if (exist('h2fld/h2fldDat.mat','file'))
+if (exist('h2fld/h2fldDat1.mat','file'))
    disp('loading existing data');
-   load('h2fld/h2fldDat.mat');
+   load('h2fld/h2fldDat1.mat');
 else
    for ipar = 1:size(pars,2)
       par = pars{ipar};
@@ -99,5 +102,5 @@ else
    end
    
    % since even loading all the files will take time, we'll dave everything
-   save('h2fld/h2fldDat.mat');
+   save('h2fld/h2fldDat1.mat');
 end
