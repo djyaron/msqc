@@ -104,7 +104,8 @@ classdef Fragment < handle
          end
          [found,res.fileprefix] = ...
             Fragment.findCalc(res.dataPath,res.config);
-         if (found)
+         % Backword compatibility (load mat file)
+         if (found && exist([res.fileprefix,'_calc.mat'],'file'))
             ftemp = [res.fileprefix,'_calc.mat'];
             prefixsave = res.fileprefix;
             dataPathsave = res.dataPath;
@@ -112,7 +113,7 @@ classdef Fragment < handle
             res = resFile;
             res.fileprefix = prefixsave;
             res.dataPath = dataPathsave;
-         else
+         else % load zip file, with generation if needed
             res.templateText = fileread([res.dataPath,filesep,...
                res.config.template,'.tpl']);
             res.natom = size( strfind(res.templateText, 'ATOM'), 2);
@@ -122,19 +123,25 @@ classdef Fragment < handle
                error(['template has ',num2str(res.npar),' parameters',...
                   ' while config contains ',num2str(nparIn),' pars']);
             end
-            res.initializeData();
-            resFile = res;
-            Cfile = res.config;
-            save([res.fileprefix,'_cfg.mat'],  'Cfile' );
-            save([res.fileprefix,'_calc.mat'], 'resFile' );
-            if (exist(res.fileprefix) ~= 7)
-               mkdir(res.fileprefix);
+            if (~found) 
+               temp1 = tempname('a'); % makes "a\uniquestring"
+               uniqueStr = temp1(3:end);
+               res.fileprefix = [res.dataPath,filesep,res.config.template, ...
+                  '_',uniqueStr];
+               % save config file, in *.mat format
+               Cfile = res.config;
+               save([res.fileprefix,'_cfg.mat'],  'Cfile' );
+               % create and save zip file
+               zipFile = [res.fileprefix,'.zip'];
+               res.initializeZipData(zipFile);
             end
+            zipFile = [res.fileprefix,'.zip'];
+            res.loadZipData(zipFile);
          end
          res.nenv = 0;
          % Set the environment array to have the correct class type
          res.env = Environment.empty(0,0);
-      end
+      end         
       function setEnvSize(obj,nenvIn)
          clear obj.env;
          obj.env(1,nenvIn) = Environment;
