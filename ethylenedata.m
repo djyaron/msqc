@@ -1,7 +1,15 @@
 %%Load data
 clear classes;
-dataroot = 'T:/msqc/ethylene1mp2';
-datasetroot = 'c:/dave/apoly/msqc/datasets';
+dataroot = 'c:/dave/apoly/msqc/dataz/ethylene1mp2';
+if (exist(dataroot,'dir'))
+   rmdir(dataroot,'s');
+end
+mkdir(dataroot);
+copyfile('templates/ethylene.tpl',[dataroot,'/ethylene.tpl']);
+copyfile('templates/ethylene-gen.tpl',[dataroot,'/ethylene-gen.tpl']);
+copyfile('ethane4mp2/env2.mat',[dataroot,'/env2.mat']);
+%%
+datasetroot = 'c:/dave/apoly/msqc/dataz/datasets';
 % Generate environments for production runs
 if (exist([dataroot,'/env2.mat'],'file'))
    disp('loading existing environments');
@@ -30,13 +38,12 @@ npar = size(pars,2);
 HLbasis = {'6-31G'};% '6-31G*' '6-31G**'};
 HL = cell(npar,3);
 LL = cell(npar,3);
-
 %%
 if (exist([datasetroot,'/ethyleneDat.mat'],'file'))
    disp('loading existing data');
    load([datasetroot,'/ethyleneDat.mat']);
 else
-   for ipar = [1 2 3 4 5 6 7] %1:size(pars,2)
+   for ipar = 1:npar
       par = pars{ipar};
       disp(['rcc ',num2str(par(1)), ...
          ' rch ',num2str(par(2)), ...
