@@ -3,7 +3,7 @@ clear classes;
 load('5-3-12/ch4f-c2h6/fit-1/all.mat');
 %%
 dataDir = ['tmp/',filePre,'/fit-',num2str(iPar),'/'];
-ftest = makeFitme('propane',[1 2 3 4 5 7],'enstruct',en,'kestruct',ke);
+ftest = makeFitme('propene',[1 2 3 4 5 6 7],'enstruct',en,'kestruct',ke);
 start = ftest.getPars;
 %%
 ftest.err(start);

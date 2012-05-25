@@ -39,6 +39,7 @@ geomsCH4 = checkForInput(varargin,'ch4',[]); % allowed range is 1:19
 geomsEthane = checkForInput(varargin,'ethane',[]); % allowed range is 1:7
 geomsEthylene = checkForInput(varargin,'ethylene',[]); % allowed range is 1:7
 geomsPropane = checkForInput(varargin,'propane',[]); % allowed range is 1:7
+geomsPropene = checkForInput(varargin,'propene',[]); % allowed range is 1:9
 includeKEmods = checkForInput(varargin,'kemods',1);
 includeENmods = checkForInput(varargin,'enmods',1);
 useDeltaCharges = checkForInput(varargin,'deltarho',1);
@@ -100,6 +101,17 @@ if (~isempty(geomsPropane))
       load([dataDir,'/propaneDat.mat'], 'LL', 'HL');
       ic = ic+1;
       plotNumber(1,ic) = 804 + 10 * (doPlot-1);
+      for j = 1:size(LL,2)
+         LL1{ic,j} = LL{i,j};
+      end
+      HL1{ic,1} = HL{i,nhl};
+   end
+end
+if (~isempty(geomsPropene))
+   for i = geomsPropene
+      load([dataDir,'/propeneDat.mat'], 'LL', 'HL');
+      ic = ic+1;
+      plotNumber(1,ic) = 805 + 10 * (doPlot-1);
       for j = 1:size(LL,2)
          LL1{ic,j} = LL{i,j};
       end

@@ -1,13 +1,13 @@
 %% Load data
 clear classes;
-root = 'c:\dave\apoly\msqc\';
+root = 'C:\Users\Alex\Programming\msqc\';
 % Generate environments for production runs
-if (exist('ethylene1mp2/env2.mat','file'))
+if (exist('h2/env2.mat','file'))
    disp('loading existing environments');
-   load('ethylene1mp2/env2.mat');
+   load('h2/env2.mat');
 else
    mag = 15.0;
-   nenv = 100;
+   nenv = 10;
    cubSize = [6,6,6];
    cent = [0.77; 0; 0];
    for ienv = 1:nenv
@@ -15,7 +15,7 @@ else
       temp.displace(cent);
       env{ienv} = temp;
    end
-   save('ethylene1mp2/env2.mat','env');
+   save('h2/env2.mat','env');
 end
 nenv = size(env,2);
 pars{1} = [0.5];
