@@ -288,6 +288,22 @@ classdef Fitme < handle
          end
          res = sqrt(res);
       end
+      function res = randMolError(obj,par)
+         % selects a random molecule and environment
+         % calculates the error for the parameters in par
+         % returns a vector of errors to be minimized
+         imod = randi(obj.nmodels);
+         ienv = randi(length(obj.envs{1,imod}));
+         obj.models{1,imod}.setPars( par );
+         obj.models{1,imod}.solveHF(ienv);
+         res = obj.models{1,imod}.EKE(ienv) - obj.HLKE{1,imod}(ienv);
+         for iatom = 1:obj.HLs{imod}.natom
+            temp =  ...
+               obj.HLEN{imod}(iatom,ienv) - ...
+               obj.models{imod}.Een(iatom,ienv);
+            res = [res , temp];
+         end
+      end
       function res = armError(obj,iarm)
          res = 0;
          for imod = 1:obj.nmodels

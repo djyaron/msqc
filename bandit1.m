@@ -21,7 +21,7 @@ en.CsCp = en.CsCs;
 en.CpCp = en.CsCs;
  
 f1 = makeFitme('h2',2:7,'enstruct',en,'kestruct',ke);
-%
+%%
 f1.generateArms(K,-10,10);
 
 % sort arms from best to worst
