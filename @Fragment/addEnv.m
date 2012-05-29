@@ -37,7 +37,7 @@ end
 if (found)
    calcfilename = [fileEnvPrefix,'_calc.mat'];
    if (exist(calcfilename,'file'))
-      disp(['found results, loading ',calcfilename]);
+      disp(['found env results, loading ',calcfilename]);
       loadMatFileFormat(obj,calcfilename,envTarget);
       return;
    end
@@ -45,10 +45,15 @@ end
 
 if (found)
    envZipFileName = [fileEnvPrefix,'.zip'];
+   disp(['found env results, loading ',envZipFileName]);
 else
    temp1 = tempname('a'); % makes "a\uniquestring"
    uniqueStr = temp1(3:end);
-   envZipFileName = [dirName,filesep,'env_',uniqueStr,'.zip'];
+   fileEnvPrefix = [dirName,filesep,'env_',uniqueStr];
+   envZipFileName = [fileEnvPrefix,'.zip'];
+   disp(['env results not found, generating ',envZipFileName]);
+   envFile = envTarget;
+   save([fileEnvPrefix,'_cfg.mat'], 'envFile');
    generateEnvZipData(obj,envZipFileName,envTarget);
 end
 

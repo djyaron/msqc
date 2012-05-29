@@ -10,7 +10,7 @@ filePrefix{2} = 'c2h6';
 
 trainC{3}  = {'h2',[],'ethylene',1:7,'envs',1:10};
 testC{3} = {'h2',[],'ethylene',1:7,'envs',20:30};
-filePrefix{3} = 'c2h4';
+filePrefix{3} = 'c2h4z2';
 
 trainC{4}  = {'h2',[],'ch4',1:7,'ethane',1:7,'envs',1:10};
 testC{4} = {'h2',[],'ch4',1:7,'ethane',1:7,'envs',20:30};
@@ -20,9 +20,17 @@ trainC{5}  = {'h2',[],'ch4',1:7,'ethane',1:7,'ethylene',1:7,'envs',1:10};
 testC{5} = {'h2',[],'ch4',1:7,'ethane',1:7,'ethylene',1:7,'envs',20:30};
 filePrefix{5} = 'ch4-c2h6-c2h4';
 
+trainC{6}  = {'h2',[],'ch4',1:19,'ethane',1:7,'envs',1:10};
+testC{6} = {'h2',[],'ch4',1:19,'ethane',1:7,'envs',20:30};
+filePrefix{6} = 'ch4f-c2h6';
+
+trainC{7}  = {'h2',[],'ch4',1:19,'ethane',1:7,'ethylene',1:7,'envs',1:10};
+testC{7} = {'h2',[],'ch4',1:19,'ethane',1:7,'ethylene',1:7,'envs',20:30};
+filePrefix{7} = 'ch4f-c2h6-c2h4';
+
 commonIn = {};
 
-for iC = 1:3
+for iC = 3:3
    for iPar = 1:4
       trainIn = trainC{iC};
       testIn = testC{iC};
