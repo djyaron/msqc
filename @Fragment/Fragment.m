@@ -102,6 +102,7 @@ classdef Fragment < handle
          else
             res.config = configIn;
          end
+         newline = char(10);
          [found,res.fileprefix] = ...
             Fragment.findCalc(res.dataPath,res.config);
          % Backword compatibility (load mat file)
@@ -114,44 +115,87 @@ classdef Fragment < handle
             res.fileprefix = prefixsave;
             res.dataPath = dataPathsave;
          else % load zip file, with generation if needed
-            res.templateText = fileread([res.dataPath,filesep,...
-               res.config.template,'.tpl']);
-            res.natom = size( strfind(res.templateText, 'ATOM'), 2);
-            res.npar = size( strfind(res.templateText, 'PAR'), 2);
-            nparIn = size(res.config.par,1) * size(res.config.par,2);
-            if (nparIn ~= res.npar)
-               error(['template has ',num2str(res.npar),' parameters',...
-                  ' while config contains ',num2str(nparIn),' pars']);
-            end
-            if (~found) 
-               temp1 = tempname('a'); % makes "a\uniquestring"
-               uniqueStr = temp1(3:end);
-               res.fileprefix = [res.dataPath,filesep,res.config.template, ...
-                  '_',uniqueStr];
-               % save config file, in *.mat format
-               Cfile = res.config;
-               save([res.fileprefix,'_cfg.mat'],  'Cfile' );
-               % create and save zip file
-               zipFile = [res.fileprefix,'.zip'];
-               res.initializeZipData(zipFile);
-            end
-            zipFile = [res.fileprefix,'.zip'];
-            res.loadZipData(zipFile);
+             res.templateText = fileread([res.dataPath,filesep,...
+                 res.config.template,'.tpl']);
+             res.natom = size( strfind(res.templateText, 'ATOM'), 2);
+             res.npar = size( strfind(res.templateText, 'PAR'), 2);
+             
+             basisSet = res.config.basisSet;
+             method   = res.config.method;
+             charge   = res.config.charge;
+             spin     = res.config.spin;
+             par      = res.config.par;
+             
+             % ___________________________________________________________
+             % header for the Gaussian job file (input file)
+             %  Note: for single atom calcs below, 'scf=conventional' is replaced
+             %        so if this keyword in header is changed, it needs to be changed
+             %        there as well
+             header = ['%rwf=temp.rwf',newline,...
+                 '%nosave',newline,...
+                 '%chk=temp.chk',newline,...
+                 '# ',method,'/',basisSet, newline...
+                 'nosymm int=noraff iop(99/6=1) ',...
+                 'scf=conventional',' symm=noint', newline, newline, ...
+                 'title', newline,newline];
+             
+             % ____________________________________________________________
+             % Create Scratch directory within g09 scratch directory, to do work
+             
+             % ctext will hold the Gaussian job file (input file)
+             % begin with the above header text
+             ctext = header;
+             % charge and spin come next
+             ctext = [ctext, num2str(charge), ' ', num2str(spin), newline];
+             % For molecule specification, we first replace all ATOM# with spaces
+             t1 = res.templateText;
+             % Iterate in reverse order, or replacements will not work properly with
+             % more than 10 atoms.
+             for iatom = res.natom:-1:1
+                 t1 = strrep(t1, ['ATOM',num2str(iatom)], ' ');
+             end
+             % And replace all PAR# with the parameter values
+             for ipar = res.npar:-1:1
+                 t1 = strrep(t1, ['PAR',num2str(ipar)], num2str(par(ipar),'%23.12f'));
+             end
+             ctext = [ctext, t1];
+             
+             res.gaussianFile = ctext;
+             
+             nparIn = size(res.config.par,1) * size(res.config.par,2);
+             if (nparIn ~= res.npar)
+                 error(['template has ',num2str(res.npar),' parameters',...
+                     ' while config contains ',num2str(nparIn),' pars']);
+             end
+             if (~found)
+                 temp1 = tempname('a'); % makes "a\uniquestring"
+                 uniqueStr = temp1(3:end);
+                 res.fileprefix = [res.dataPath,filesep,res.config.template, ...
+                     '_',uniqueStr];
+                 % save config file, in *.mat format
+                 Cfile = res.config;
+                 save([res.fileprefix,'_cfg.mat'],  'Cfile' );
+                 % create and save zip file
+                 zipFile = [res.fileprefix,'.zip'];
+                 res.initializeZipData(zipFile);
+             end
+             zipFile = [res.fileprefix,'.zip'];
+             res.loadZipData(zipFile);
          end
          res.nenv = 0;
          % Set the environment array to have the correct class type
          res.env = Environment.empty(0,0);
-      end         
+      end
       function setEnvSize(obj,nenvIn)
-         clear obj.env;
-         obj.env(1,nenvIn) = Environment;
-         obj.H1Env = zeros(obj.nbasis, obj.nbasis, nenvIn);
-         obj.EhfEnv = zeros(1,nenvIn);
-         obj.MP2Env = zeros(1,nenvIn);
-         obj.CorrEenv  = zeros(1,nenvIn);
-         obj.EorbEnv = zeros(obj.nbasis, nenvIn);
-         obj.orbEnv  = zeros(obj.nbasis,obj.nbasis,nenvIn);
-         obj.dipoleEnv = zeros(3,nenvIn);
+          clear obj.env;
+          obj.env(1,nenvIn) = Environment;
+          obj.H1Env = zeros(obj.nbasis, obj.nbasis, nenvIn);
+          obj.EhfEnv = zeros(1,nenvIn);
+          obj.MP2Env = zeros(1,nenvIn);
+          obj.CorrEenv  = zeros(1,nenvIn);
+          obj.EorbEnv = zeros(obj.nbasis, nenvIn);
+          obj.orbEnv  = zeros(obj.nbasis,obj.nbasis,nenvIn);
+          obj.dipoleEnv = zeros(3,nenvIn);
       end
    end % methods
 end %
