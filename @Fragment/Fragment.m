@@ -52,7 +52,7 @@ classdef Fragment < handle
    end
    properties
       % TODO Need to do something about these
-      gaussianPath = 'c:\g09w';
+      gaussianPath = 'd:\g09w';
       gaussianExe  = 'g09.exe';
    end
    methods (Access = private)
@@ -84,6 +84,7 @@ classdef Fragment < handle
        atom, type, subtype, nprims, prims ] = readfchk(fid1)
       [Eorb, orb, atom, Nelectrons, Ehf] = oldreadfchk(fid1)
       [S, H1, KE, H2, Enuc] = readpolyatom(fid1)
+      [HL, LL] = dataMerge(datFiles, envs, saveFilename)
    end
    methods
       function res = Fragment(dataPathIn, configIn)
@@ -115,6 +116,13 @@ classdef Fragment < handle
             res.fileprefix = prefixsave;
             res.dataPath = dataPathsave;
          else % load zip file, with generation if needed
+             % If the cfg file exists, but not the zip file, delete the cfg
+             % and proceed as though it was not found.
+             if (found && ~exist([res.fileprefix, '.zip'], 2))
+                 delete([res.fileprefix, '_cfg.mat']);
+                 found = false;
+             end
+             
              res.templateText = fileread([res.dataPath,filesep,...
                  res.config.template,'.tpl']);
              res.natom = size( strfind(res.templateText, 'ATOM'), 2);
