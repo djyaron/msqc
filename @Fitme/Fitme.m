@@ -21,6 +21,10 @@ classdef Fitme < handle
       errCalls   % number of calls to the err function
       testFitme  % fitme object that has the test data
       
+      itcount    % counter for the err arrays
+      errTrain   % error in train as a function of iteration
+      errTest    % error in test set
+      
       arms       % (npar,narms): for bandit algorithm
    end
    methods
@@ -39,6 +43,7 @@ classdef Fitme < handle
          res.LLKE = cell(0,0);
          res.LLEN = cell(0,0);
          res.errCalls = 0;
+         res.itcount = 0;
       end
       function addMixer(obj, mix)
          add = 1;
@@ -265,6 +270,9 @@ classdef Fitme < handle
             end
             plot(obj.errCalls+1, log10(norm(res)/length(res)),'bo');
             plot(obj.errCalls+1, log10(norm(err1)/length(err1)),'r+');
+            obj.itcount = obj.itcount + 1;
+            obj.errTrain(obj.itcount) = norm(res);
+            obj.errTest(obj.itcount) = norm(err1);
          end
          if (flip == 1)
             res = res';
