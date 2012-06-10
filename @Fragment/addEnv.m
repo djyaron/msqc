@@ -85,37 +85,37 @@ end
 if envTarget.nfield > 0
    for ifield = 1:envTarget.nfield
       % turn into the format for Gaussian
-      tmp = envTarget.fieldType( ifield, : );
-      if ( sum( tmp ) < 4 )
-         dir = [ repmat( 'X', 1, envTarget.fieldType( ifield, 1 ) ), ...
-            repmat( 'Y', 1, envTarget.fieldType( ifield, 2 ) ), ...
-            repmat( 'Z', 1, envTarget.fieldType( ifield, 3 ) ) ];
+      tmp = envTarget.fieldType(ifield, :);
+      if (sum(tmp) < 4)
+         dir = [repmat('X', 1, envTarget.fieldType(ifield, 1)), ...
+            repmat('Y', 1, envTarget.fieldType(ifield, 2)), ...
+            repmat('Z', 1, envTarget.fieldType(ifield, 3))];
       else
          dir = '';
-         while max( tmp ) > 0
-            switch find( tmp == max( tmp ), 1 )
+         while max(tmp) > 0
+            switch find(tmp == max(tmp), 1)
                case 1
-                  dir = [ dir, repmat( 'X', 1, tmp( 1 ) ) ];
-                  tmp( 1 ) = 0;
+                  dir = [dir, repmat('X', 1, tmp(1))];
+                  tmp(1) = 0;
                case 2
-                  dir = [ dir, repmat( 'Y', 1, tmp( 2 ) ) ];
-                  tmp( 2 ) = 0;
+                  dir = [dir, repmat('Y', 1, tmp(2))];
+                  tmp(2) = 0;
                case 3
-                  dir = [ dir, repmat( 'Z', 1, tmp( 3 ) ) ];
-                  tmp( 3 ) = 0;
+                  dir = [dir, repmat('Z', 1, tmp(3))];
+                  tmp(3) = 0;
                otherwise
-                  error( 'Invalid input' );
+                  error('Invalid input');
             end
          end
       end
       mag = '';
-      if envTarget.fieldMag( ifield ) >= 0
+      if envTarget.fieldMag(ifield) >= 0
          mag = '+';
       end
-      mag = [ mag, num2str( envTarget.fieldMag( ifield ) ) ];
-      insert = [ 'Field=', dir, mag ];
+      mag = [mag, num2str(envTarget.fieldMag(ifield))];
+      insert = ['Field=', dir, mag];
       % Add to the input file
-      ctext = strrep( ctext, 'symm=noint', [ 'symm=noint ', insert ] );
+      ctext = strrep(ctext, 'symm=noint', ['symm=noint ', insert]);
    end
 end
 gjf_file = [jobname,'.gjf'];
@@ -124,11 +124,25 @@ fid1 = fopen(gjf_file,'w');
 fwrite(fid1, ctext, 'char');
 fclose(fid1);
 
-system([obj.gaussianPath,filesep,obj.gaussianExe,' ',gjf_file]);
-toZip = {'temp.chk','fort.32'};
+resp = system([obj.gaussianPath,filesep,obj.gaussianExe,' ',gjf_file]);
+if resp ~= 0
+    disp('Retrying calculation with alternate convergence method.');
+    ctext = strrep(ctext,'scf=conventional','scf=(conventional,qc)');
+    fid1 = fopen(gjf_file,'w');
+    fwrite(fid1, ctext, 'char');
+    fclose(fid1);
+    system([obj.gaussianPath,filesep,obj.gaussianExe,' ',gjf_file]);
+end
+
+toZip = {'temp.chk','fort.32','env.gjf','env.out'};
 zip(envZipFileName,toZip);
 cd(origdir);
-rmdir(tempDir,'s');
+status = rmdir(tempDir,'s');
+while status ~= 1
+    disp('  rmdir failed. Retrying...');
+    pause(0.1);
+    status = rmdir(tempDir,'s');
+end
 end
 
 function loadEnvZipData(obj,envZipFileName,envTarget)
@@ -170,17 +184,26 @@ catch
    error('failed during env polyatom read');
 end
 
-obj.nenv = obj.nenv + 1;
-obj.env(1,obj.nenv) = envTarget;
-obj.H1Env(:,:,obj.nenv) = H1e-obj.H1;
-obj.MP2Env(1,obj.nenv) = MP2e;
-obj.EhfEnv(1,obj.nenv)  = Ehfe;
-obj.EorbEnv(:,obj.nenv) = Eorbe;
-obj.HnucEnv(:,obj.nenv) = Hnuce;
-obj.orbEnv(:,:,obj.nenv)  = orbe;
-obj.dipoleEnv(:,obj.nenv) = dipolee;
+try
+    obj.nenv = obj.nenv + 1;
+    obj.env(1,obj.nenv) = envTarget;
+    obj.H1Env(:,:,obj.nenv) = H1e-obj.H1;
+    obj.MP2Env(1,obj.nenv) = MP2e;
+    obj.EhfEnv(1,obj.nenv)  = Ehfe;
+    obj.EorbEnv(:,obj.nenv) = Eorbe;
+    obj.HnucEnv(:,obj.nenv) = Hnuce;
+    obj.orbEnv(:,:,obj.nenv)  = orbe;
+    obj.dipoleEnv(:,obj.nenv) = dipolee;
+catch
+    error('failed to read in data.');
+end
 
-rmdir(tempDir,'s');
+status = rmdir(tempDir,'s');
+while status ~= 1
+    disp('  rmdir failed. Retrying...');
+    pause(0.1);
+    status = rmdir(tempDir,'s');
+end
 end
 
 function loadMatFileFormat(obj,calcfilename,envTarget)

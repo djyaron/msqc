@@ -9,44 +9,10 @@ method   = obj.config.method;
 charge   = obj.config.charge;
 spin     = obj.config.spin;
 par      = obj.config.par;
+ctext    = obj.gaussianFile;
 dataPath = obj.dataPath;
 gaussianPath = obj.gaussianPath;
 gaussianExe  = obj.gaussianExe;
-% ___________________________________________________________
-% header for the Gaussian job file (input file)
-%  Note: for single atom calcs below, 'scf=conventional' is replaced
-%        so if this keyword in header is changed, it needs to be changed
-%        there as well
-header = ['%rwf=temp.rwf',newline,...
-   '%nosave',newline,...
-   '%chk=temp.chk',newline,...
-   '# ',method,'/',basisSet, newline...
-   'nosymm int=noraff iop(99/6=1) ',...
-   'scf=conventional',' symm=noint', newline, newline, ...
-   'title', newline,newline];
-
-% ____________________________________________________________
-% Create Scratch directory within g09 scratch directory, to do work
-
-% ctext will hold the Gaussian job file (input file)
-% begin with the above header text
-ctext = header;
-% charge and spin come next
-ctext = [ctext, num2str(charge), ' ', num2str(spin), newline];
-% For molecule specification, we first replace all ATOM# with spaces
-t1 = obj.templateText;
-% Iterate in reverse order, or replacements will not work properly with 
-% more than 10 atoms.
-for iatom = obj.natom:-1:1
-   t1 = strrep(t1, ['ATOM',num2str(iatom)], ' ');
-end
-% And replace all PAR# with the parameter values
-for ipar = obj.npar:-1:1
-   t1 = strrep(t1, ['PAR',num2str(ipar)], num2str(par(ipar),'%23.12f'));
-end
-ctext = [ctext, t1];
-
-obj.gaussianFile = ctext;
 
 % Do the calculation
 jobname = 'full';
@@ -158,11 +124,10 @@ for iatom = 1:natom
 
    toZip = {toZip{:},[jobname,'.f32']};
 end
-
 zip(zipFileName,toZip);
 
 cd(origdir);
 % cleanup files
-rmdir(tempDir,'s');
+[status message messageid] = rmdir(tempDir,'s');
 
 

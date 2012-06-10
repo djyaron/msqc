@@ -34,10 +34,12 @@ nhl = checkForInput(varargin,'nhl',1);
 doPlot = checkForInput(varargin,'plot',1);
 % environments to include in the fit
 envs = checkForInput(varargin,'envs',0:20); 
-geomsH2 = checkForInput(varargin,'h2',2:7); % allowed range is 1:7
+geomsH2 = checkForInput(varargin,'h2',[]); % allowed range is 1:7
 geomsCH4 = checkForInput(varargin,'ch4',[]); % allowed range is 1:19
 geomsEthane = checkForInput(varargin,'ethane',[]); % allowed range is 1:7
 geomsEthylene = checkForInput(varargin,'ethylene',[]); % allowed range is 1:7
+geomsPropane = checkForInput(varargin,'propane',[]); % allowed range is 1:7
+geomsPropene = checkForInput(varargin,'propene',[]); % allowed range is 1:9
 includeKEmods = checkForInput(varargin,'kemods',1);
 includeENmods = checkForInput(varargin,'enmods',1);
 useDeltaCharges = checkForInput(varargin,'deltarho',1);
@@ -88,6 +90,28 @@ if (~isempty(geomsEthylene))
       load([dataDir,'/ethyleneDat.mat']);
       ic = ic+1;
       plotNumber(1,ic) = 803 + 10 * (doPlot-1);
+      for j = 1:size(LL,2)
+         LL1{ic,j} = LL{i,j};
+      end
+      HL1{ic,1} = HL{i,nhl};
+   end
+end
+if (~isempty(geomsPropane))
+   for i = geomsPropane
+      load([dataDir,'/propaneDat.mat'], 'LL', 'HL');
+      ic = ic+1;
+      plotNumber(1,ic) = 804 + 10 * (doPlot-1);
+      for j = 1:size(LL,2)
+         LL1{ic,j} = LL{i,j};
+      end
+      HL1{ic,1} = HL{i,nhl};
+   end
+end
+if (~isempty(geomsPropene))
+   for i = geomsPropene
+      load([dataDir,'/propeneDat.mat'], 'LL', 'HL');
+      ic = ic+1;
+      plotNumber(1,ic) = 805 + 10 * (doPlot-1);
       for j = 1:size(LL,2)
          LL1{ic,j} = LL{i,j};
       end
