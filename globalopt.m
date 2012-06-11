@@ -3,16 +3,18 @@
 % if fastFit = 0, it does h2 and ch4, so it will run slow, but be 
 %                 more interesting data
 clear classes
-fastFit = 1;  
+for calcType = 1:3
+close all
+fastFit = 0;  
 
 %  'h2',[2 4 6]   means use the second fourth and sixth geometries of h2
 %  'ch4',[1 3]    means the 1 and 3 geometry of methane
 %  'env', 1:10    means the 1 through 10 environments around these
 %                 molecules
 if (fastFit)
-   ftest = makeFitme('h2',[2 4 6],'env',1:5);
+   ftest = makeFitme('h2',[2 4 6],'env',1:5,'plot',0);
 else
-   ftest = makeFitme('h2',[2 4 6],'ch4',[1 3],'env',1:10);
+   ftest = makeFitme('h2',[2 4 6],'ch4',[1 3],'env',1:10,'plot',0);
 end
 %  ftest.npar      is the number of parameters in the model
 %  ftest.err(par)  is a function that returns the disagreement
@@ -36,7 +38,7 @@ end
 % To solve this problem, we are using the lsqnonlin function of matlab.
 
 %% Levenberg Marquadt
-
+if (calcType == 1)
 % if wanted to limit the range of the parameters (like say, every value in 
 % par to stay between -100 and +100, we could do it by setting limits here
 % By setting limits to [], we are saying that we aren't setting any limits
@@ -58,32 +60,81 @@ start = f1.getPars;
 % [pt resnorm etc] are the return values from lsqnonlin.
 %    pt = the best guess at the parameters. These are the parameters that
 %         give the lowest error for the TRAIN set. The TEST set is
-%         is calculated and displayed, but not used to determine the 
+%         is calculated and displayed, but not used to determine the
 %         parameters.
+dataDir = ['tmp/global/LM/'];
+if (exist(dataDir,'dir') ~= 7)
+   status = mkdir(dataDir);
+end
+diary([dataDir,'out.diary']);
+diary on;
+tic
 [pt,resnorm,residual,exitflag,output,lambda,jacobian] = ...
    lsqnonlin(@f1.err, start,-limits,limits,options);
+clockTime = toc
+pt
+resnorm
+f1.printMixers;
+save([dataDir,'all.mat']);
+diary off;
+figure(799); saveas(gcf,[dataDir,'error.fig']);
 
 % figure 799 shows the error in the test (red plusses) and train (blue
-% circles) as a function of the iteration. 
+% circles) as a function of the iteration.
+end
 %% To get the error of the train and test data, we do:
-trainError = f1.errTrain;
-testError = f1.errTest;
-
-figure(100)
-plot(trainError,'bo');
-hold on;
-plot(testError,'r+');
+% trainError = f1.errTrain;
+% testError = f1.errTest;
+% 
+% figure(100)
+% plot(trainError,'bo');
+% hold on;
+% plot(testError,'r+');
 %% Genetic algorithm
+if (calcType == 2)
+dataDir = ['tmp/global/ga/'];
+if (exist(dataDir,'dir') ~= 7)
+   status = mkdir(dataDir);
+end
+diary([dataDir,'out.diary']);
+diary on;
+tic
 options = gaoptimset(@ga);
-options.PopInitRange = [-7; 7]
-[x fval] = ga(@f1.normErr, f1.npar, [],[],[],[],[],[],[],options)
-
+options.PopInitRange = [-7; 7];
+options.Generations = 200;
+[x fval] = ga(@f1.normErr, f1.npar, [],[],[],[],[],[],[],options);
+clockTime = toc
+x
+fval
+f1.printMixers;
+save([dataDir,'all.mat']);
+diary off;
+figure(799); saveas(gcf,[dataDir,'error.fig']);
+end
 %% Simulated annealing
+if (calcType == 3)
+dataDir = ['tmp/global/sa/'];
+if (exist(dataDir,'dir') ~= 7)
+   status = mkdir(dataDir);
+end
+diary([dataDir,'out.diary']);
+diary on;
+tic
+
 x0 = zeros(f1.npar,1);
 lb = -10 * ones(f1.npar,1);
 ub = 10 * ones(f1.npar,1);
 [x fval] = simulannealbnd(@f1.normErr,x0,lb,ub);
+clockTime = toc
+x
+fval
+f1.printMixers;
+save([dataDir,'all.mat']);
+diary off;
+figure(799); saveas(gcf,[dataDir,'error.fig']);
 
+end
 %%
-x0 = zeros(f1.npar,1);
-x = fminsearch(@f1.normErr, x0);
+%x0 = zeros(f1.npar,1);
+%x = fminsearch(@f1.normErr, x0);
+end
