@@ -18,6 +18,7 @@ function fitme = makeFitme(varargin)
 %  deltarho 1                based charge dependence on charges induced
 %                            by field
 %  enstruct  []              structure with enmods
+%  enstruct1 []              structure with enmods (1 oper only)
 %  kestruct  []              structure with kemods
 %  testFitme []              Fitme object with test data
 
@@ -44,8 +45,13 @@ includeKEmods = checkForInput(varargin,'kemods',1);
 includeENmods = checkForInput(varargin,'enmods',1);
 useDeltaCharges = checkForInput(varargin,'deltarho',1);
 enstruct = checkForInput(varargin,'enstruct',[]);
+enstruct1 = checkForInput(varargin,'enstruct1',[]);
 kestruct = checkForInput(varargin,'kestruct',[]);
 testFitme = checkForInput(varargin,'testFitme',[]);
+
+if (~isempty(enstruct) && ~isempty(enstruct1))
+   error('Do not set both enstruct and enstruct1');
+end
 
 % Load data
 LL1 = cell(0,0);
@@ -161,7 +167,7 @@ if (includeKEmods)
    end
 end
 if (includeENmods)
-   if (size(enstruct,1) == 0)
+   if (isempty(enstruct) && isempty(enstruct1))
       mixENdiagH = Mixer([0 0],2,'ENdiagH');
       mixENdiagC = Mixer([0 0],2,'ENdiagC');
       mixENdiagCp = Mixer([0 0],2,'ENdiagCp');
@@ -178,7 +184,7 @@ if (includeENmods)
          m{ipar}.addENmodBonded(1,6,1,2,mixENbondCHp);
          m{ipar}.addENmodBonded(6,6,[1 2],[1 2],mixENbondCC);
       end
-   else
+   elseif (size(enstruct,1) == 1)
       for ipar = params
          m{ipar}.addENmodDiag(1,1,enstruct.H);
          m{ipar}.addENmodDiag(6,1,enstruct.Cs);
@@ -189,7 +195,21 @@ if (includeENmods)
          m{ipar}.addENmodBonded(6,6,1,1,enstruct.CsCs);
          m{ipar}.addENmodBonded(6,6,1,2,enstruct.CsCp);
          m{ipar}.addENmodBonded(6,6,2,2,enstruct.CpCp);
-      end      
+      end
+   elseif (size(enstruct1,1) == 1)
+      for ipar = params
+         m{ipar}.addENmodDiag(1,1,enstruct.H);
+         m{ipar}.addENmodDiag(6,1,enstruct.Cs);
+         m{ipar}.addENmodDiag(6,2,enstruct.Cp);
+         m{ipar}.addENmodBonded(1,1,1,1,enstruct.HH);
+         m{ipar}.addENmodBonded1(6,1,1,1,enstruct.CsH);
+         m{ipar}.addENmodBonded1(6,1,2,1,enstruct.CpH);
+         m{ipar}.addENmodBonded1(1,6,1,1,enstruct.HCs);
+         m{ipar}.addENmodBonded1(1,6,1,2,enstruct.HCp);
+         m{ipar}.addENmodBonded(6,6,1,1,enstruct.CsCs);
+         m{ipar}.addENmodBonded(6,6,1,2,enstruct.CsCp);
+         m{ipar}.addENmodBonded(6,6,2,2,enstruct.CpCp);
+      end
    end
 end
 if (useDeltaCharges)
