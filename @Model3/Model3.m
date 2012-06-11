@@ -193,9 +193,9 @@ classdef Model3 < handle
          end
          if (mixerAdded)
             obj.addMixer(mix);
-            mixUsed = [];
-         else
             mixUsed = mix;
+         else
+            mixUsed = [];
          end
       end
       function mixUsed = addKEmodBonded(obj,Z1,Z2,types1,types2, mix)
@@ -244,9 +244,9 @@ classdef Model3 < handle
          end
          if (mixerAdded)
             obj.addMixer(mix);
-            mixUsed = [];
-         else
             mixUsed = mix;
+         else
+            mixUsed = [];
          end
       end
       function res = H1en(obj, iatom, ienv)
@@ -290,9 +290,9 @@ classdef Model3 < handle
          end
          if (mixerAdded)
             obj.addMixer(mix);
-            mixUsed = [];
-         else
             mixUsed = mix;
+         else
+            mixUsed = [];
          end
       end
       function mixUsed = addENmodBonded(obj,Z1,Z2,types1,types2, mix)
@@ -344,9 +344,53 @@ classdef Model3 < handle
          end
          if (mixerAdded)
             obj.addMixer(mix);
-            mixUsed = [];
-         else
             mixUsed = mix;
+         else
+            mixUsed = [];
+         end
+      end
+      function mixUsed = addENmodBonded1(obj,Z1,Z2,types1,types2, mix)
+         % Modifies only the EN operator for atoms that match Z1
+         if (nargin < 4)
+            types1 = [1 2];
+         end
+         if (nargin < 5)
+            types2 = [1 2];
+         end
+         if (nargin < 6)
+            mix = Mixer();
+            mix.desc = ['EN bonded(1 only) Z ',num2str(Z1),' types [', ...
+               num2str(types1),'] with Z ',num2str(Z2),' types [', ...
+               num2str(types2),']'];
+         end
+         mixerAdded = 0;
+         for iatom = find(obj.Z == Z1)
+            for jatom = find(obj.Z == Z2)
+               if (obj.isBonded(iatom,jatom))
+                  for itype = 1:2
+                     for jtype = 1:2
+                        if (any(ismember(itype,types1)) && ...
+                              any(ismember(jtype,types2)) )
+                           mod.ilist = obj.valAtom{iatom,itype}';
+                           mod.jlist = obj.valAtom{jatom,jtype}';
+                           mod.mixer = mix;
+                           obj.ENmods{1,iatom}{1,end+1} = mod;
+                           mod.jlist = obj.valAtom{iatom,itype}';
+                           mod.ilist = obj.valAtom{jatom,jtype}';
+                           obj.ENmods{1,iatom}{1,end+1} = mod;
+                           mod.mixer = mix;
+                           mixerAdded = 1;
+                        end
+                     end
+                  end
+               end
+            end
+         end
+         if (mixerAdded)
+            obj.addMixer(mix);
+            mixUsed = mix;
+         else
+            mixUsed = [];
          end
       end
       function res = Hnuc(obj,ienv)

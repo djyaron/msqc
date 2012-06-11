@@ -1,5 +1,14 @@
 %%
 clear classes;
+load('datasets/ethaneDat.mat');
+frag = LL{1,1};
+fnar = LL{1,2};
+fdif = LL{1,3};
+
+save('temp.mat','frag','fnar','fdif');
+
+%%
+clear classes;
 % Need to have frag, fnar and fdif stored in temp.mat
 load('temp.mat');
 m = Model3(frag,fnar,fdif);
@@ -98,4 +107,23 @@ m.solveHF;
 %m2.solveHF;
 %disp(['orbital energy diffs ',num2str(max(max(abs(m.EorbEnv - m2.EorbEnv))))]);
 
+%% Test of Model3.addENmodBonded1
+clear classes;
+load('temp.mat');
+m1 = Model3(frag,fnar,fdif);
+par1 = rand;
+mix1 = Mixer(par1,1,'EN C H');
+m1.addENmodBonded(1,6,1,[1 2],mix1);
 
+m2 = Model3(frag,fnar,fdif);
+mix2 = Mixer(par1,1,'EN1 C H');
+mix3 = Mixer(par1,1,'EN1 H C');
+m2.addENmodBonded1(1,6,1,[1 2],mix2);
+m2.addENmodBonded1(6,1,[1 2],1,mix3);
+
+enDiff = zeros(1,m1.natom);
+for iatom = 1:m1.natom
+   enDiff(iatom) = max(max(abs( m1.H1en(iatom,0) - m2.H1en(iatom,0))));
+end
+
+enDiff
