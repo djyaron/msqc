@@ -84,7 +84,7 @@ classdef Fragment < handle
        atom, type, subtype, nprims, prims ] = readfchk(fid1)
       [Eorb, orb, atom, Nelectrons, Ehf] = oldreadfchk(fid1)
       [S, H1, KE, H2, Enuc] = readpolyatom(fid1)
-      [HL, LL] = dataMerge(datFiles, envs, saveFilename)
+      [HL, LL] = dataMerge(datFiles, envs, saveFilename, varargin)
    end
    methods
       function res = Fragment(dataPathIn, configIn)
