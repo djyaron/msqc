@@ -57,13 +57,13 @@ diary off;
 %% Ethane
 clear;
 jobname = 'ethane';
-pars{1} = [1.54 1.08 0];
-pars{2} = [1.54 1.08 30];
-pars{3} = [1.54 1.08 -30];
-pars{4} = [1.38 1.08 0];
-pars{5} = [1.70 1.08 0];
-pars{6} = [1.54 0.93 0];
-pars{7} = [1.54 1.23 0];
+pars{1} = [1.54 1.12 60];
+pars{2} = [1.54 1.12 30];
+pars{3} = [1.54 1.12 0];
+pars{4} = [1.39 1.12 60];
+pars{5} = [1.69 1.12 60];
+pars{6} = [1.54 0.97 60];
+pars{7} = [1.54 1.27 60];
 
 ethane = Datagen(jobname, pars, 'method', 'MP2', 'envType', 'mixed', ...
     'tplName', 'ethane1', 'tplNameGen', 'ethane1-gen', 'nenv', 20);
