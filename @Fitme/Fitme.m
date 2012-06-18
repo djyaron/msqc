@@ -310,6 +310,7 @@ classdef Fitme < handle
                disp('**** TEST SET START ****');
                err1 = obj.testFitme.err(par);
                disp('**** TEST SET END ****');
+               hold on;
                plot(obj.errCalls+1, log10(norm(err1)/length(err1)),'r+');
                obj.errTest(obj.itcount) = norm(err1);
             end

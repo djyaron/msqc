@@ -245,6 +245,8 @@ end
 fitme.setEnvs(envs);
 if (doPlot > 0)
    fitme.plot = 1;
+else
+   fitme.plot = 0;
 end
 fitme.testFitme = testFitme;
 
