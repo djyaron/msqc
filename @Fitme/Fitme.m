@@ -148,7 +148,8 @@ classdef Fitme < handle
       end
       function dpar = updateDensity(obj)
          par = obj.getPars;
-         if (size(obj.parHF,1) == 0)
+         if ((size(obj.parHF,1) == 0) || ...
+            (length(obj.parHF) ~= length(par) ) )
             dpar = 1e10;
          else
             dpar = max(abs(obj.parHF-par));
