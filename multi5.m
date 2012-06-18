@@ -1,10 +1,10 @@
 %% Fitting multiple molecules, using makeFitme
 clear classes;
-topDir = 'tmpE2/';
-%trainC{1}  = {'h2',2:7,'envs',1:10};
-%testC{1} = {'h2',2:7,'envs',20:30};
-trainC{1}  = {'h2',[],'ch4',1:19,'envs',1:10};
-testC{1} = {'h2',[],'ch4',1:19,'envs',20:30};
+topDir = 'tmpE2debug/';
+trainC{1}  = {'h2',2:7,'envs',1:10};
+testC{1} = {'h2',2:7,'envs',20:30};
+%trainC{1}  = {'h2',[],'ch4',1:19,'envs',1:10};
+%testC{1} = {'h2',[],'ch4',1:19,'envs',20:30};
 filePrefix{1} = 'ch4';
 
 trainC{2}  = {'h2',[],'ethane',1:7,'envs',1:10};
@@ -33,11 +33,11 @@ filePrefix{7} = 'ch4f-c2h6-c2h4';
 
 commonIn = {};
 
-for iC = 1
-   for iPar = [1 5]
-      trainIn = trainC{iC};
-      testIn = testC{iC};
-      filePre = filePrefix{iC};
+for iC = 1:1
+   trainIn = trainC{iC};
+   testIn = testC{iC};
+   filePre = filePrefix{iC};
+   for iPar = 1:5
       if (iPar == 1)
          ke.H = Mixer(0,1,'ke.H');
          ke.Cs = Mixer(0,1,'ke.C');
@@ -66,6 +66,10 @@ for iC = 1
          e2.HH = Mixer(0,1,'e2.HH');
          e2.CC = Mixer(0,1,'e2.CC');
          e2.CH = Mixer(0,1,'e2.CH');
+         ftest = makeFitme(testIn{:},commonIn{:},'enstruct1',en, ...
+            'kestruct',ke,'e2struct',e2,'plot',2);
+         f1 = makeFitme(trainIn{:},commonIn{:},'enstruct1',en,'kestruct',ke, ...
+            'e2struct',e2,'testFitme',ftest);
       elseif (iPar == 2)
          en.HCs = en.CsH.deepCopy(); en.HCs.desc = 'en.HCs';
          en.HCp = en.HCs;
@@ -103,10 +107,6 @@ for iC = 1
       end
       
       dataDir = [topDir,filePre,'/fit-',num2str(iPar),'/'];
-      ftest = makeFitme(trainIn{:},commonIn{:},'enstruct1',en, ...
-         'kestruct',ke,'e2struct',e2);
-      f1 = makeFitme(testIn{:},commonIn{:},'enstruct1',en,'kestruct',ke, ...
-         'e2struct',e2,'testFitme',ftest);
       limits = [];
       options = optimset('DiffMinChange',1.0e-5,'TolFun',1.0e-4,'TolX',1.0e-3);
       if (exist(dataDir,'dir') ~= 7)
