@@ -33,8 +33,8 @@ filePrefix{7} = 'ch4f-c2h6-c2h4';
 
 commonIn = {};
 
-for iC = 1
-   for iPar = [1 5]
+for iC = [1 4 7]
+   for iPar = 1:5
       trainIn = trainC{iC};
       testIn = testC{iC};
       filePre = filePrefix{iC};
@@ -104,11 +104,11 @@ for iC = 1
       
       dataDir = [topDir,filePre,'/fit-',num2str(iPar),'/'];
       ftest = makeFitme(trainIn{:},commonIn{:},'enstruct1',en, ...
-         'kestruct',ke,'e2struct',e2);
+         'kestruct',ke,'e2struct',e2,'plot',2);
       f1 = makeFitme(testIn{:},commonIn{:},'enstruct1',en,'kestruct',ke, ...
          'e2struct',e2,'testFitme',ftest);
       limits = [];
-      options = optimset('DiffMinChange',1.0e-5,'TolFun',1.0e-4,'TolX',1.0e-3);
+      options = optimset('DiffMinChange',1.0e-5,'TolFun',5.0e-4,'TolX',1.0e-2);
       if (exist(dataDir,'dir') ~= 7)
          status = mkdir(dataDir);
       end
