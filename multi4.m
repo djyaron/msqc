@@ -1,5 +1,5 @@
 %% Fitting multiple molecules, using makeFitme
-%clear classes;
+clear classes;
 topDir = 'tmp2/';
 trainC{1}  = {'h2',[],'ch4',1:19,'envs',1:10};
 testC{1} = {'h2',[],'ch4',1:19,'envs',20:30};

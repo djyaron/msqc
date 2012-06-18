@@ -191,7 +191,7 @@ classdef Fitme < handle
          doPlots = obj.plot && (dpar > 1.0e-4);
          
          if (doPlots)
-            for i=unique(obj.plotNumber)
+            for i=unique([799 obj.plotNumber])
                figure(i);
                clf;
             end
@@ -216,16 +216,16 @@ classdef Fitme < handle
                   plot(llevel,llevel,'k.');
                   plot(llevel,hlevel,'r.');
                   plot(llevel,modpred,'b.');
-                  title('Kinetic E: LL(black) HL(red) model(blue)');
-                  xlabel('LL')
+                  %title('Kinetic E: LL(black) HL(red) model(blue)');
+                  %xlabel('LL')
                   subplot(4,2,2);
                   hold on;
                   x1 = min(hlevel);
                   x2 = max(hlevel);
                   plot(hlevel,modpred,'g.');
                   plot([x1 x2],[x1 x2],'k-');
-                  title('Kinetic E: HL(black) model(red)');
-                  xlabel('HL')
+                  %title('Kinetic E: HL(black) model(red)');
+                  %xlabel('HL')
                end
             end
             for iatom = 1:obj.models{imod}.natom
@@ -252,16 +252,16 @@ classdef Fitme < handle
                      plot(llevel,llevel,'k.');
                      plot(llevel,hlevel,'r.');
                      plot(llevel,modpred,'b.');
-                     title(['EN for ',element]);
-                     xlabel('LL');
-                     subplot(3,2,frame2);
+                     %title(['EN for ',element]);
+                     %xlabel('LL');
+                     subplot(4,2,frame2);
                      hold on;
                      x1 = min(hlevel);
                      x2 = max(hlevel);
                      plot(hlevel,modpred,'g.');
                      plot([x1 x2],[x1 x2],'k-');
-                     title(['EN for ',element]);
-                     xlabel('HL');
+                     %title(['EN for ',element]);
+                     %xlabel('HL');
                   end
                end
             end
@@ -280,16 +280,16 @@ classdef Fitme < handle
                   plot(llevel,llevel,'k.');
                   plot(llevel,hlevel,'r.');
                   plot(llevel,modpred,'b.');
-                  title('E2: LL(black) HL(red) model(blue)');
-                  xlabel('LL')
+                  %title('E2: LL(black) HL(red) model(blue)');
+                  %xlabel('LL')
                   subplot(4,2,8);
                   hold on;
                   x1 = min(hlevel);
                   x2 = max(hlevel);
                   plot(hlevel,modpred,'g.');
                   plot([x1 x2],[x1 x2],'k-');
-                  title('E2: HL(black) model(red)');
-                  xlabel('HL')
+                  %title('E2: HL(black) model(red)');
+                  %xlabel('HL')
                end
             end
          end
