@@ -167,8 +167,8 @@ classdef Fitme < handle
             if (obj.includeKE == 1)
                ic = ic + size(obj.HLKE{1,imod},2);
             end
-            for iatom = 1:obj.HLs{imod}.natom
-               if (obj.includeEN( obj.HLs{imod}.Z(iatom) ))
+            for iatom = 1:obj.models{imod}.natom
+               if (obj.includeEN( obj.models{imod}.Z(iatom) ))
                   ic = ic + size(obj.HLEN{imod}(iatom,:),2);
                end
             end
@@ -228,8 +228,8 @@ classdef Fitme < handle
                   xlabel('HL')
                end
             end
-            for iatom = 1:obj.HLs{imod}.natom
-               if (obj.includeEN( obj.HLs{imod}.Z(iatom) ))
+            for iatom = 1:obj.models{imod}.natom
+               if (obj.includeEN( obj.models{imod}.Z(iatom) ))
                   hlevel = obj.HLEN{imod}(iatom,:);
                   modpred = obj.models{imod}.Een(iatom,obj.envs{1,imod});
                   t1 = hlevel - modpred;
@@ -237,7 +237,7 @@ classdef Fitme < handle
                   res(1,ic:(ic+n-1)) = t1;
                   ic = ic + n;
                   if (doPlots)
-                     if (obj.HLs{imod}.Z(iatom) == 1)
+                     if (obj.models{imod}.Z(iatom) == 1)
                         frame1 = 3;
                         frame2 = 4;
                         element = 'H';
@@ -330,7 +330,7 @@ classdef Fitme < handle
          obj.models{1,imod}.setPars( obj.arms(:,iarm) );
          obj.models{1,imod}.solveHF(ienv);
          res = (obj.models{1,imod}.EKE(ienv) - obj.HLKE{1,imod}(ienv)).^2;
-         for iatom = 1:obj.HLs{imod}.natom
+         for iatom = 1:obj.models{imod}.natom
             res = res + ...
                (obj.HLEN{imod}(iatom,ienv) - ...
                obj.models{imod}.Een(iatom,ienv)).^2;
@@ -346,7 +346,7 @@ classdef Fitme < handle
          obj.models{1,imod}.setPars( par );
          obj.models{1,imod}.solveHF(ienv);
          res = obj.models{1,imod}.EKE(ienv) - obj.HLKE{1,imod}(ienv);
-         for iatom = 1:obj.HLs{imod}.natom
+         for iatom = 1:obj.models{imod}.natom
             temp =  ...
                obj.HLEN{imod}(iatom,ienv) - ...
                obj.models{imod}.Een(iatom,ienv);
@@ -360,7 +360,7 @@ classdef Fitme < handle
             envir =obj.envs{1,imod};
             obj.models{1,imod}.solveHF(envir);
             res = res + norm(obj.models{1,imod}.EKE(envir) - obj.HLKE{1,imod}).^2;
-            for iatom = 1:obj.HLs{imod}.natom
+            for iatom = 1:obj.models{imod}.natom
                res = res + ...
                   norm(obj.HLEN{imod}(iatom,:) - ...
                   obj.models{imod}.Een(iatom,envir)).^2;
