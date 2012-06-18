@@ -23,9 +23,6 @@ classdef Model3 < handle
       rcart   % (3,natom) cartesian coordinates of the atoms
       nenv
       
-      H2j     % {nbasis,nbasis} cell array of coulomb integrals
-      H2k     % {nbasis,nbasis} cell array of exchange integrals
-      
       nbasis  % number of atomic (and molecular) basis functions
       basisAtom  % (nbasis,1) atom # on which the function is centered
       basisType  % (nbasis,1) l quantum number: 0=s 1=p 2=d 3=d etc
@@ -40,11 +37,15 @@ classdef Model3 < handle
       mixers     % (1,n)   cell array of mixers that are currently in use
       KEmods     % {1,n}   cell array of modifications to KE operator
       ENmods   % {natom}{1,n} cell array of modifications to H1en opers
-      % a modification has the following members
+      % a 1-elec operator modification has the following members
       %   ilist : modify ilist x jlist elements
       %   jlist :
       %   mixer  : pointer to a mix function
       
+      % a 2-elec operator modification has the following members
+      %   ilist, jlist, klist, llist:  elements to modify
+      %   mixer : pointer to a mix function
+      H2mods % {1,n}
    end
    properties (Transient)
       densitySave   % cell array {1:nenv+1} of most recent density matrices
@@ -88,6 +89,7 @@ classdef Model3 < handle
          for i=1:res.natom
             res.ENmods{1,i} = cell(0,0);
          end
+         res.H2mods = cell(0,0);
          res.densitySave = cell(1,res.nenv+1);
          res.mixers = cell(0,0);
          % Initialize charges and bond orders
@@ -100,14 +102,6 @@ classdef Model3 < handle
          for ienv = 0:res.nenv
             res.bondOrders(:,:,ienv+1) = res.frag.calcBO(ienv);
          end         
-         res.H2j = cell(res.nbasis,res.nbasis);
-         res.H2k = cell(res.nbasis,res.nbasis);
-         for i=1:res.nbasis
-            for j=1:res.nbasis
-               res.H2j{i,j} = squeeze(frag_.H2(i,j,:,:));
-               res.H2k{i,j} = squeeze(frag_.H2(i,:,:,j));
-            end
-         end
          res.EhfEnv  = zeros(1,res.nenv);
          res.EorbEnv = zeros(res.nbasis,res.nenv);
          res.orbEnv  = zeros(res.nbasis,res.nbasis,res.nenv);
@@ -400,8 +394,76 @@ classdef Model3 < handle
             res = obj.frag.HnucEnv(ienv);
          end
       end
-      function res = H2(obj)
+      function mixUsed = addH2modDiag(obj,Zs,mix)
+         if (nargin < 3)
+            mix = Mixer;
+            % create a mix object for these blocks
+            mix.desc = ['H2 Diag Zs [',num2str(Zs),']'];
+         end
+         mixerAdded = 0;
+         for iZ = Zs % loop over all desired elements
+            for iatom = find(obj.Z == iZ) % loop over atoms of this element
+               ilist = obj.onAtom{iatom}'; % orbitals on this atom
+               % Create a modifier for this block of the matrix
+               mod.ilist = ilist;
+               mod.jlist = ilist;
+               mod.klist = ilist;
+               mod.llist = ilist;
+               mod.mixer = mix;
+               obj.H2mods{1,end+1} = mod;
+               mixerAdded = 1;
+            end
+         end
+         if (mixerAdded)
+            obj.addMixer(mix);
+            mixUsed = mix;
+         else
+            mixUsed = [];
+         end
+      end
+      function mixUsed = addH2modOffDiag(obj,Z1,Z2, mix)
+         if (nargin < 4)
+            mix = Mixer();
+            mix.desc = ['KE bonded Z ',num2str(Z1),' with Z ', ...
+               num2str(Z2)];
+         end
+         mixerAdded = 0;
+         for iatom = 1:obj.natom
+            for jatom = 1:obj.natom
+               if ( ((obj.Z(iatom) == Z1) && (obj.Z(jatom) == Z2)) || ...
+                     ((obj.Z(iatom) == Z2) && (obj.Z(jatom) == Z1)) )
+                  mixerAdded = 1;
+                  mod.ilist = obj.onAtom{iatom}';
+                  mod.jlist = obj.onAtom{iatom}';
+                  mod.klist = obj.onAtom{jatom}';
+                  mod.llist = obj.onAtom{jatom}';
+                  mod.mixer = mix;
+                  obj.H2mods{1,end+1} = mod;
+               end
+            end
+         end
+         if (mixerAdded)
+            obj.addMixer(mix);
+            mixUsed = mix;
+         else
+            mixUsed = [];
+         end
+      end
+      function res = H2(obj,ienv)
+         if (nargin < 2)
+            ienv = 0;
+         end
          res = obj.frag.H2;
+         for imod = 1:length(obj.H2mods)
+            mod = obj.H2mods{imod};
+            i = mod.ilist;
+            j = mod.jlist;
+            k = mod.klist;
+            l = mod.llist;
+            res(i,j,k,l) = res(i,j,k,l) - obj.frag.H2(i,j,k,l) ...
+               + mod.mixer.mix(obj.fnar.H2(i,j,k,l), ...
+               obj.fdif.H2(i,j,k,l), obj, i, j, ienv);
+         end
       end
       function res = S(obj)
          res = obj.frag.S;

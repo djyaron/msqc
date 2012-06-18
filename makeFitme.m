@@ -20,6 +20,7 @@ function fitme = makeFitme(varargin)
 %  enstruct  []              structure with enmods
 %  enstruct1 []              structure with enmods (1 oper only)
 %  kestruct  []              structure with kemods
+%  e2struct  []              structure with e2mods
 %  testFitme []              Fitme object with test data
 
 % To test parsing of input, use:
@@ -47,6 +48,7 @@ useDeltaCharges = checkForInput(varargin,'deltarho',1);
 enstruct = checkForInput(varargin,'enstruct',[]);
 enstruct1 = checkForInput(varargin,'enstruct1',[]);
 kestruct = checkForInput(varargin,'kestruct',[]);
+e2struct = checkForInput(varargin,'e2struct',[]);
 testFitme = checkForInput(varargin,'testFitme',[]);
 
 if (~isempty(enstruct) && ~isempty(enstruct1))
@@ -212,6 +214,16 @@ if (includeENmods)
       end
    end
 end
+if (~isempty(e2struct) > 0)
+   for ipar = params
+      m{ipar}.addH2modDiag(1,e2struct.H);
+      m{ipar}.addH2modDiag(6,e2struct.C);
+      m{ipar}.addH2modOffDiag(1,1,e2struct.HH);
+      m{ipar}.addH2modOffDiag(6,6,e2struct.CC);
+      m{ipar}.addH2modOffDiag(1,6,e2struct.CH);
+   end
+end
+
 if (useDeltaCharges)
    for ipar = params
       for ienv = 1:m{ipar}.nenv
@@ -227,6 +239,9 @@ for ipar = params
 end
 fitme.includeKE = includeKEmods;
 fitme.includeEN = includeENmods * ones(1,6);
+if (~isempty(e2struct))
+   fitme.includeE2 = 1;
+end
 fitme.setEnvs(envs);
 if (doPlot > 0)
    fitme.plot = 1;

@@ -16,7 +16,7 @@ classdef Mixer < handle
             parIn = [0];
          end
          if (nargin < 2)
-            mixType = 0;
+            mixType = 1;
          end
          obj.par = parIn;
          obj.mixType = mixType;

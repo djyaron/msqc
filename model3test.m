@@ -4,8 +4,9 @@ load('datasets/ethaneDat.mat');
 frag = LL{1,1};
 fnar = LL{1,2};
 fdif = LL{1,3};
+fhl = HL{1,1};
 
-save('temp.mat','frag','fnar','fdif');
+save('temp.mat','frag','fnar','fdif','fhl');
 
 %%
 clear classes;
@@ -127,3 +128,37 @@ for iatom = 1:m1.natom
 end
 
 enDiff
+
+%% Two electron modifications
+clear classes;
+% Need to have frag, fnar and fdif stored in temp.mat
+load('temp.mat');
+m = Model3(frag,fnar,fdif);
+%m.addH2modDiag(1);
+%m.addH2modDiag(6);
+%m.addH2modOffDiag(1,1);
+%m.addH2modOffDiag(1,6);
+%m.addH2modOffDiag(6,6);
+envs = 1:20;
+E2f = frag.E2(envs);
+m.solveHF(envs);
+E2m = m.E2(envs);
+E2diff = max(abs(E2f-E2m));
+
+%% testing fitme
+clear classes;
+load('temp.mat');
+m = Model3(frag,fnar,fdif);
+m.addH2modDiag(1);
+m.addH2modDiag(6);
+f1 = Fitme;
+f1.addFrag(m,fhl);
+f1.includeKE = 0;
+f1.includeEN = zeros(1,6);
+f1.includeE2 = 1;
+f1.setEnvs(1:10);
+start = f1.getPars;
+limits = [];
+options = optimset('DiffMinChange',1.0e-5,'TolFun',1.0e-4,'TolX',1.0e-3);
+[pt,resnorm,residual,exitflag,output,lambda,jacobian] = ...
+   lsqnonlin(@f1.err, start,-limits,limits,options);
