@@ -198,17 +198,17 @@ if (includeENmods)
       end
    elseif (size(enstruct1,1) == 1)
       for ipar = params
-         m{ipar}.addENmodDiag(1,1,enstruct.H);
-         m{ipar}.addENmodDiag(6,1,enstruct.Cs);
-         m{ipar}.addENmodDiag(6,2,enstruct.Cp);
-         m{ipar}.addENmodBonded(1,1,1,1,enstruct.HH);
-         m{ipar}.addENmodBonded1(6,1,1,1,enstruct.CsH);
-         m{ipar}.addENmodBonded1(6,1,2,1,enstruct.CpH);
-         m{ipar}.addENmodBonded1(1,6,1,1,enstruct.HCs);
-         m{ipar}.addENmodBonded1(1,6,1,2,enstruct.HCp);
-         m{ipar}.addENmodBonded(6,6,1,1,enstruct.CsCs);
-         m{ipar}.addENmodBonded(6,6,1,2,enstruct.CsCp);
-         m{ipar}.addENmodBonded(6,6,2,2,enstruct.CpCp);
+         m{ipar}.addENmodDiag(1,1,enstruct1.H);
+         m{ipar}.addENmodDiag(6,1,enstruct1.Cs);
+         m{ipar}.addENmodDiag(6,2,enstruct1.Cp);
+         m{ipar}.addENmodBonded(1,1,1,1,enstruct1.HH);
+         m{ipar}.addENmodBonded1(6,1,1,1,enstruct1.CsH);
+         m{ipar}.addENmodBonded1(6,1,2,1,enstruct1.CpH);
+         m{ipar}.addENmodBonded1(1,6,1,1,enstruct1.HCs);
+         m{ipar}.addENmodBonded1(1,6,1,2,enstruct1.HCp);
+         m{ipar}.addENmodBonded(6,6,1,1,enstruct1.CsCs);
+         m{ipar}.addENmodBonded(6,6,1,2,enstruct1.CsCp);
+         m{ipar}.addENmodBonded(6,6,2,2,enstruct1.CpCp);
       end
    end
 end
