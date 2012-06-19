@@ -353,6 +353,7 @@ classdef Fitme < handle
                obj.models{imod}.Een(iatom,ienv);
             res = [res , temp];
          end
+         res = -1.0 * norm(res);
       end
       function res = armError(obj,iarm)
          res = 0;
