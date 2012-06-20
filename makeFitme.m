@@ -18,7 +18,9 @@ function fitme = makeFitme(varargin)
 %  deltarho 1                based charge dependence on charges induced
 %                            by field
 %  enstruct  []              structure with enmods
+%  enstruct1 []              structure with enmods (1 oper only)
 %  kestruct  []              structure with kemods
+%  e2struct  []              structure with e2mods
 %  testFitme []              Fitme object with test data
 
 % To test parsing of input, use:
@@ -44,9 +46,15 @@ includeKEmods = checkForInput(varargin,'kemods',1);
 includeENmods = checkForInput(varargin,'enmods',1);
 useDeltaCharges = checkForInput(varargin,'deltarho',1);
 enstruct = checkForInput(varargin,'enstruct',[]);
+enstruct1 = checkForInput(varargin,'enstruct1',[]);
 kestruct = checkForInput(varargin,'kestruct',[]);
+e2struct = checkForInput(varargin,'e2struct',[]);
 testFitme = checkForInput(varargin,'testFitme',[]);
 separatePars = checkForInput(varargin, 'separatePars', 0);
+
+if (~isempty(enstruct) && ~isempty(enstruct1))
+   error('Do not set both enstruct and enstruct1');
+end
 
 % Load data
 LL1 = cell(0,0);
@@ -162,7 +170,7 @@ if (includeKEmods)
    end
 end
 if (includeENmods)
-   if (size(enstruct,1) == 0)
+   if (isempty(enstruct) && isempty(enstruct1))
       mixENdiagH = Mixer([0 0],2,'ENdiagH');
       mixENdiagC = Mixer([0 0],2,'ENdiagC');
       mixENdiagCp = Mixer([0 0],2,'ENdiagCp');
@@ -179,7 +187,7 @@ if (includeENmods)
          m{ipar}.addENmodBonded(1,6,1,2,mixENbondCHp);
          m{ipar}.addENmodBonded(6,6,[1 2],[1 2],mixENbondCC);
       end
-   else
+   elseif (size(enstruct,1) == 1)
       for ipar = params
          m{ipar}.addENmodDiag(1,1,enstruct.H);
          m{ipar}.addENmodDiag(6,1,enstruct.Cs);
@@ -190,9 +198,33 @@ if (includeENmods)
          m{ipar}.addENmodBonded(6,6,1,1,enstruct.CsCs);
          m{ipar}.addENmodBonded(6,6,1,2,enstruct.CsCp);
          m{ipar}.addENmodBonded(6,6,2,2,enstruct.CpCp);
-      end      
+      end
+   elseif (size(enstruct1,1) == 1)
+      for ipar = params
+         m{ipar}.addENmodDiag(1,1,enstruct1.H);
+         m{ipar}.addENmodDiag(6,1,enstruct1.Cs);
+         m{ipar}.addENmodDiag(6,2,enstruct1.Cp);
+         m{ipar}.addENmodBonded(1,1,1,1,enstruct1.HH);
+         m{ipar}.addENmodBonded1(6,1,1,1,enstruct1.CsH);
+         m{ipar}.addENmodBonded1(6,1,2,1,enstruct1.CpH);
+         m{ipar}.addENmodBonded1(1,6,1,1,enstruct1.HCs);
+         m{ipar}.addENmodBonded1(1,6,1,2,enstruct1.HCp);
+         m{ipar}.addENmodBonded(6,6,1,1,enstruct1.CsCs);
+         m{ipar}.addENmodBonded(6,6,1,2,enstruct1.CsCp);
+         m{ipar}.addENmodBonded(6,6,2,2,enstruct1.CpCp);
+      end
    end
 end
+if (~isempty(e2struct) > 0)
+   for ipar = params
+      m{ipar}.addH2modDiag(1,e2struct.H);
+      m{ipar}.addH2modDiag(6,e2struct.C);
+      m{ipar}.addH2modOffDiag(1,1,e2struct.HH);
+      m{ipar}.addH2modOffDiag(6,6,e2struct.CC);
+      m{ipar}.addH2modOffDiag(1,6,e2struct.CH);
+   end
+end
+
 if (useDeltaCharges)
    for ipar = params
       for ienv = 1:m{ipar}.nenv
@@ -224,9 +256,15 @@ else
     end
     fitme.includeKE = includeKEmods;
     fitme.includeEN = includeENmods * ones(1,6);
+    if (~isempty(e2struct))
+        fitme.includeE2 = 1;
+    end
     fitme.setEnvs(envs);
+    fitme.HLs = [];
     if (doPlot > 0)
         fitme.plot = 1;
+    else
+        fitme.plot = 0;
     end
     fitme.testFitme = testFitme;
 end

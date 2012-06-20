@@ -27,7 +27,18 @@ if (nargin < 5)
 end
 
 H1 = obj.H1(ienv);
-H2 = obj.H2;
+H2 = obj.H2(ienv);
+%  H2j {nbasis,nbasis} cell array of coulomb integrals
+%  H2k {nbasis,nbasis} cell array of exchange integrals
+H2j = cell(obj.nbasis,obj.nbasis);
+H2k = cell(obj.nbasis,obj.nbasis);
+for i=1:obj.nbasis
+   for j=1:obj.nbasis
+      H2j{i,j} = squeeze(H2(i,j,:,:));
+      H2k{i,j} = squeeze(H2(i,:,:,j));
+   end
+end
+
 S  = obj.S;
 Enuc = obj.Hnuc(ienv);
 Nelec = obj.frag.nelec;
@@ -94,8 +105,8 @@ while (~finished) %step 11 -- Test convergence
    %     end
    for i=1:Nbasis
       for j=1:Nbasis
-         t1 = sum(sum( P'.* obj.H2j{i,j} ));
-         t2 = sum(sum( P'.* obj.H2k{i,j} ));
+         t1 = sum(sum( P'.* H2j{i,j} ));
+         t2 = sum(sum( P'.* H2k{i,j} ));
          G(i,j) = G(i,j) + t1 - t2/2;
       end
    end

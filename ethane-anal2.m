@@ -1,7 +1,7 @@
 %% Load data
 clear classes;
-dataroot = 'T:/msqc/ethane4mp2';
-datasetroot = 'c:/dave/apoly/msqc/datasets';
+dataroot = 'C:/dave/apoly/msqc/ethane4mp2';
+datasetroot = 'c:/dave/apoly/msqc/datasets2';
 % Generate environments for production runs
 if (exist([dataroot,'/env2.mat'],'file'))
    disp('loading existing environments');
