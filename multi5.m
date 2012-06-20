@@ -33,7 +33,7 @@ filePrefix{7} = 'ch4f-c2h6-c2h4';
 
 commonIn = {};
 
-for iC = [1 4 7]
+for iC = 5
    for iPar = 1:5
       trainIn = trainC{iC};
       testIn = testC{iC};
