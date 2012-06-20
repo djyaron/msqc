@@ -139,7 +139,7 @@ classdef Fitme < handle
             dpar = max(abs(obj.parHF-par));
          end
          if (dpar > obj.epsDensity)
-            disp(['solving for density matrices']);
+            disp('solving for density matrices');
             for imod = 1:obj.nmodels
                obj.models{imod}.solveHF(obj.envs{1,imod});
             end
@@ -195,7 +195,7 @@ classdef Fitme < handle
                   subplot(3,2,1);
                   hold on;
                   llevel = obj.LLKE{1,imod};
-                  plot(llevel,llevel,'k.');
+                  plot(llevel,llevel,'k.'); %#ok<*CPROP,*PROP>
                   plot(llevel,hlevel,'r.');
                   plot(llevel,modpred,'b.');
                   title('Kinetic E: LL(black) HL(red) model(blue)');

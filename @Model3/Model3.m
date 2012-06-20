@@ -363,4 +363,8 @@ classdef Model3 < handle
          res = obj.frag.S;
       end
    end % methods
+   methods (Static)
+       [orb,Eorb,Ehf,densitySaveOut] = hartreeFock2(H1,H2,S,Enuc,Nelec, ...
+           densitySaveIn,density,H2j,H2k,ienv,eps,maxIter,minIter)
+   end
 end %

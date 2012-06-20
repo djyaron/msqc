@@ -46,6 +46,7 @@ useDeltaCharges = checkForInput(varargin,'deltarho',1);
 enstruct = checkForInput(varargin,'enstruct',[]);
 kestruct = checkForInput(varargin,'kestruct',[]);
 testFitme = checkForInput(varargin,'testFitme',[]);
+separatePars = checkForInput(varargin, 'separatePars', 0);
 
 % Load data
 LL1 = cell(0,0);
@@ -201,17 +202,34 @@ if (useDeltaCharges)
    end
 end
 
-fitme = Fitme;
-for ipar = params
-   fitme.addFrag(m{ipar},HL{ipar,1},plotNumber(ipar));
+if separatePars == 1
+    fitme = Fitme2;
+    i = 1;
+    for ipar = params
+       new = Fitme;
+       new.addFrag(m{ipar},HL{ipar,1},plotNumber(ipar));
+       new.includeKE = includeKEmods;
+       new.includeEN = includeENmods * ones(1,6);
+       new.setEnvs(envs);
+       new.plot = 0;
+       new.testFitme = testFitme;
+       
+       fitme.parFitme = [fitme.parFitme new];
+       i = i + 1;
+    end
+else
+    fitme = Fitme;
+    for ipar = params
+        fitme.addFrag(m{ipar},HL{ipar,1},plotNumber(ipar));
+    end
+    fitme.includeKE = includeKEmods;
+    fitme.includeEN = includeENmods * ones(1,6);
+    fitme.setEnvs(envs);
+    if (doPlot > 0)
+        fitme.plot = 1;
+    end
+    fitme.testFitme = testFitme;
 end
-fitme.includeKE = includeKEmods;
-fitme.includeEN = includeENmods * ones(1,6);
-fitme.setEnvs(envs);
-if (doPlot > 0)
-   fitme.plot = 1;
-end
-fitme.testFitme = testFitme;
 
 end
 
