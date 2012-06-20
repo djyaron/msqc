@@ -118,7 +118,7 @@ classdef Fragment < handle
          else % load zip file, with generation if needed
              % If the cfg file exists, but not the zip file, delete the cfg
              % and proceed as though it was not found.
-             if (found && ~exist([res.fileprefix, '.zip'], 2))
+             if (found && ~exist([res.fileprefix, '.zip'], 'file'))
                  delete([res.fileprefix, '_cfg.mat']);
                  found = false;
              end

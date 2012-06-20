@@ -53,7 +53,7 @@ classdef Datagen < handle
             
             % Set options.
             res.msqcRoot = checkForInput(varargin, 'msqcRoot', ...
-                'D:\Users\Alex\Programming\msqc\');
+                'C:\Users\Alex\Programming\msqc\');
             res.dataPath = checkForInput(varargin, 'dataPath', ...
                 ['data', filesep]);
             res.templatePath = checkForInput(varargin, 'templatePath', ...
@@ -277,6 +277,9 @@ classdef Datagen < handle
                 if (exist(obj.envFile, 'file'))
                     disp('loading existing environments');
                     load(obj.envFile, 'env');
+                    if strcmpi(obj.envType, 'mixed')
+                        obj.nenv = 5 * obj.nenv;
+                    end
                 else
                     error('No environments found. Aborting...');
                 end

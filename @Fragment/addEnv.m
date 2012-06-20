@@ -44,7 +44,7 @@ if (found)
    
    % If the cfg file exists, but not the zip file, delete the cfg
    % and proceed as though it was not found.
-   if (~exist([fileEnvPrefix, '.zip'], 2))
+   if (~exist([fileEnvPrefix, '.zip'], 'file'))
        delete([fileEnvPrefix, '_cfg.mat']);
        found = false;
    end
