@@ -1,6 +1,7 @@
 %% Fitting multiple molecules, using makeFitme
 clear classes;
-topDir = 'tmpE2/';
+topDir = 'tmpE2debug/';
+ftype = 2;
 %trainC{1}  = {'h2',2:7,'envs',1:10};
 %testC{1} = {'h2',2:7,'envs',20:30};
 trainC{1}  = {'h2',[],'ch4',1:19,'envs',1:10};
@@ -33,39 +34,43 @@ filePrefix{7} = 'ch4f-c2h6-c2h4';
 
 commonIn = {};
 
-for iC = 5
+for iC = 1:1
+   trainIn = trainC{iC};
+   testIn = testC{iC};
+   filePre = filePrefix{iC};
    for iPar = 1:5
-      trainIn = trainC{iC};
-      testIn = testC{iC};
-      filePre = filePrefix{iC};
       if (iPar == 1)
-         ke.H = Mixer(0,1,'ke.H');
-         ke.Cs = Mixer(0,1,'ke.C');
+         ke.H = Mixer(0,1,'ke.H',ftype);
+         ke.Cs = Mixer(0,1,'ke.C',ftype);
          ke.Cp = ke.Cs;
-         ke.HH = Mixer(0,1,'ke.HH');
-         ke.CsH = Mixer(0,1,'ke.CH');
+         ke.HH = Mixer(0,1,'ke.HH',ftype);
+         ke.CsH = Mixer(0,1,'ke.CH',ftype);
          ke.CpH = ke.CsH;
-         ke.CsCs = Mixer(0,1,'ke.CC');
+         ke.CsCs = Mixer(0,1,'ke.CC',ftype);
          ke.CsCp = ke.CsCs;
          ke.CpCp = ke.CsCs;
          
-         en.H = Mixer(0,1,'en.H');
-         en.Cs = Mixer(0,1,'en.C');
+         en.H = Mixer(0,1,'en.H',ftype);
+         en.Cs = Mixer(0,1,'en.C',ftype);
          en.Cp = en.Cs;
-         en.HH = Mixer(0,1,'en.HH');
-         en.CsH = Mixer(0,1,'en.CH');
+         en.HH = Mixer(0,1,'en.HH',ftype);
+         en.CsH = Mixer(0,1,'en.CH',ftype);
          en.CpH = en.CsH;
          en.HCs = en.CsH;
          en.HCp = en.CsH;
-         en.CsCs = Mixer(0,1,'en.CC');
+         en.CsCs = Mixer(0,1,'en.CC',ftype);
          en.CsCp = en.CsCs;
          en.CpCp = en.CsCs;
          
-         e2.H = Mixer(0,1,'e2.H');
-         e2.C = Mixer(0,1,'e2.C');
-         e2.HH = Mixer(0,1,'e2.HH');
-         e2.CC = Mixer(0,1,'e2.CC');
-         e2.CH = Mixer(0,1,'e2.CH');
+         e2.H = Mixer(0,1,'e2.H',ftype);
+         e2.C = Mixer(0,1,'e2.C',ftype);
+         e2.HH = Mixer(0,1,'e2.HH',ftype);
+         e2.CC = Mixer(0,1,'e2.CC',ftype);
+         e2.CH = Mixer(0,1,'e2.CH',ftype);
+         ftest = makeFitme(testIn{:},commonIn{:},'enstruct1',en, ...
+            'kestruct',ke,'e2struct',e2,'plot',2);
+         f1 = makeFitme(trainIn{:},commonIn{:},'enstruct1',en,'kestruct',ke, ...
+            'e2struct',e2,'testFitme',ftest);
       elseif (iPar == 2)
          en.HCs = en.CsH.deepCopy(); en.HCs.desc = 'en.HCs';
          en.HCp = en.HCs;
@@ -103,21 +108,24 @@ for iC = 5
       end
       
       dataDir = [topDir,filePre,'/fit-',num2str(iPar),'/'];
-      ftest = makeFitme(trainIn{:},commonIn{:},'enstruct1',en, ...
-         'kestruct',ke,'e2struct',e2,'plot',2);
-      f1 = makeFitme(testIn{:},commonIn{:},'enstruct1',en,'kestruct',ke, ...
-         'e2struct',e2,'testFitme',ftest);
-      limits = [];
-      options = optimset('DiffMinChange',1.0e-5,'TolFun',5.0e-4,'TolX',1.0e-2);
+      options = optimset('DiffMinChange',1.0e-5,'TolFun',1.0e-4,'TolX',1.0e-3);
       if (exist(dataDir,'dir') ~= 7)
          status = mkdir(dataDir);
       end
       diary([dataDir,'out.diary']);
       diary on;
       tic
-      start = f1.getPars;
+      if ((ftype == 2) && (iPar == 1))
+         start = ones(size(f1.getPars));
+         lowLimits = zeros(size(f1.getPars));
+         highLimits = 10 * ones(size(f1.getPars));
+      else
+         start = f1.getPars;
+         lowLimits = [];
+         highLimits = [];
+      end
       [pt,resnorm,residual,exitflag,output,lambda,jacobian] = ...
-         lsqnonlin(@f1.err, start,-limits,limits,options);
+         lsqnonlin(@f1.err, start,lowLimits,highLimits,options);
       clockTime = toc
       pt
       resnorm

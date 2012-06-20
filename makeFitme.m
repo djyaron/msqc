@@ -243,6 +243,7 @@ if (~isempty(e2struct))
    fitme.includeE2 = 1;
 end
 fitme.setEnvs(envs);
+fitme.HLs = [];
 if (doPlot > 0)
    fitme.plot = 1;
 else
