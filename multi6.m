@@ -1,6 +1,6 @@
 %% Fitting multiple molecules, using makeFitme
-%clear classes;
-topDir = 'cdebug/';
+clear classes;
+topDir = 'scaleconst/';
 % if (Aprocess == 1)
 %    ics = [1 4 7];
 % elseif (Aprocess == 2)
@@ -40,8 +40,8 @@ testC{7} = {'h2',[],'ch4',1:19,'ethane',1:7,'ethylene',1:7,'envs',20:30};
 filePrefix{7} = 'ch4f-c2h6-c2h4';
 
 commonIn = {};
-%%
-for iC = 1
+%
+for iC = [1 2 4]
    trainIn = trainC{iC};
    testIn = testC{iC};
    filePre = filePrefix{iC};
@@ -79,10 +79,20 @@ for iC = 1
          e2.HH = Mixer(iP,1,'e2.HH',ftype);
          e2.CC = Mixer(iP,1,'e2.CC',ftype);
          e2.CH = Mixer(iP,1,'e2.CH',ftype);
-         ftest = makeFitme(testIn{:},commonIn{:},'enstruct1',en, ...
-            'kestruct',ke,'e2struct',e2,'plot',2);
+%           ftest = makeFitme(testIn{:},commonIn{:},'enstruct1',en, ...
+%              'kestruct',ke,'e2struct',e2,'plot',2);
+%           ftest.parallel = 0;
+%           ftest.plot = 0;
          f1 = makeFitme(trainIn{:},commonIn{:},'enstruct1',en,'kestruct',ke, ...
-            'e2struct',e2,'testFitme',ftest);
+            'e2struct',e2);%,'testFitme',ftest);
+         f1.plot = 0;
+         %f1.parallel = 1;
+%          f1.parHF = zeros(size(f1.getPars));
+%          etest1 = f1.err(f1.getPars);
+%          f1.parHF = zeros(size(f1.getPars));
+%          f1.parallel = 1;
+%          etest2 = f1.err(f1.getPars);
+%          input('hi');
       elseif (iPar == 2) % add constants
          for m1 = [ke.H ke.Cs en.H en.Cs]
             m1.funcType = 3;

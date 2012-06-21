@@ -165,10 +165,10 @@ classdef Fitme < handle
             else
                disp(['parallel solving for density matrices']);
                for imod = 1:obj.nmodels
-                  modFile = obj.models{imod};
-                  envsFile = obj.envs{1,imod};
+                  modFile1 = obj.models{imod};
+                  envsFile1 = obj.envs{1,imod};
                   save(['scratch/todo',num2str(imod),'.mat'], ...
-                     'modFile','envsFile');
+                     'modFile1','envsFile1');
                end
                runModelsParallel('scratch/',obj.nmodels);
                for imod = 1:obj.nmodels
@@ -176,14 +176,14 @@ classdef Fitme < handle
                   filename = ['scratch/done',num2str(imod),'.mat'];
                   load(filename); % contains outFile
                   if (sum(obj.envs{1,imod}==0))
-                     modd.orb = outFile.orb;
-                     modd.Eorb = outFile.Eorb;
-                     modd.Ehf = outFile.Ehf;
+                     modd.orb = modFile2.orb;
+                     modd.Eorb = modFile2.Eorb;
+                     modd.Ehf = modFile2.Ehf;
                   end
-                  modd.orbEnv      = outFile.orbEnv;
-                  modd.EorbEnv     = outFile.EorbEnv;
-                  modd.EhfEnv      = outFile.EhfEnv;
-                  modd.densitySave = outFile.densitySave;
+                  modd.orbEnv      = modFile2.orbEnv;
+                  modd.EorbEnv     = modFile2.EorbEnv;
+                  modd.EhfEnv      = modFile2.EhfEnv;
+                  modd.densitySave = modFile2.densitySave;
                   delete(filename);
                end
             end

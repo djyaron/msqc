@@ -53,6 +53,7 @@ classdef Model3 < handle
    end
    methods
       function res = Model3(frag_,fnar_, fdif_)
+         if (nargin ~= 0)
          res.frag = frag_;
          res.fnar = fnar_;
          res.fdif = fdif_;
@@ -105,6 +106,7 @@ classdef Model3 < handle
          res.EhfEnv  = zeros(1,res.nenv);
          res.EorbEnv = zeros(res.nbasis,res.nenv);
          res.orbEnv  = zeros(res.nbasis,res.nbasis,res.nenv);
+         end
       end
       function res = npar(obj)
          res = 0;
