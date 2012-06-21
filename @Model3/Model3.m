@@ -46,8 +46,8 @@ classdef Model3 < handle
       %   ilist, jlist, klist, llist:  elements to modify
       %   mixer : pointer to a mix function
       H2mods % {1,n}
-   end
-   properties (Transient)
+   %end
+   %properties (Transient)
       densitySave   % cell array {1:nenv+1} of most recent density matrices
       % used to start HF iterations
    end
