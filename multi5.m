@@ -7,7 +7,6 @@ ftype = 2;
 trainC{1}  = {'h2',[],'ch4',1:4,'envs',1:10};
 testC{1} = {'h2',[],'ch4',1:2,'envs',20:30};
 filePrefix{1} = 'ch4';
-constFixed{1} = [0 1];
 
 trainC{2}  = {'h2',[],'ethane',1:7,'envs',1:10};
 testC{2} = {'h2',[],'ethane',1:7,'envs',20:30};
@@ -55,8 +54,6 @@ for iC = 1:1
          ke.CsCs = Mixer(iP,1,'ke.CC',ftype);
          ke.CsCp = ke.CsCs;
          ke.CpCp = ke.CsCs;
-         ke.const = Mixer([0 0],4,'ke.const');
-         ke.const.fixed = constFixed{iC};
          
          en.H = Mixer(iP,1,'en.H',ftype);
          en.Cs = Mixer(iP,1,'en.C',ftype);
