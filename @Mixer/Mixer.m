@@ -6,13 +6,11 @@ classdef Mixer < handle
       desc    % string description
       fixed   % (1,npar) 0 if parameter should be fit, 1 if fixed
       funcType 
+      additive % true, if this is a constant to add to operator
    end
    
    methods
       function obj = Mixer(parIn,mixType,desc,funcType)
-         if (nargin < 3)
-            desc = ' ';
-         end
          if (nargin < 1)
             parIn = [0];
          end
@@ -20,6 +18,9 @@ classdef Mixer < handle
             mixType = 1;
          end
          if (nargin < 3)
+            desc = ' ';
+         end
+         if (nargin < 4)
             funcType = 1;
          end
          obj.par = parIn;
@@ -27,6 +28,11 @@ classdef Mixer < handle
          obj.fixed = zeros(size(parIn));
          obj.desc = desc;
          obj.funcType = funcType;
+         if (mixType == 4)
+            obj.additive = true;
+         else
+            obj.additive = false;
+         end
       end
       function res = deepCopy(obj)
          res = Mixer(obj.par,obj.mixType,obj.desc,obj.funcType);
@@ -97,23 +103,17 @@ classdef Mixer < handle
             %res = ((1.0-x)/2.0) * v1 + ((1.0+x)/2.0) * v2;
             res = obj.mixFunction(x,v0,v1,v2);
          elseif (obj.mixType == 4)
-            error('still working on mixType 4');
-            x0 = obj.par(1);
-            xslope = obj.par(2);
-            density = model.density(ienv);
-            % get matrix with only diagonal elements
-            occupancy = trace(density(ii,jj));
-            v1d = diag(diag(v1d));
-            v2d = diag(diag(v2d));
-            v1o = v1-v1d;
-            v2o = v2-v2d;
-            res = ((1.0-x)/2.0) * v1 + ((1.0+x)/2.0) * v2;
+            % returns a constant to be added to diagonal 
+            nH = sum(model.Z == 1);
+            nC = sum(model.Z == 6);
+            const = obj.par(1) * nC + obj.par(2) * nH;
+            res = const;
          else
             error(['unknown mix type in Mixer: ',num2str(obj.mixType)]);
          end
       end
       function res = print(obj)
-         types = {'sigmoid','linear','ch-dep','bo-dep'};
+         types = {'sigmoid','linear','ch-dep','bo-dep','const'};
          ftypes = {' ','mult','m01','m02'};
          res = [obj.desc,' ',types{obj.mixType+1},' ',...
             ftypes{obj.funcType}];

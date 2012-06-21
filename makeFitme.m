@@ -165,6 +165,7 @@ if (includeKEmods)
          m{ipar}.addKEmodBonded(6,6,1,1,kestruct.CsCs);
          m{ipar}.addKEmodBonded(6,6,1,2,kestruct.CsCp);
          m{ipar}.addKEmodBonded(6,6,2,2,kestruct.CpCp);
+         m{ipar}.addKEmodConst(kestruct.const);
       end
    end
 end

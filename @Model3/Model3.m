@@ -150,16 +150,31 @@ classdef Model3 < handle
       function res = KE(obj,ienv)
          % start with H1 matrix of unmodified STO-3G
          res   = obj.frag.KE;
-         
+         const = 0;
          for imod = 1:size(obj.KEmods,2)
             mod = obj.KEmods{1,imod};
             ii = mod.ilist;
             jj = mod.jlist;
-            res(ii,jj) = res(ii,jj) - obj.frag.KE(ii,jj) ...
-               + mod.mixer.mix(obj.frag.KE(ii,jj), ...
-               obj.fnar.KE(ii,jj), obj.fdif.KE(ii,jj), ...
-               obj,ii,jj,ienv);
+            if (mod.mixer.additive)
+               const = mod.mixer.mix(obj.frag.KE(ii,jj), ...
+                  obj.fnar.KE(ii,jj), obj.fdif.KE(ii,jj), ...
+                  obj,ii,jj,ienv);
+            else
+               res(ii,jj) = res(ii,jj) - obj.frag.KE(ii,jj) ...
+                  + mod.mixer.mix(obj.frag.KE(ii,jj), ...
+                  obj.fnar.KE(ii,jj), obj.fdif.KE(ii,jj), ...
+                  obj,ii,jj,ienv);
+            end
          end
+         res = res + const * eye(size(res));
+      end
+      function mixUsed = addKEmodConst(obj,mix)
+         mod.ilist = 1:obj.nbasis;
+         mod.jlist = 1:obj.nbasis;
+         mod.mixer = mix;
+         obj.KEmods{1,end+1} = mod;
+         obj.addMixer(mix);
+         mixUsed = mix;
       end
       function mixUsed = addKEmodDiag(obj,Zs,types,mix)
          if (nargin < 3)
