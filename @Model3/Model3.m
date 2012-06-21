@@ -274,6 +274,26 @@ classdef Model3 < handle
                obj.fdif.H1en(ii,jj,iatom), obj, ii, jj, ienv );
          end
       end
+      function mixUsed = addENmodConst(obj,mix)
+         mixerAdded = 0;
+         for iZ = Zs % loop over all desired elements
+            for iatom = find(obj.Z == iZ) % loop over atoms of this element
+               ilist = obj.onAtom{iatom}'; % orbitals on this atom
+               % Create a modifier for this block of the matrix
+               mod.ilist = ilist;
+               mod.jlist = ilist;
+               mod.mixer = mix;
+               obj.ENmods{1,end+1} = mod;
+               mixerAdded = 1;
+            end
+         end
+         if (mixerAdded)
+            mixUsed = mix;
+            obj.addMixer(mix);
+         else
+            mixUsed = [];
+         end
+      end
       function mixUsed = addENmodDiag(obj,Zs,types,mix)
          if (nargin < 3)
             types = [1 2];
