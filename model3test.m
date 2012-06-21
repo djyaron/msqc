@@ -149,6 +149,7 @@ E2diff = max(abs(E2f-E2m));
 clear classes;
 load('temp.mat');
 m = Model3(frag,fnar,fdif);
+%%
 m.addH2modDiag(1);
 m.addH2modDiag(6);
 f1 = Fitme;

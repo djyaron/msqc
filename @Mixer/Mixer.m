@@ -10,9 +10,6 @@ classdef Mixer < handle
    
    methods
       function obj = Mixer(parIn,mixType,desc,funcType)
-         if (nargin < 3)
-            desc = ' ';
-         end
          if (nargin < 1)
             parIn = [0];
          end
@@ -20,6 +17,9 @@ classdef Mixer < handle
             mixType = 1;
          end
          if (nargin < 3)
+            desc = ' ';
+         end
+         if (nargin < 4)
             funcType = 1;
          end
          obj.par = parIn;
@@ -97,23 +97,16 @@ classdef Mixer < handle
             %res = ((1.0-x)/2.0) * v1 + ((1.0+x)/2.0) * v2;
             res = obj.mixFunction(x,v0,v1,v2);
          elseif (obj.mixType == 4)
-            error('still working on mixType 4');
-            x0 = obj.par(1);
-            xslope = obj.par(2);
-            density = model.density(ienv);
-            % get matrix with only diagonal elements
-            occupancy = trace(density(ii,jj));
-            v1d = diag(diag(v1d));
-            v2d = diag(diag(v2d));
-            v1o = v1-v1d;
-            v2o = v2-v2d;
-            res = ((1.0-x)/2.0) * v1 + ((1.0+x)/2.0) * v2;
+            nH = sum(model.Z == 1);
+            nC = sum(model.Z == 6);
+            const = obj.par(1) * nC + obj.par(2) * nH;
+            res = v0 + const * eye(size(v0));
          else
             error(['unknown mix type in Mixer: ',num2str(obj.mixType)]);
          end
       end
       function res = print(obj)
-         types = {'sigmoid','linear','ch-dep','bo-dep'};
+         types = {'sigmoid','linear','ch-dep','bo-dep','const'};
          ftypes = {' ','mult','m01','m02'};
          res = [obj.desc,' ',types{obj.mixType+1},' ',...
             ftypes{obj.funcType}];

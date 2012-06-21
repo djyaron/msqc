@@ -161,6 +161,14 @@ classdef Model3 < handle
                obj,ii,jj,ienv);
          end
       end
+      function mixUsed = addKEmodConst(obj,mix)
+         mod.ilist = 1:obj.nbasis;
+         mod.jlist = 1:obj.nbasis;
+         mod.mixer = mix;
+         obj.KEmods{1,end+1} = mod;
+         obj.addMixer(mix);
+         mixUsed = mix;
+      end
       function mixUsed = addKEmodDiag(obj,Zs,types,mix)
          if (nargin < 3)
             types = [1 2];
