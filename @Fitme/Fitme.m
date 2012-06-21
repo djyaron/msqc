@@ -29,6 +29,7 @@ classdef Fitme < handle
       errTest    % error in test set
       
       arms       % (npar,narms): for bandit algorithm
+      parallel   % true to run updateDensity in parallel
    end
    methods
       function res = Fitme
@@ -48,6 +49,7 @@ classdef Fitme < handle
          res.LLEN = cell(0,0);
          res.errCalls = 0;
          res.itcount = 0;
+         res.parallel = 0;
       end
       function addMixer(obj, mix)
          add = 1;
@@ -155,9 +157,35 @@ classdef Fitme < handle
             dpar = max(abs(obj.parHF-par));
          end
          if (dpar > obj.epsDensity)
-            disp(['solving for density matrices']);
-            for imod = 1:obj.nmodels
+            if (~obj.parallel)
+               disp(['solving for density matrices']);
+               for imod = 1:obj.nmodels
                obj.models{imod}.solveHF(obj.envs{1,imod});
+               end
+            else
+               disp(['parallel solving for density matrices']);
+               for imod = 1:obj.nmodels
+                  modFile = obj.models{imod};
+                  envsFile = obj.envs{1,imod};
+                  save(['scratch/todo',num2str(imod),'.mat'], ...
+                     'modFile','envsFile');
+               end
+               runModelsParallel('scratch/',obj.nmodels);
+               for imod = 1:obj.nmodels
+                  modd = obj.models{imod};
+                  filename = ['scratch/done',num2str(imod),'.mat'];
+                  load(filename); % contains outFile
+                  if (sum(obj.envs{1,imod}==0))
+                     modd.orb = outFile.orb;
+                     modd.Eorb = outFile.Eorb;
+                     modd.Ehf = outFile.Ehf;
+                  end
+                  modd.orbEnv      = outFile.orbEnv;
+                  modd.EorbEnv     = outFile.EorbEnv;
+                  modd.EhfEnv      = outFile.EhfEnv;
+                  modd.densitySave = outFile.densitySave;
+                  delete(filename);
+               end
             end
             obj.parHF = par;
          end

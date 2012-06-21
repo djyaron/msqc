@@ -151,18 +151,23 @@ load('temp.mat');
 m = Model3(frag,fnar,fdif);
 mix1 = Mixer([0 0],4,'kec');
 mix1.fixed = [0 1];
-m.addKEmodConst(mix1);
-mix2 = Mixer(0,1,'keH',2);
-m.addKEmodDiag(1,1,mix2);
-%m.addH2modDiag(1);
-%m.addH2modDiag(6);
+m.addH2modDiag(1);
+m.addH2modDiag(6);
 f1 = Fitme;
 f1.addFrag(m,fhl);
 f1.includeKE = 1;
-%f1.includeEN = zeros(1,6);
-%f1.includeE2 = 1;
-%
+f1.includeEN = zeros(1,6);
+f1.includeE2 = 1;
 f1.setEnvs(1:10);
+
+m2 = m;
+mfile = m;
+save('scratch/junk1.mat','mfile');
+load('scratch/junk1.mat');
+m3 = mfile;
+
+
+%%
 start = f1.getPars;
 limits = [];
 options = optimset('DiffMinChange',1.0e-5,'TolFun',1.0e-4,'TolX',1.0e-3);

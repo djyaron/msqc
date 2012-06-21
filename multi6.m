@@ -1,5 +1,5 @@
 %% Fitting multiple molecules, using makeFitme
-clear classes;
+%clear classes;
 topDir = 'cdebug/';
 % if (Aprocess == 1)
 %    ics = [1 4 7];
@@ -11,8 +11,8 @@ topDir = 'cdebug/';
 %trainC{1}  = {'h2',2:7,'envs',1:10};
 %testC{1} = {'h2',2:7,'envs',20:30};
 ftype = 2;
-trainC{1}  = {'h2',[],'ch4',1:3,'envs',1:10};
-testC{1} = {'h2',[],'ch4',1:3,'envs',20:30};
+trainC{1}  = {'h2',[],'ch4',1:17,'envs',1:10};
+testC{1} = {'h2',[],'ch4',1:17,'envs',20:30};
 filePrefix{1} = 'ch4';
 
 trainC{2}  = {'h2',[],'ethane',1:7,'envs',1:10};
@@ -45,7 +45,7 @@ for iC = 1
    trainIn = trainC{iC};
    testIn = testC{iC};
    filePre = filePrefix{iC};
-   for iPar = 2:3
+   for iPar = 1:3
       if (iPar == 1)
          if (ftype == 2)
             iP = 1;
