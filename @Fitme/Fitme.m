@@ -192,7 +192,7 @@ classdef Fitme < handle
          doPlots = obj.plot && (dpar > 1.0e-4);
          
          if (doPlots)
-            for i=unique([799 obj.plotNumber])
+            for i=unique([obj.plotNumber])
                figure(i);
                clf;
             end
@@ -294,7 +294,8 @@ classdef Fitme < handle
                end
             end
          end
-         disp(['RMS err/ndata = ',num2str(sqrt(res*res')/ndat)]);
+         disp(['RMS err/ndata = ',num2str(sqrt(res*res')/ndat), ...
+            ' kcal/mol err = ',num2str(sqrt(res*res'/ndat)*627.509)]);
          
          if (doPlots)
             figure(obj.plotNumErr);

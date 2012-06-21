@@ -1,11 +1,18 @@
 %% Fitting multiple molecules, using makeFitme
 clear classes;
 topDir = 'cdebug/';
+% if (Aprocess == 1)
+%    ics = [1 4 7];
+% elseif (Aprocess == 2)
+%    ics = [2 5];
+% else
+%    ics = [3 6];
+% end
 ftype = 2;
 %trainC{1}  = {'h2',2:7,'envs',1:10};
 %testC{1} = {'h2',2:7,'envs',20:30};
-trainC{1}  = {'h2',[],'ch4',1:4,'envs',1:10};
-testC{1} = {'h2',[],'ch4',1:2,'envs',20:30};
+trainC{1}  = {'h2',[],'ch4',1:17,'envs',1:10};
+testC{1} = {'h2',[],'ch4',1:17,'envs',20:30};
 filePrefix{1} = 'ch4';
 
 trainC{2}  = {'h2',[],'ethane',1:7,'envs',1:10};
@@ -34,7 +41,7 @@ filePrefix{7} = 'ch4f-c2h6-c2h4';
 
 commonIn = {};
 
-for iC = 1:1
+for iC = 1
    trainIn = trainC{iC};
    testIn = testC{iC};
    filePre = filePrefix{iC};
@@ -120,14 +127,28 @@ for iC = 1:1
       diary([dataDir,'out.diary']);
       diary on;
       tic
-      %[lowLimits,highLimits] = setLimits(f1);
-%       if ((ftype == 2))
-%          lowLimits = zeros(size(f1.getPars));
-%          highLimits = 10 * ones(size(f1.getPars));
-%       else
-         lowLimits = [];
-         highLimits = [];
-%      end
+      lowLimits = zeros(f1.npar,1);
+      highLimits = lowLimits;
+      i1 = 1;
+      for imix = 1:length(f1.mixers)
+         mix = f1.mixers{imix};
+         if (mix.funcType == 2)
+            lowLimits(i1) = 0.0;
+            highLimits(i1) = 10.0;
+            i1 = i1+1;
+            for i2 = 2:mix.npar
+               lowLimits(i1) = -inf;
+               highLimits(i1) = inf;
+               i1 = i1+1;
+            end
+         else
+            for i2 = 1:mix.npar
+               lowLimits(i1) = -inf;
+               highLimits(i1) = inf;
+               i1 = i1+1;
+            end
+         end
+      end
       start = f1.getPars;
       [pt,resnorm,residual,exitflag,output,lambda,jacobian] = ...
          lsqnonlin(@f1.err, start,lowLimits,highLimits,options);
@@ -153,29 +174,4 @@ for iC = 1:1
    end
 end
 
-% [lowLimits,highLimits] = function setLimits(f1)
-% 
-% lowLimits = zeros(size(f1.getpars));
-% highLimits = lowLimits;
-% i1 = 1;
-% for imix = 1:length(f1.mixers)
-%    mix = f1.mixers{imix};
-%    if (mix.funcType == 2)
-%       lowLimits(i1) = 0.0;
-%       highLimits(i1) = 10.0;
-%       i1 = i1+1;
-%       for i2 = 2:mix.npar
-%          lowLimits(i1) = -inf;
-%          highLimits(i1) = inf;
-%          i1 = i1+1;
-%       end
-%    else
-%       for i2 = 1:mix.npar
-%          lowLimits(i1) = -inf;
-%          highLimits(i1) = inf;
-%          i1 = i1+1;
-%       end
-%    end
-% end
-% 
-% end
+
