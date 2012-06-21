@@ -149,14 +149,19 @@ E2diff = max(abs(E2f-E2m));
 clear classes;
 load('temp.mat');
 m = Model3(frag,fnar,fdif);
-%%
-m.addH2modDiag(1);
-m.addH2modDiag(6);
+mix1 = Mixer([0 0],4,'kec');
+mix1.fixed = [0 1];
+m.addKEmodConst(mix1);
+mix2 = Mixer(0,1,'keH',2);
+m.addKEmodDiag(1,1,mix2);
+%m.addH2modDiag(1);
+%m.addH2modDiag(6);
 f1 = Fitme;
 f1.addFrag(m,fhl);
-f1.includeKE = 0;
-f1.includeEN = zeros(1,6);
-f1.includeE2 = 1;
+f1.includeKE = 1;
+%f1.includeEN = zeros(1,6);
+%f1.includeE2 = 1;
+%
 f1.setEnvs(1:10);
 start = f1.getPars;
 limits = [];

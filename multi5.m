@@ -4,8 +4,8 @@ topDir = 'cdebug/';
 ftype = 2;
 %trainC{1}  = {'h2',2:7,'envs',1:10};
 %testC{1} = {'h2',2:7,'envs',20:30};
-trainC{1}  = {'h2',[],'ch4',1:19,'envs',1:10};
-testC{1} = {'h2',[],'ch4',1:19,'envs',20:30};
+trainC{1}  = {'h2',[],'ch4',1:4,'envs',1:10};
+testC{1} = {'h2',[],'ch4',1:2,'envs',20:30};
 filePrefix{1} = 'ch4';
 constFixed{1} = [0 1];
 
@@ -41,35 +41,40 @@ for iC = 1:1
    filePre = filePrefix{iC};
    for iPar = 1:5
       if (iPar == 1)
-         ke.H = Mixer(0,1,'ke.H',ftype);
-         ke.Cs = Mixer(0,1,'ke.C',ftype);
+         if (ftype == 2)
+            iP = 1;
+         else
+            iP = 0;
+         end
+         ke.H = Mixer(iP,1,'ke.H',ftype);
+         ke.Cs = Mixer(iP,1,'ke.C',ftype);
          ke.Cp = ke.Cs;
-         ke.HH = Mixer(0,1,'ke.HH',ftype);
-         ke.CsH = Mixer(0,1,'ke.CH',ftype);
+         ke.HH = Mixer(iP,1,'ke.HH',ftype);
+         ke.CsH = Mixer(iP,1,'ke.CH',ftype);
          ke.CpH = ke.CsH;
-         ke.CsCs = Mixer(0,1,'ke.CC',ftype);
+         ke.CsCs = Mixer(iP,1,'ke.CC',ftype);
          ke.CsCp = ke.CsCs;
          ke.CpCp = ke.CsCs;
          ke.const = Mixer([0 0],4,'ke.const');
          ke.const.fixed = constFixed{iC};
          
-         en.H = Mixer(0,1,'en.H',ftype);
-         en.Cs = Mixer(0,1,'en.C',ftype);
+         en.H = Mixer(iP,1,'en.H',ftype);
+         en.Cs = Mixer(iP,1,'en.C',ftype);
          en.Cp = en.Cs;
-         en.HH = Mixer(0,1,'en.HH',ftype);
-         en.CsH = Mixer(0,1,'en.CH',ftype);
+         en.HH = Mixer(iP,1,'en.HH',ftype);
+         en.CsH = Mixer(iP,1,'en.CH',ftype);
          en.CpH = en.CsH;
          en.HCs = en.CsH;
          en.HCp = en.CsH;
-         en.CsCs = Mixer(0,1,'en.CC',ftype);
+         en.CsCs = Mixer(iP,1,'en.CC',ftype);
          en.CsCp = en.CsCs;
          en.CpCp = en.CsCs;
          
-         e2.H = Mixer(0,1,'e2.H',ftype);
-         e2.C = Mixer(0,1,'e2.C',ftype);
-         e2.HH = Mixer(0,1,'e2.HH',ftype);
-         e2.CC = Mixer(0,1,'e2.CC',ftype);
-         e2.CH = Mixer(0,1,'e2.CH',ftype);
+         e2.H = Mixer(iP,1,'e2.H',ftype);
+         e2.C = Mixer(iP,1,'e2.C',ftype);
+         e2.HH = Mixer(iP,1,'e2.HH',ftype);
+         e2.CC = Mixer(iP,1,'e2.CC',ftype);
+         e2.CH = Mixer(iP,1,'e2.CH',ftype);
          ftest = makeFitme(testIn{:},commonIn{:},'enstruct1',en, ...
             'kestruct',ke,'e2struct',e2,'plot',2);
          f1 = makeFitme(trainIn{:},commonIn{:},'enstruct1',en,'kestruct',ke, ...
@@ -118,15 +123,15 @@ for iC = 1:1
       diary([dataDir,'out.diary']);
       diary on;
       tic
-      if ((ftype == 2) && (iPar == 1))
-         start = ones(size(f1.getPars));
-         lowLimits = zeros(size(f1.getPars));
-         highLimits = 10 * ones(size(f1.getPars));
-      else
-         start = f1.getPars;
+      %[lowLimits,highLimits] = setLimits(f1);
+%       if ((ftype == 2))
+%          lowLimits = zeros(size(f1.getPars));
+%          highLimits = 10 * ones(size(f1.getPars));
+%       else
          lowLimits = [];
          highLimits = [];
-      end
+%      end
+      start = f1.getPars;
       [pt,resnorm,residual,exitflag,output,lambda,jacobian] = ...
          lsqnonlin(@f1.err, start,lowLimits,highLimits,options);
       clockTime = toc
@@ -150,3 +155,30 @@ for iC = 1:1
       end
    end
 end
+
+% [lowLimits,highLimits] = function setLimits(f1)
+% 
+% lowLimits = zeros(size(f1.getpars));
+% highLimits = lowLimits;
+% i1 = 1;
+% for imix = 1:length(f1.mixers)
+%    mix = f1.mixers{imix};
+%    if (mix.funcType == 2)
+%       lowLimits(i1) = 0.0;
+%       highLimits(i1) = 10.0;
+%       i1 = i1+1;
+%       for i2 = 2:mix.npar
+%          lowLimits(i1) = -inf;
+%          highLimits(i1) = inf;
+%          i1 = i1+1;
+%       end
+%    else
+%       for i2 = 1:mix.npar
+%          lowLimits(i1) = -inf;
+%          highLimits(i1) = inf;
+%          i1 = i1+1;
+%       end
+%    end
+% end
+% 
+% end

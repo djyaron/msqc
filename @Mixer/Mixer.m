@@ -6,6 +6,7 @@ classdef Mixer < handle
       desc    % string description
       fixed   % (1,npar) 0 if parameter should be fit, 1 if fixed
       funcType 
+      additive % true, if this is a constant to add to operator
    end
    
    methods
@@ -27,6 +28,11 @@ classdef Mixer < handle
          obj.fixed = zeros(size(parIn));
          obj.desc = desc;
          obj.funcType = funcType;
+         if (mixType == 4)
+            obj.additive = true;
+         else
+            obj.additive = false;
+         end
       end
       function res = deepCopy(obj)
          res = Mixer(obj.par,obj.mixType,obj.desc,obj.funcType);
@@ -97,10 +103,11 @@ classdef Mixer < handle
             %res = ((1.0-x)/2.0) * v1 + ((1.0+x)/2.0) * v2;
             res = obj.mixFunction(x,v0,v1,v2);
          elseif (obj.mixType == 4)
+            % returns a constant to be added to diagonal 
             nH = sum(model.Z == 1);
             nC = sum(model.Z == 6);
             const = obj.par(1) * nC + obj.par(2) * nH;
-            res = v0 + const * eye(size(v0));
+            res = const;
          else
             error(['unknown mix type in Mixer: ',num2str(obj.mixType)]);
          end
