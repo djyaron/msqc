@@ -1,6 +1,13 @@
 %% Fitting multiple molecules, using makeFitme
-clear classes;
-topDir = 'tmpE2debug/';
+%clear classes;
+if (Aprocess == 1)
+   ics = [1 4 7];
+elseif (Aprocess == 2)
+   ics = [2 5];
+else
+   ics = [3 6];
+end
+topDir = 'fitScale/';
 ftype = 2;
 %trainC{1}  = {'h2',2:7,'envs',1:10};
 %testC{1} = {'h2',2:7,'envs',20:30};
@@ -34,7 +41,7 @@ filePrefix{7} = 'ch4f-c2h6-c2h4';
 
 commonIn = {};
 
-for iC = 1:1
+for iC = ics
    trainIn = trainC{iC};
    testIn = testC{iC};
    filePre = filePrefix{iC};
