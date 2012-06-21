@@ -86,7 +86,7 @@ for iC = [1 2 4]
          f1 = makeFitme(trainIn{:},commonIn{:},'enstruct1',en,'kestruct',ke, ...
             'e2struct',e2);%,'testFitme',ftest);
          f1.plot = 0;
-         %f1.parallel = 1;
+         f1.parallel = 1;
 %          f1.parHF = zeros(size(f1.getPars));
 %          etest1 = f1.err(f1.getPars);
 %          f1.parHF = zeros(size(f1.getPars));
@@ -161,8 +161,16 @@ for iC = [1 2 4]
          end
       end
       start = f1.getPars;
+      f1.parallel = 0;
+      etest3 = f1.err(start);
+      f1.parallel = 1;
       [pt,resnorm,residual,exitflag,output,lambda,jacobian] = ...
          lsqnonlin(@f1.err, start,lowLimits,highLimits,options);
+%       options = LMFnlsq;
+%      options.Display =1;
+%    options.FunTol = 1.0e-6;
+%    options.XTol = 1.0e-5;
+%    [pt,resnorm, CNT, Res, XY] = LMFnlsq(@f1.err,start',options);
       clockTime = toc
       pt
       resnorm

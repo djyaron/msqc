@@ -28,14 +28,14 @@ e2.C = Mixer(iP,1,'e2.C',ftype);
 e2.HH = Mixer(iP,1,'e2.HH',ftype);
 e2.CC = Mixer(iP,1,'e2.CC',ftype);
 e2.CH = Mixer(iP,1,'e2.CH',ftype);
-f1 = makeFitme('ch4',1:17,'ethane',1:7,'envs',1:20, 'enstruct1',en,'kestruct',ke, ...
+f1 = makeFitme('ch4',1:17,'envs',1:10, 'enstruct1',en,'kestruct',ke, ...
    'e2struct',e2);
 %%
-p = rand(1,14);
+p =ones(1,12);
 f1.plot = 0;
 %%
 f1.parallel = 0;
-f1.parHF = zeros(1,14);
+f1.parHF = zeros(1,12);
 tic
 e = f1.err(p);
 toc
