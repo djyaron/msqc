@@ -46,13 +46,14 @@ classdef Model3 < handle
       %   ilist, jlist, klist, llist:  elements to modify
       %   mixer : pointer to a mix function
       H2mods % {1,n}
-   end
-   properties (Transient)
+   %end
+   %properties (Transient)
       densitySave   % cell array {1:nenv+1} of most recent density matrices
       % used to start HF iterations
    end
    methods
       function res = Model3(frag_,fnar_, fdif_)
+         if (nargin ~= 0)
          res.frag = frag_;
          res.fnar = fnar_;
          res.fdif = fdif_;
@@ -105,6 +106,7 @@ classdef Model3 < handle
          res.EhfEnv  = zeros(1,res.nenv);
          res.EorbEnv = zeros(res.nbasis,res.nenv);
          res.orbEnv  = zeros(res.nbasis,res.nbasis,res.nenv);
+         end
       end
       function res = npar(obj)
          res = 0;
@@ -150,7 +152,7 @@ classdef Model3 < handle
       function res = KE(obj,ienv)
          % start with H1 matrix of unmodified STO-3G
          res   = obj.frag.KE;
-         
+         const = 0;
          for imod = 1:size(obj.KEmods,2)
             mod = obj.KEmods{1,imod};
             ii = mod.ilist;
@@ -160,6 +162,14 @@ classdef Model3 < handle
                obj.fnar.KE(ii,jj), obj.fdif.KE(ii,jj), ...
                obj,ii,jj,ienv);
          end
+      end
+      function mixUsed = addKEmodConst(obj,mix)
+         mod.ilist = 1:obj.nbasis;
+         mod.jlist = 1:obj.nbasis;
+         mod.mixer = mix;
+         obj.KEmods{1,end+1} = mod;
+         obj.addMixer(mix);
+         mixUsed = mix;
       end
       function mixUsed = addKEmodDiag(obj,Zs,types,mix)
          if (nargin < 3)
@@ -257,6 +267,26 @@ classdef Model3 < handle
                + mod.mixer.mix(obj.frag.H1en(ii,jj,iatom), ...
                obj.fnar.H1en(ii,jj,iatom), ...
                obj.fdif.H1en(ii,jj,iatom), obj, ii, jj, ienv );
+         end
+      end
+      function mixUsed = addENmodConst(obj,mix)
+         mixerAdded = 0;
+         for iZ = Zs % loop over all desired elements
+            for iatom = find(obj.Z == iZ) % loop over atoms of this element
+               ilist = obj.onAtom{iatom}'; % orbitals on this atom
+               % Create a modifier for this block of the matrix
+               mod.ilist = ilist;
+               mod.jlist = ilist;
+               mod.mixer = mix;
+               obj.ENmods{1,end+1} = mod;
+               mixerAdded = 1;
+            end
+         end
+         if (mixerAdded)
+            mixUsed = mix;
+            obj.addMixer(mix);
+         else
+            mixUsed = [];
          end
       end
       function mixUsed = addENmodDiag(obj,Zs,types,mix)

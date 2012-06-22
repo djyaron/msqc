@@ -1,6 +1,6 @@
 %% Fitting multiple molecules, using makeFitme
 clear classes;
-topDir = 'cdebug/';
+topDir = 'scaleconst/';
 % if (Aprocess == 1)
 %    ics = [1 4 7];
 % elseif (Aprocess == 2)
@@ -8,12 +8,11 @@ topDir = 'cdebug/';
 % else
 %    ics = [3 6];
 % end
-ftypeDiag = 3;
-ftypeBond = 2;
 %trainC{1}  = {'h2',2:7,'envs',1:10};
 %testC{1} = {'h2',2:7,'envs',20:30};
-trainC{1}  = {'h2',[],'ch4',1:3,'envs',1:10};
-testC{1} = {'h2',[],'ch4',1:3,'envs',20:30};
+ftype = 2;
+trainC{1}  = {'h2',[],'ch4',1:17,'envs',1:10};
+testC{1} = {'h2',[],'ch4',1:17,'envs',20:30};
 filePrefix{1} = 'ch4';
 
 trainC{2}  = {'h2',[],'ethane',1:7,'envs',1:10};
@@ -41,12 +40,12 @@ testC{7} = {'h2',[],'ch4',1:19,'ethane',1:7,'ethylene',1:7,'envs',20:30};
 filePrefix{7} = 'ch4f-c2h6-c2h4';
 
 commonIn = {};
-
-for iC = 1
+%
+for iC = [1 2 4]
    trainIn = trainC{iC};
    testIn = testC{iC};
    filePre = filePrefix{iC};
-   for iPar = 1:5
+   for iPar = 1:3
       if (iPar == 1)
          if (ftype == 2)
             iP = 1;
@@ -69,8 +68,8 @@ for iC = 1
          en.HH = Mixer(iP,1,'en.HH',ftype);
          en.CsH = Mixer(iP,1,'en.CH',ftype);
          en.CpH = en.CsH;
-         en.HCs = en.CsH;
-         en.HCp = en.CsH;
+         en.HCs = Mixer(iP,1,'en.HC',ftype);
+         en.HCp = en.HCs;
          en.CsCs = Mixer(iP,1,'en.CC',ftype);
          en.CsCp = en.CsCs;
          en.CpCp = en.CsCs;
@@ -80,33 +79,45 @@ for iC = 1
          e2.HH = Mixer(iP,1,'e2.HH',ftype);
          e2.CC = Mixer(iP,1,'e2.CC',ftype);
          e2.CH = Mixer(iP,1,'e2.CH',ftype);
-         ftest = makeFitme(testIn{:},commonIn{:},'enstruct1',en, ...
-            'kestruct',ke,'e2struct',e2,'plot',2);
+%           ftest = makeFitme(testIn{:},commonIn{:},'enstruct1',en, ...
+%              'kestruct',ke,'e2struct',e2,'plot',2);
+%           ftest.parallel = 0;
+%           ftest.plot = 0;
          f1 = makeFitme(trainIn{:},commonIn{:},'enstruct1',en,'kestruct',ke, ...
-            'e2struct',e2,'testFitme',ftest);
-      elseif (iPar == 2)
-         en.HCs = en.CsH.deepCopy(); en.HCs.desc = 'en.HCs';
-         en.HCp = en.HCs;
-      elseif (iPar == 3)
-         ke.H.mixType = 2;    ke.H.par(2) = 0;    ke.H.fixed(2) = 0;
-         ke.Cs.mixType = 2;   ke.Cs.par(2) = 0;   ke.Cs.fixed(2) = 0;
-         ke.HH.mixType = 3;   ke.HH.par(2) = 0;   ke.HH.fixed(2) = 0;
-         ke.CsH.mixType = 3;  ke.CsH.par(2) = 0;  ke.CsH.fixed(2) = 0;
-         ke.CsCs.mixType = 3; ke.CsCs.par(2) = 0; ke.CsCs.fixed(2) = 0;
+            'e2struct',e2);%,'testFitme',ftest);
+         f1.plot = 0;
+         f1.parallel = 1;
+%          f1.parHF = zeros(size(f1.getPars));
+%          etest1 = f1.err(f1.getPars);
+%          f1.parHF = zeros(size(f1.getPars));
+%          f1.parallel = 1;
+%          etest2 = f1.err(f1.getPars);
+%          input('hi');
+      elseif (iPar == 2) % add constants
+         for m1 = [ke.H ke.Cs en.H en.Cs]
+            m1.funcType = 3;
+            m1.par(2) = 0;
+            m1.fixed(2) = 0;
+         end
+      elseif (iPar == 3) % add context sensitive
+         for m1 = [ke.H ke.Cs en.H en.Cs]
+            m1.mixType = 2;
+            m1.par(3) = m1.par(2);
+            m1.fixed(3) = 0;
+            m1.par(2) = 0;
+         end
+         for m1 = [e2.H e2.C]
+            m1.mixType = 2;
+            m1.par(2) = 0;
+            m1.fixed(2) = 0;
+         end
+         for m1 = [ke.HH ke.CsH ke.CsCs en.HH en.HCs en.CsH en.CsCs ...
+               e2.HH e2.CH e2.CC]
+            m1.mixType = 3;
+            m1.par(2) = 0;
+            m1.fixed(2) = 0;
+         end
       elseif (iPar == 4)
-         en.H.mixType = 2;    en.H.par(2) = 0;      en.H.fixed(2) = 0;
-         en.Cs.mixType = 2;   en.Cs.par(2) = 0;     en.Cs.fixed(2) = 0;
-         en.HH.mixType = 3;   en.HH.par(2) = 0;     en.HH.fixed(2) = 0;
-         en.CsH.mixType = 3;  en.CsH.par(2) = 0;    en.CsH.fixed(2) = 0;
-         en.HCs.mixType = 3;  en.HCs.par(2) = 0;    en.HCs.fixed(2) = 0;
-         en.CsCs.mixType = 3; en.CsCs.par(2) = 0;   en.CsCs.fixed(2) = 0;
-      elseif (iPar == 5)
-         e2.H.mixType = 2;   e2.H.par(2) = 0;   e2.H.fixed(2) = 0;
-         e2.C.mixType = 2;   e2.C.par(2) = 0;   e2.C.fixed(2) = 0;
-         e2.HH.mixType = 3;  e2.HH.par(2) = 0;  e2.HH.fixed(2) = 0;
-         e2.CC.mixType = 3;  e2.CC.par(2) = 0;  e2.CC.fixed(2) = 0;
-         e2.CH.mixType = 3;  e2.CH.par(2) = 0;  e2.CH.fixed(2) = 0;
-      elseif (iPar == 6)
          ke.Cp = ke.Cs.deepCopy();     ke.Cs.desc ='ke.Cs';     ke.Cp.desc = 'ke.Cp';
          ke.CpH = ke.CsH.deepCopy();   ke.CsH.desc ='ke.CsH';   ke.CpH.desc = 'ke.CpH';
          ke.CsCp = ke.CsCs.deepCopy(); ke.CsCs.desc ='ke.CsCs'; ke.CsCp.desc = 'ke.CsCp';
@@ -116,8 +127,7 @@ for iC = 1
          en.CpH = en.CsH.deepCopy();   en.CsH.desc ='en.CsH';   en.CpH.desc = 'en.CpH';
          en.CpH = en.CsH.deepCopy();   en.CsH.desc ='en.CsH';   en.CpH.desc = 'en.CpH';
          en.CsCp = en.CsCs.deepCopy(); en.CsCs.desc ='en.CsCs'; en.CsCp.desc = 'en.CsCp';
-         en.CpCp = en.CsCs.deepCopy();                          en.CpCp.desc = 'en.CpCp';
-         
+         en.CpCp = en.CsCs.deepCopy();                          en.CpCp.desc = 'en.CpCp';         
       end
       
       dataDir = [topDir,filePre,'/fit-',num2str(iPar),'/'];
@@ -133,7 +143,7 @@ for iC = 1
       i1 = 1;
       for imix = 1:length(f1.mixers)
          mix = f1.mixers{imix};
-         if ((mix.funcType == 2)||(mix.functype == 3))
+         if ((mix.funcType == 2)||(mix.funcType == 3))
             lowLimits(i1) = 0.0;
             highLimits(i1) = 10.0;
             i1 = i1+1;
@@ -151,8 +161,16 @@ for iC = 1
          end
       end
       start = f1.getPars;
+      f1.parallel = 0;
+      etest3 = f1.err(start);
+      f1.parallel = 1;
       [pt,resnorm,residual,exitflag,output,lambda,jacobian] = ...
          lsqnonlin(@f1.err, start,lowLimits,highLimits,options);
+%       options = LMFnlsq;
+%      options.Display =1;
+%    options.FunTol = 1.0e-6;
+%    options.XTol = 1.0e-5;
+%    [pt,resnorm, CNT, Res, XY] = LMFnlsq(@f1.err,start',options);
       clockTime = toc
       pt
       resnorm
