@@ -1,13 +1,13 @@
 %% Fitting multiple molecules, using makeFitme
-clear classes;
+%clear classes;
 topDir = 'scaleconst/';
-% if (Aprocess == 1)
-%    ics = [1 4 7];
-% elseif (Aprocess == 2)
-%    ics = [2 5];
-% else
-%    ics = [3 6];
-% end
+if (Aprocess == 1)
+   ics = [1 4 7];
+elseif (Aprocess == 2)
+   ics = [2 5];
+else
+   ics = [3 6];
+end
 %trainC{1}  = {'h2',2:7,'envs',1:10};
 %testC{1} = {'h2',2:7,'envs',20:30};
 ftype = 2;
@@ -41,7 +41,7 @@ filePrefix{7} = 'ch4f-c2h6-c2h4';
 
 commonIn = {};
 %
-for iC = [1 2 4]
+for iC = ics
    trainIn = trainC{iC};
    testIn = testC{iC};
    filePre = filePrefix{iC};
@@ -86,7 +86,7 @@ for iC = [1 2 4]
          f1 = makeFitme(trainIn{:},commonIn{:},'enstruct1',en,'kestruct',ke, ...
             'e2struct',e2);%,'testFitme',ftest);
          f1.plot = 0;
-         f1.parallel = 1;
+         f1.parallel = 0;
 %          f1.parHF = zeros(size(f1.getPars));
 %          etest1 = f1.err(f1.getPars);
 %          f1.parHF = zeros(size(f1.getPars));
@@ -161,9 +161,9 @@ for iC = [1 2 4]
          end
       end
       start = f1.getPars;
-      f1.parallel = 0;
-      etest3 = f1.err(start);
-      f1.parallel = 1;
+      %f1.parallel = 0;
+      %etest3 = f1.err(start);
+      %f1.parallel = 1;
       [pt,resnorm,residual,exitflag,output,lambda,jacobian] = ...
          lsqnonlin(@f1.err, start,lowLimits,highLimits,options);
 %       options = LMFnlsq;
