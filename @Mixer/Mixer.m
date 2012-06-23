@@ -105,7 +105,7 @@ classdef Mixer < handle
             Zs(1) = model.Z(iatom);
             Zs(2) = model.Z(jatom);
             Zs = sort(Zs);
-            bl = norm(model.r(:,iatom)-model.r(:,jatom));
+            bl = norm(model.rcart(:,iatom)-model.rcart(:,jatom));
             if (Zs(1) == 1 && Zs(2) == 1)
                bl = bl - 0.74;
             elseif (Zs(1) == 1 && Zs(2) == 6)
@@ -127,7 +127,7 @@ classdef Mixer < handle
             Zs(1) = model.Z(iatom);
             Zs(2) = model.Z(jatom);
             Zs = sort(Zs);
-            bl = norm(model.r(:,iatom)-model.r(:,jatom));
+            bl = norm(model.rcart(:,iatom)-model.rcart(:,jatom));
             if (Zs(1) == 1 && Zs(2) == 1)
                bl = bl - 0.74;
             elseif (Zs(1) == 1 && Zs(2) == 6)
@@ -146,7 +146,7 @@ classdef Mixer < handle
          end
       end
       function res = print(obj)
-         types = {'sigmoid','linear','ch-dep','bo-dep'};
+         types = {'sigmoid','linear','ch-dep','bo-dep','bl-dep','bo-bl-dep'};
          ftypes = {' ','mult','mult-c','mix-c'};
          res = [obj.desc,' ',types{obj.mixType+1},' ',...
             ftypes{obj.funcType}];
