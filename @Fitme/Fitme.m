@@ -207,7 +207,7 @@ classdef Fitme < handle
          end
          res = ic;
       end
-      function res = err(obj,par)
+      function [res plotnum etype] = err(obj,par)
          flip = 0; % to handle fit routines that pass row or column
          if (size(par,1)>size(par,2))
             par = par';
@@ -229,6 +229,8 @@ classdef Fitme < handle
          ic = 1;
          ndat = obj.ndata;
          res = zeros(1,ndat);
+         plotnum = zeros(1,ndat);
+         etype = zeros(1,ndat);
          for imod = 1:obj.nmodels
             if (obj.includeKE == 1)
                hlevel = obj.HLKE{1,imod};
@@ -236,6 +238,8 @@ classdef Fitme < handle
                t1 = hlevel - modpred;
                n = size(t1,2);
                res(1,ic:(ic+n-1))= t1;
+               plotnum(1,ic:(ic+n-1))= obj.plotNumber(imod);
+               etype(1,ic:(ic+n-1))= 1;
                ic = ic + n;
                if (doPlots)
                   figure(obj.plotNumber(imod));
@@ -264,6 +268,8 @@ classdef Fitme < handle
                   t1 = hlevel - modpred;
                   n = size(t1,2);
                   res(1,ic:(ic+n-1)) = t1;
+                  plotnum(1,ic:(ic+n-1))= obj.plotNumber(imod);
+                  etype(1,ic:(ic+n-1))= 10 + obj.models{imod}.Z(iatom);
                   ic = ic + n;
                   if (doPlots)
                      if (obj.models{imod}.Z(iatom) == 1)
@@ -300,6 +306,8 @@ classdef Fitme < handle
                t1 = hlevel - modpred;
                n = size(t1,2);
                res(1,ic:(ic+n-1))= t1;
+               plotnum(1,ic:(ic+n-1))= obj.plotNumber(imod);
+               etype(1,ic:(ic+n-1))= 2;
                ic = ic + n;
                if (doPlots)
                   figure(obj.plotNumber(imod));
