@@ -1,13 +1,14 @@
 %% Fitting multiple molecules, using makeFitme
 %clear classes;
-topDir = 'scaleconst/';
-if (Aprocess == 1)
-   ics = [1 4 7];
-elseif (Aprocess == 2)
-   ics = [2 5];
-else
-   ics = [3 6];
-end
+topDir = 'T:\matdl\yaron\6-22-12\scaleconst\';
+%topDir = 'scaleconst/';
+% if (Aprocess == 1)
+%    ics = [1 4 7];
+% elseif (Aprocess == 2)
+%    ics = [2 5];
+% else
+%    ics = [3 6];
+% end
 %trainC{1}  = {'h2',2:7,'envs',1:10};
 %testC{1} = {'h2',2:7,'envs',20:30};
 ftype = 2;
@@ -41,11 +42,11 @@ filePrefix{7} = 'ch4f-c2h6-c2h4';
 
 commonIn = {};
 %
-for iC = ics
+for iC = 1% [1 2 3 4 6 7]
    trainIn = trainC{iC};
    testIn = testC{iC};
    filePre = filePrefix{iC};
-   for iPar = 1:3
+   for iPar = 1:5
       if (iPar == 1)
          if (ftype == 2)
             iP = 1;
@@ -79,27 +80,27 @@ for iC = ics
          e2.HH = Mixer(iP,1,'e2.HH',ftype);
          e2.CC = Mixer(iP,1,'e2.CC',ftype);
          e2.CH = Mixer(iP,1,'e2.CH',ftype);
-%           ftest = makeFitme(testIn{:},commonIn{:},'enstruct1',en, ...
-%              'kestruct',ke,'e2struct',e2,'plot',2);
-%           ftest.parallel = 0;
-%           ftest.plot = 0;
+         %           ftest = makeFitme(testIn{:},commonIn{:},'enstruct1',en, ...
+         %              'kestruct',ke,'e2struct',e2,'plot',2);
+         %           ftest.parallel = 0;
+         %           ftest.plot = 0;
          f1 = makeFitme(trainIn{:},commonIn{:},'enstruct1',en,'kestruct',ke, ...
             'e2struct',e2);%,'testFitme',ftest);
          f1.plot = 0;
          f1.parallel = 0;
-%          f1.parHF = zeros(size(f1.getPars));
-%          etest1 = f1.err(f1.getPars);
-%          f1.parHF = zeros(size(f1.getPars));
-%          f1.parallel = 1;
-%          etest2 = f1.err(f1.getPars);
-%          input('hi');
+         %          f1.parHF = zeros(size(f1.getPars));
+         %          etest1 = f1.err(f1.getPars);
+         %          f1.parHF = zeros(size(f1.getPars));
+         %          f1.parallel = 1;
+         %          etest2 = f1.err(f1.getPars);
+         %          input('hi');
       elseif (iPar == 2) % add constants
          for m1 = [ke.H ke.Cs en.H en.Cs]
             m1.funcType = 3;
             m1.par(2) = 0;
             m1.fixed(2) = 0;
          end
-      elseif (iPar == 3) % add context sensitive
+      elseif (iPar == 3) % add context sensitive (bond order)
          for m1 = [ke.H ke.Cs en.H en.Cs]
             m1.mixType = 2;
             m1.par(3) = m1.par(2);
@@ -117,7 +118,18 @@ for iC = ics
             m1.par(2) = 0;
             m1.fixed(2) = 0;
          end
-      elseif (iPar == 4)
+      elseif (iPar == 4) % add context sensitive (bond length)
+         for m1 = [ke.HH ke.CsH ke.CsCs en.HH en.HCs en.CsH en.CsCs]
+            m1.mixType = 4;
+            m1.par(2) = 0;
+         end
+      elseif (iPar == 5) % add context sensitive (bond length)
+         for m1 = [ke.HH ke.CsH ke.CsCs en.HH en.HCs en.CsH en.CsCs]
+            m1.mixType = 5;
+            m1.par(3) = m1.par(2);
+            m1.par(2) = 0.0;
+         end
+      elseif (iPar == 6)
          ke.Cp = ke.Cs.deepCopy();     ke.Cs.desc ='ke.Cs';     ke.Cp.desc = 'ke.Cp';
          ke.CpH = ke.CsH.deepCopy();   ke.CsH.desc ='ke.CsH';   ke.CpH.desc = 'ke.CpH';
          ke.CsCp = ke.CsCs.deepCopy(); ke.CsCs.desc ='ke.CsCs'; ke.CsCp.desc = 'ke.CsCp';
@@ -127,68 +139,77 @@ for iC = ics
          en.CpH = en.CsH.deepCopy();   en.CsH.desc ='en.CsH';   en.CpH.desc = 'en.CpH';
          en.CpH = en.CsH.deepCopy();   en.CsH.desc ='en.CsH';   en.CpH.desc = 'en.CpH';
          en.CsCp = en.CsCs.deepCopy(); en.CsCs.desc ='en.CsCs'; en.CsCp.desc = 'en.CsCp';
-         en.CpCp = en.CsCs.deepCopy();                          en.CpCp.desc = 'en.CpCp';         
+         en.CpCp = en.CsCs.deepCopy();                          en.CpCp.desc = 'en.CpCp';
       end
       
+      
       dataDir = [topDir,filePre,'/fit-',num2str(iPar),'/'];
-      options = optimset('DiffMinChange',1.0e-5,'TolFun',1.0e-4,'TolX',1.0e-3);
-      if (exist(dataDir,'dir') ~= 7)
-         status = mkdir(dataDir);
-      end
-      diary([dataDir,'out.diary']);
-      diary on;
-      tic
-      lowLimits = zeros(f1.npar,1);
-      highLimits = lowLimits;
-      i1 = 1;
-      for imix = 1:length(f1.mixers)
-         mix = f1.mixers{imix};
-         if ((mix.funcType == 2)||(mix.funcType == 3))
-            lowLimits(i1) = 0.0;
-            highLimits(i1) = 10.0;
-            i1 = i1+1;
-            for i2 = 2:mix.npar
-               lowLimits(i1) = -inf;
-               highLimits(i1) = inf;
+      allFile = [dataDir,'all.mat'];
+      if (exist(allFile,'file'))
+         load(allFile,'pt');
+         f1.setPars(pt);
+         disp([filePre,' iC ',num2str(iC),'fit# ',num2str(iPar),...
+            'loaded from file']);
+      else
+         options = optimset('DiffMinChange',1.0e-5,'TolFun',1.0e-4,'TolX',1.0e-3);
+         if (exist(dataDir,'dir') ~= 7)
+            status = mkdir(dataDir);
+         end
+         diary([dataDir,'out.diary']);
+         diary on;
+         tic
+         lowLimits = zeros(f1.npar,1);
+         highLimits = lowLimits;
+         i1 = 1;
+         for imix = 1:length(f1.mixers)
+            mix = f1.mixers{imix};
+            if ((mix.funcType == 2)||(mix.funcType == 3))
+               lowLimits(i1) = 0.0;
+               highLimits(i1) = 10.0;
                i1 = i1+1;
-            end
-         else
-            for i2 = 1:mix.npar
-               lowLimits(i1) = -inf;
-               highLimits(i1) = inf;
-               i1 = i1+1;
+               for i2 = 2:mix.npar
+                  lowLimits(i1) = -inf;
+                  highLimits(i1) = inf;
+                  i1 = i1+1;
+               end
+            else
+               for i2 = 1:mix.npar
+                  lowLimits(i1) = -inf;
+                  highLimits(i1) = inf;
+                  i1 = i1+1;
+               end
             end
          end
-      end
-      start = f1.getPars;
-      %f1.parallel = 0;
-      %etest3 = f1.err(start);
-      %f1.parallel = 1;
-      [pt,resnorm,residual,exitflag,output,lambda,jacobian] = ...
-         lsqnonlin(@f1.err, start,lowLimits,highLimits,options);
-%       options = LMFnlsq;
-%      options.Display =1;
-%    options.FunTol = 1.0e-6;
-%    options.XTol = 1.0e-5;
-%    [pt,resnorm, CNT, Res, XY] = LMFnlsq(@f1.err,start',options);
-      clockTime = toc
-      pt
-      resnorm
-      f1.printMixers;
-      save([dataDir,'all.mat']);
-      diary off;
-      figure(799); saveas(gcf,[dataDir,'error.fig']);
-      if (~isempty(find(cellfun(@(x)isequal(lower(x),'ch4'),trainIn)) ))
-         figure(801); saveas(gcf,[dataDir,'ch4-train.fig']);
-         figure(811); saveas(gcf,[dataDir,'ch4-test.fig']);
-      end
-      if (~isempty(find(cellfun(@(x)isequal(lower(x),'ethane'),trainIn)) ))
-         figure(802); saveas(gcf,[dataDir,'c2h6-train.fig']);
-         figure(812); saveas(gcf,[dataDir,'c2h6-test.fig']);
-      end
-      if (~isempty(find(cellfun(@(x)isequal(lower(x),'ethylene'),trainIn)) ))
-         figure(803); saveas(gcf,[dataDir,'c2h4-train.fig']);
-         figure(813); saveas(gcf,[dataDir,'c2h4-test.fig']);
+         start = f1.getPars;
+         %f1.parallel = 0;
+         %etest3 = f1.err(start);
+         %f1.parallel = 1;
+         [pt,resnorm,residual,exitflag,output,lambda,jacobian] = ...
+            lsqnonlin(@f1.err, start,lowLimits,highLimits,options);
+         %       options = LMFnlsq;
+         %      options.Display =1;
+         %    options.FunTol = 1.0e-6;
+         %    options.XTol = 1.0e-5;
+         %    [pt,resnorm, CNT, Res, XY] = LMFnlsq(@f1.err,start',options);
+         clockTime = toc
+         pt
+         resnorm
+         f1.printMixers;
+         save([dataDir,'all.mat']);
+         diary off;
+         figure(799); saveas(gcf,[dataDir,'error.fig']);
+         if (~isempty(find(cellfun(@(x)isequal(lower(x),'ch4'),trainIn)) ))
+            figure(801); saveas(gcf,[dataDir,'ch4-train.fig']);
+            figure(811); saveas(gcf,[dataDir,'ch4-test.fig']);
+         end
+         if (~isempty(find(cellfun(@(x)isequal(lower(x),'ethane'),trainIn)) ))
+            figure(802); saveas(gcf,[dataDir,'c2h6-train.fig']);
+            figure(812); saveas(gcf,[dataDir,'c2h6-test.fig']);
+         end
+         if (~isempty(find(cellfun(@(x)isequal(lower(x),'ethylene'),trainIn)) ))
+            figure(803); saveas(gcf,[dataDir,'c2h4-train.fig']);
+            figure(813); saveas(gcf,[dataDir,'c2h4-test.fig']);
+         end
       end
    end
 end

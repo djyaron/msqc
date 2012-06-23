@@ -56,6 +56,9 @@ classdef Mixer < handle
             res = x * v0;
          elseif (obj.funcType == 3)
             res = x * v0 + obj.par(end) * eye(size(v0));
+         elseif (obj.funcType == 4)
+            res = ((1.0-x)/2.0) * v1 + ((1.0+x)/2.0) * v2 ...
+               + obj.par(end) * eye(size(v0));
          end
       end
       function res = mix(obj, v0, v1, v2, model, ii, jj, ienv)
@@ -94,13 +97,57 @@ classdef Mixer < handle
             x = x0 + xslope*(bo-1);
             %res = ((1.0-x)/2.0) * v1 + ((1.0+x)/2.0) * v2;
             res = obj.mixFunction(x,v0,v1,v2);
+         elseif (obj.mixType == 4) 
+            % bond length dependent mixing
+            iatom = model.basisAtom(ii(1));
+            jatom = model.basisAtom(jj(1));
+            Zs = zeros(1,2);
+            Zs(1) = model.Z(iatom);
+            Zs(2) = model.Z(jatom);
+            Zs = sort(Zs);
+            bl = norm(model.r(:,iatom)-model.r(:,jatom));
+            if (Zs(1) == 1 && Zs(2) == 1)
+               bl = bl - 0.74;
+            elseif (Zs(1) == 1 && Zs(2) == 6)
+               bl = bl - 1.1;
+            else
+               bl = bl - 1.5;
+            end
+            x0 = obj.par(1);
+            xslope = obj.par(2);
+            x = x0 + xslope*bl;
+            %res = ((1.0-x)/2.0) * v1 + ((1.0+x)/2.0) * v2;
+            res = obj.mixFunction(x,v0,v1,v2);
+         elseif (obj.mixType == 5) 
+            % bond order and bond length dependent mixing
+            iatom = model.basisAtom(ii(1));
+            jatom = model.basisAtom(jj(1));
+            bo = model.bondOrders(iatom,jatom,ienv+1);
+            Zs = zeros(1,2);
+            Zs(1) = model.Z(iatom);
+            Zs(2) = model.Z(jatom);
+            Zs = sort(Zs);
+            bl = norm(model.r(:,iatom)-model.r(:,jatom));
+            if (Zs(1) == 1 && Zs(2) == 1)
+               bl = bl - 0.74;
+            elseif (Zs(1) == 1 && Zs(2) == 6)
+               bl = bl - 1.1;
+            else
+               bl = bl - 1.5;
+            end
+            x0 = obj.par(1);
+            xslopebo = obj.par(2);
+            xslopebl = obj.par(3);
+            x = x0 + xslopebo*(bo-1) + xslopebl*bl;
+            %res = ((1.0-x)/2.0) * v1 + ((1.0+x)/2.0) * v2;
+            res = obj.mixFunction(x,v0,v1,v2);
          else
             error(['unknown mix type in Mixer: ',num2str(obj.mixType)]);
          end
       end
       function res = print(obj)
          types = {'sigmoid','linear','ch-dep','bo-dep'};
-         ftypes = {' ','mult','m01','m02'};
+         ftypes = {' ','mult','mult-c','mix-c'};
          res = [obj.desc,' ',types{obj.mixType+1},' ',...
             ftypes{obj.funcType}];
          for i = 1:size(obj.par,2)
