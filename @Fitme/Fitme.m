@@ -332,7 +332,13 @@ classdef Fitme < handle
          end
          disp(['RMS err/ndata = ',num2str(sqrt(res*res')/ndat), ...
             ' kcal/mol err = ',num2str(sqrt(res*res'/ndat)*627.509)]);
-         
+         obj.itcount = obj.itcount + 1;
+         obj.errTrain(obj.itcount) = norm(res);
+         if (size(obj.testFitme,1) > 0)
+            err1 = obj.testFitme.err(par);
+            obj.errTest(obj.itcount) = norm(err1);
+         end
+
          if (doPlots)
             figure(obj.plotNumErr);
             if (obj.errCalls == 0)
@@ -341,16 +347,10 @@ classdef Fitme < handle
             else
                hold on;
             end
-            obj.itcount = obj.itcount + 1;
             plot(obj.errCalls+1, log10(norm(res)/length(res)),'bo');
-            obj.errTrain(obj.itcount) = norm(res);
             if (size(obj.testFitme,1) > 0)
-               disp('**** TEST SET START ****');
-               err1 = obj.testFitme.err(par);
-               disp('**** TEST SET END ****');
                hold on;
                plot(obj.errCalls+1, log10(norm(err1)/length(err1)),'r+');
-               obj.errTest(obj.itcount) = norm(err1);
             end
          end
          if (flip == 1)
