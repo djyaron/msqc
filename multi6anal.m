@@ -1,6 +1,7 @@
 %% Fitting multiple molecules, using makeFitme
 clear classes;
-myDir = 'T:\matdl\yaron\6-22-12\scaleconst\';
+%myDir = 'T:\matdl\yaron\6-22-12\scaleconst\';
+myDir = 'scaleconst\';
 ftype = 2;
 trainC{1}  = {'h2',[],'ch4',1:17,'envs',1:10};
 testC{1} = {'h2',[],'ch4',1:17,'envs',20:30};
@@ -35,7 +36,7 @@ commonIn = {};
 ofile = fopen('multi6-sum.txt','w');
 molName = {'CH3' 'C2H6' 'C2H4'};
 for iC = [1 2 3 4 6 7]
-   for iPar = 1:3
+   for iPar = 1:5
       filePre = filePrefix{iC};
       dataDir = [myDir,filePre,'/fit-',num2str(iPar),'/'];
       load([dataDir,'all.mat']);
