@@ -30,6 +30,7 @@ classdef Fitme < handle
       
       arms       % (npar,narms): for bandit algorithm
       parallel   % true to run updateDensity in parallel
+      restartFile % place to save intermediate results
    end
    methods
       function res = Fitme
@@ -219,6 +220,7 @@ classdef Fitme < handle
          
          doPlots = obj.plot && (dpar > 1.0e-4);
          
+         
          if (doPlots)
             for i=unique([obj.plotNumber])
                figure(i);
@@ -357,6 +359,19 @@ classdef Fitme < handle
             res = res';
          end
          obj.errCalls = obj.errCalls + 1;
+         
+         if (dpar > 1.0e-4)
+            if (~isempty(obj.restartFile))
+               disp('saving restart file');
+               ptSave = par;
+               itSave = obj.itcount;
+               errTrainSave = obj.errTrain;
+               errTestSave = obj.errTest;
+               save(obj.restartFile,'ptSave','itSave', ...
+                  'errTrainSave','errTestSave');
+            end
+         end
+         
       end
       function generateArms(obj,narms,plow,phigh)
          rr = rand(obj.npar,narms);

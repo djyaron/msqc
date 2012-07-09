@@ -5,7 +5,8 @@ classdef Mixer < handle
       par     % (1,npar) current parameters
       desc    % string description
       fixed   % (1,npar) 0 if parameter should be fit, 1 if fixed
-      funcType 
+      hybrid  % 0 = no hybridization, 1 = sigma mods, 2 = pi mods
+      funcType
    end
    
    methods
@@ -27,6 +28,7 @@ classdef Mixer < handle
          obj.fixed = zeros(size(parIn));
          obj.desc = desc;
          obj.funcType = funcType;
+         obj.hybrid = 0;
       end
       function res = deepCopy(obj)
          res = Mixer(obj.par,obj.mixType,obj.desc,obj.funcType);
@@ -49,7 +51,14 @@ classdef Mixer < handle
             res = [];
          end
       end
-      function res = mixFunction(obj,x,v0,v1,v2)
+      function res = mixFunction(obj,x,v0,v1,v2, model, ii, jj)
+         if (obj.hybrid)
+            res = obj.mixFunctionHybrid(x,v0,v1,v2, model, ii, jj);
+         else
+            res = obj.mixFunctionNormal(x,v0,v1,v2);
+         end
+      end
+      function res = mixFunctionNormal(obj,x,v0,v1,v2)
          if (obj.funcType == 1)
             res = ((1.0-x)/2.0) * v1 + ((1.0+x)/2.0) * v2;
          elseif (obj.funcType == 2)
@@ -77,7 +86,7 @@ classdef Mixer < handle
             %                 res = v2 at x = 1;
             % potentially faster (since v's are matrices while x is scalar)
             %res = ((1.0-x)/2.0) * v1 + ((1.0+x)/2.0) * v2;
-            res = obj.mixFunction(x,v0,v1,v2);
+            res = obj.mixFunction(x,v0,v1,v2,model, ii, jj);
          elseif (obj.mixType == 2)
             % charge dependent mixing
             iatom = model.basisAtom(ii(1));
@@ -86,8 +95,8 @@ classdef Mixer < handle
             xslope = obj.par(2);
             x = x0 + xslope*ch;
             %res = ((1.0-x)/2.0) * v1 + ((1.0+x)/2.0) * v2;
-            res = obj.mixFunction(x,v0,v1,v2);
-         elseif (obj.mixType == 3) 
+            res = obj.mixFunction(x,v0,v1,v2,model, ii, jj);
+         elseif (obj.mixType == 3)
             % bond order dependent mixing
             iatom = model.basisAtom(ii(1));
             jatom = model.basisAtom(jj(1));
@@ -96,8 +105,8 @@ classdef Mixer < handle
             xslope = obj.par(2);
             x = x0 + xslope*(bo-1);
             %res = ((1.0-x)/2.0) * v1 + ((1.0+x)/2.0) * v2;
-            res = obj.mixFunction(x,v0,v1,v2);
-         elseif (obj.mixType == 4) 
+            res = obj.mixFunction(x,v0,v1,v2,model, ii, jj);
+         elseif (obj.mixType == 4)
             % bond length dependent mixing
             iatom = model.basisAtom(ii(1));
             jatom = model.basisAtom(jj(1));
@@ -117,8 +126,8 @@ classdef Mixer < handle
             xslope = obj.par(2);
             x = x0 + xslope*bl;
             %res = ((1.0-x)/2.0) * v1 + ((1.0+x)/2.0) * v2;
-            res = obj.mixFunction(x,v0,v1,v2);
-         elseif (obj.mixType == 5) 
+            res = obj.mixFunction(x,v0,v1,v2,model, ii, jj);
+         elseif (obj.mixType == 5)
             % bond order and bond length dependent mixing
             iatom = model.basisAtom(ii(1));
             jatom = model.basisAtom(jj(1));
@@ -140,7 +149,7 @@ classdef Mixer < handle
             xslopebl = obj.par(3);
             x = x0 + xslopebo*(bo-1) + xslopebl*bl;
             %res = ((1.0-x)/2.0) * v1 + ((1.0+x)/2.0) * v2;
-            res = obj.mixFunction(x,v0,v1,v2);
+            res = obj.mixFunction(x,v0,v1,v2,model, ii, jj);
          else
             error(['unknown mix type in Mixer: ',num2str(obj.mixType)]);
          end
