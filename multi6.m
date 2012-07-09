@@ -3,15 +3,15 @@
 %topDir = 'T:\matdl\yaron\6-22-12\scaleconst\';
 topDir = 'scaleconst/';
 if (Aprocess == 1)
-   ics = [1 4];
+   ics = [9];
 elseif (Aprocess == 2)
-   ics = [2 6];
+   ics = [9];
 else
    ics = [3 7];
 end
 %trainC{1}  = {'h2',2:7,'envs',1:10};
 %testC{1} = {'h2',2:7,'envs',20:30};
-ftype = 2;
+ftype = 1;
 trainC{1}  = {'h2',[],'ch4',1:17,'envs',1:10};
 testC{1} = {'h2',[],'ch4',1:17,'envs',20:30};
 filePrefix{1} = 'ch4';
@@ -39,6 +39,15 @@ filePrefix{6} = 'ch4f-c2h6';
 trainC{7}  = {'h2',[],'ch4',1:19,'ethane',1:7,'ethylene',1:7,'envs',1:10};
 testC{7} = {'h2',[],'ch4',1:19,'ethane',1:7,'ethylene',1:7,'envs',20:30};
 filePrefix{7} = 'ch4f-c2h6-c2h4';
+
+trainC{8}  = {'h2',[],'propane',1:7,'envs',1:10};
+testC{8} = {'h2',[],'propane',1:7,'envs',20:30};
+filePrefix{8} = 'c3h8';
+
+trainC{9}  = {'h2',[],'ch4',1:19,'ethane',1:7,'propane',1:7,'envs',1:10};
+testC{9} = {'h2',[],'ch4',1:19,'ethane',1:7,'propane',1:7,'envs',20:30};
+filePrefix{9} = 'ch4f-c2h6-c3h8';
+
 
 commonIn = {};
 %
@@ -88,6 +97,8 @@ for iC = ics% [1 2 3 4 6 7]
             'e2struct',e2);%,'testFitme',ftest);
          f1.plot = 0;
          f1.parallel = 0;
+         %pst = [ -1.2840    1.4139   -0.9773   -0.1648    2.9684   -1.7791    5.7310   -9.6449    8.0355  12.5867   -0.1876   -0.1118    2.0048   -0.3105];
+         %f1.setPars(pst);
          %          f1.parHF = zeros(size(f1.getPars));
          %          etest1 = f1.err(f1.getPars);
          %          f1.parHF = zeros(size(f1.getPars));
@@ -96,7 +107,11 @@ for iC = ics% [1 2 3 4 6 7]
          %          input('hi');
       elseif (iPar == 2) % add constants
          for m1 = [ke.H ke.Cs en.H en.Cs]
-            m1.funcType = 3;
+            if (ftype == 2)
+               m1.funcType = 3;
+            else
+               m1.funcType = 4;
+            end
             m1.par(2) = 0;
             m1.fixed(2) = 0;
          end
@@ -151,7 +166,7 @@ for iC = ics% [1 2 3 4 6 7]
          disp([filePre,' iC ',num2str(iC),'fit# ',num2str(iPar),...
             'loaded from file']);
       else
-         options = optimset('DiffMinChange',1.0e-5,'TolFun',1.0e-4,'TolX',1.0e-3);
+         options = optimset('DiffMinChange',1.0e-5,'TolFun',1.0e-3,'TolX',3.0e-3);
          if (exist(dataDir,'dir') ~= 7)
             status = mkdir(dataDir);
          end
@@ -180,7 +195,18 @@ for iC = ics% [1 2 3 4 6 7]
                end
             end
          end
-         start = f1.getPars;
+         restartFile = [dataDir,'restart.mat'];
+         f1.restartFile = restartFile;
+         if (exist(restartFile,'file'))
+            disp('loading restart file');
+            load(restartFile);
+            start = ptSave;
+            f1.itcount = itSave;
+            f1.errTrain = errTrainSave;
+            f1.errTest = errTestSave;
+         else
+            start = f1.getPars;
+         end
          %f1.parallel = 0;
          %etest3 = f1.err(start);
          %f1.parallel = 1;
@@ -197,18 +223,20 @@ for iC = ics% [1 2 3 4 6 7]
          f1.printMixers;
          save([dataDir,'all.mat']);
          diary off;
-         figure(799); saveas(gcf,[dataDir,'error.fig']);
-         if (~isempty(find(cellfun(@(x)isequal(lower(x),'ch4'),trainIn)) ))
-            figure(801); saveas(gcf,[dataDir,'ch4-train.fig']);
-            figure(811); saveas(gcf,[dataDir,'ch4-test.fig']);
-         end
-         if (~isempty(find(cellfun(@(x)isequal(lower(x),'ethane'),trainIn)) ))
-            figure(802); saveas(gcf,[dataDir,'c2h6-train.fig']);
-            figure(812); saveas(gcf,[dataDir,'c2h6-test.fig']);
-         end
-         if (~isempty(find(cellfun(@(x)isequal(lower(x),'ethylene'),trainIn)) ))
-            figure(803); saveas(gcf,[dataDir,'c2h4-train.fig']);
-            figure(813); saveas(gcf,[dataDir,'c2h4-test.fig']);
+         if (f1.plot)
+            figure(799); saveas(gcf,[dataDir,'error.fig']);
+            if (~isempty(find(cellfun(@(x)isequal(lower(x),'ch4'),trainIn)) ))
+               figure(801); saveas(gcf,[dataDir,'ch4-train.fig']);
+               figure(811); saveas(gcf,[dataDir,'ch4-test.fig']);
+            end
+            if (~isempty(find(cellfun(@(x)isequal(lower(x),'ethane'),trainIn)) ))
+               figure(802); saveas(gcf,[dataDir,'c2h6-train.fig']);
+               figure(812); saveas(gcf,[dataDir,'c2h6-test.fig']);
+            end
+            if (~isempty(find(cellfun(@(x)isequal(lower(x),'ethylene'),trainIn)) ))
+               figure(803); saveas(gcf,[dataDir,'c2h4-train.fig']);
+               figure(813); saveas(gcf,[dataDir,'c2h4-test.fig']);
+            end
          end
       end
    end
