@@ -90,7 +90,7 @@ r1 = mod.rcart(:,bondedAtoms(1));
 r2 = mod.rcart(:,bondedAtoms(2));
 r3 = mod.rcart(:,bondedAtoms(3));
 rperp = cross(r2-r1,r3-r1);
-rperp = rpert/norm(rperp);
+rperp = rperp/norm(rperp);
 rot = [0.0; rperp];
 
 end
