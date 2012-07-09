@@ -1,6 +1,7 @@
 %% Load data
 clear classes;
-root = 'c:\dave\apoly\msqc\';
+%root = 'c:\dave\apoly\msqc\';
+root = 't:\msqc\';
 % Generate environments for production runs
 if (exist('ch4/env2.mat','file'))
    disp('loading existing environments');
@@ -18,6 +19,7 @@ else
    save('ch4/env2.mat','env');
 end
 nenv = size(env,2);
+nenv = 20;
 
 pars{1} = [1.12 1.12 1.12 1.12 109.47 109.47 109.47 120.0 -120.0];
 pars{2} = [0.97 0.97 0.97 0.97 109.47 109.47 109.47 120.0 -120.0];
