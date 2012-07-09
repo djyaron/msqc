@@ -4,9 +4,9 @@ clear classes;
 topDir = 'scalehybrid/';
 %trainC{1}  = {'h2',2:7,'envs',1:10};
 %testC{1} = {'h2',2:7,'envs',20:30};
-ftype = 1;
-trainC{1}  = {'h2',[],'ch4',1:17,'envs',1:10};
-testC{1} = {'h2',[],'ch4',1:17,'envs',20:30};
+ftype = 2;
+trainC{1}  = {'h2',[],'ch4',1:7,'envs',1:10};
+testC{1} = {'h2',[],'ch4',1:7,'envs',20:30};
 filePrefix{1} = 'ch4';
 
 trainC{2}  = {'h2',[],'ethane',1:7,'envs',1:10};
@@ -43,11 +43,11 @@ filePrefix{9} = 'ch4f-c2h6-c3h8';
 
 commonIn = {};
 %
-for iC = 1% [1 2 3 4 6 7]
+for iC = 3% [1 2 3 4 6 7]
    trainIn = trainC{iC};
    testIn = testC{iC};
    filePre = filePrefix{iC};
-   for iPar = 1:1
+   for iPar = 1:5
       if (iPar == 1)
          if (ftype == 2)
             iP = 1;
@@ -108,7 +108,7 @@ for iC = 1% [1 2 3 4 6 7]
             m1.par(2) = 0;
             m1.fixed(2) = 0;
          end
-      elseif (iPar == 3) % add context sensitive (bond order)
+      elseif (iPar == 3) % add context sensitive
          for m1 = [ke.H ke.Cs en.H en.Cs]
             m1.mixType = 2;
             m1.par(3) = m1.par(2);
@@ -120,34 +120,25 @@ for iC = 1% [1 2 3 4 6 7]
             m1.par(2) = 0;
             m1.fixed(2) = 0;
          end
-         for m1 = [ke.HH ke.CsH ke.CsCs en.HH en.HCs en.CsH en.CsCs ...
-               e2.HH e2.CH e2.CC]
+         for m1 = [ke.HH ke.CH ke.CCs ke.CCp en.HH en.CH en.HC en.CCs ...
+               en.CCp] % e2.HH e2.CH e2.CC]
             m1.mixType = 3;
             m1.par(2) = 0;
             m1.fixed(2) = 0;
          end
       elseif (iPar == 4) % add context sensitive (bond length)
-         for m1 = [ke.HH ke.CsH ke.CsCs en.HH en.HCs en.CsH en.CsCs]
+         for m1 = [ke.HH ke.CH ke.CCs ke.CCp en.HH en.CH en.HC en.CCs ...
+               en.CCp] % e2.HH e2.CH e2.CC]
             m1.mixType = 4;
             m1.par(2) = 0;
          end
-      elseif (iPar == 5) % add context sensitive (bond length)
-         for m1 = [ke.HH ke.CsH ke.CsCs en.HH en.HCs en.CsH en.CsCs]
+      elseif (iPar == 5) % add context sensitive (both)
+         for m1 = [ke.HH ke.CH ke.CCs ke.CCp en.HH en.CH en.HC en.CCs ...
+               en.CCp] % e2.HH e2.CH e2.CC]
             m1.mixType = 5;
             m1.par(3) = m1.par(2);
             m1.par(2) = 0.0;
          end
-      elseif (iPar == 6)
-         ke.Cp = ke.Cs.deepCopy();     ke.Cs.desc ='ke.Cs';     ke.Cp.desc = 'ke.Cp';
-         ke.CpH = ke.CsH.deepCopy();   ke.CsH.desc ='ke.CsH';   ke.CpH.desc = 'ke.CpH';
-         ke.CsCp = ke.CsCs.deepCopy(); ke.CsCs.desc ='ke.CsCs'; ke.CsCp.desc = 'ke.CsCp';
-         ke.CpCp = ke.CsCs.deepCopy();                          ke.CpCp.desc = 'ke.CpCp';
-         
-         en.Cp = en.Cs.deepCopy();     en.Cs.desc ='en.Cs';     en.Cp.desc = 'en.Cp';
-         en.CpH = en.CsH.deepCopy();   en.CsH.desc ='en.CsH';   en.CpH.desc = 'en.CpH';
-         en.CpH = en.CsH.deepCopy();   en.CsH.desc ='en.CsH';   en.CpH.desc = 'en.CpH';
-         en.CsCp = en.CsCs.deepCopy(); en.CsCs.desc ='en.CsCs'; en.CsCp.desc = 'en.CsCp';
-         en.CpCp = en.CsCs.deepCopy();                          en.CpCp.desc = 'en.CpCp';
       end
       
       
