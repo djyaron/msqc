@@ -1,12 +1,20 @@
 %% Fitting multiple molecules, using makeFitme
-clear classes;
+%clear classes;
 %topDir = 'T:\matdl\yaron\6-22-12\scaleconst\';
 topDir = 'scalehybrid/';
+if (Aprocess == 1)
+   ics = [1 6];
+elseif (Aprocess == 2)
+   ics = [2 7];
+else
+   ics = [3 9];
+end
+
 %trainC{1}  = {'h2',2:7,'envs',1:10};
 %testC{1} = {'h2',2:7,'envs',20:30};
 ftype = 2;
-trainC{1}  = {'h2',[],'ch4',1:7,'envs',1:10};
-testC{1} = {'h2',[],'ch4',1:7,'envs',20:30};
+trainC{1}  = {'h2',[],'ch4',1:17,'envs',1:10};
+testC{1} = {'h2',[],'ch4',1:17,'envs',20:30};
 filePrefix{1} = 'ch4';
 
 trainC{2}  = {'h2',[],'ethane',1:7,'envs',1:10};
@@ -43,7 +51,7 @@ filePrefix{9} = 'ch4f-c2h6-c3h8';
 
 commonIn = {};
 %
-for iC = 3% [1 2 3 4 6 7]
+for iC = ics% [1 2 3 4 6 7]
    trainIn = trainC{iC};
    testIn = testC{iC};
    filePre = filePrefix{iC};
@@ -150,7 +158,8 @@ for iC = 3% [1 2 3 4 6 7]
          disp([filePre,' iC ',num2str(iC),'fit# ',num2str(iPar),...
             'loaded from file']);
       else
-         options = optimset('DiffMinChange',1.0e-5,'TolFun',1.0e-3,'TolX',3.0e-3);
+         options = optimset('DiffMinChange',1.0e-5,'TolFun',1.0e-3, ...
+            'TolX',3.0e-3,'MaxFunEvals',500);
          if (exist(dataDir,'dir') ~= 7)
             status = mkdir(dataDir);
          end
