@@ -43,7 +43,7 @@ m2.sepKE = 1;
 m2.sepSP = 0;
 m2.rhodep = 0;
 
-%%
+%% Check agreement between model2 and model3
 clear classes;
 load('temp.mat');
 % KE diagonal    1: H  2: Cs  3: Cp
@@ -173,3 +173,18 @@ limits = [];
 options = optimset('DiffMinChange',1.0e-5,'TolFun',1.0e-4,'TolX',1.0e-3);
 [pt,resnorm,residual,exitflag,output,lambda,jacobian] = ...
    lsqnonlin(@f1.err, start,-limits,limits,options);
+
+%% Testing hybrid orbital
+% First, we will see if scale =1 gives same answer as no difference
+% Load data saved from code at top of this file
+load('temp.mat');
+m1 = Model3(frag,fnar,fdif);
+m2 = Model3(frag,fnar,fdif);
+
+keCH = Mixer(1,1,'ke.CH',2);
+keCH.hybrid = 1;
+keCC = Mixer(0.9,1,'ke.CH',2);
+keCC.hybrid = 1; 
+m1.addKEmodBondedh(6,1,keCH);
+m1.addKEmodBondedh(6,6,keCC);
+kediff = max(max(abs(m1.KE(0) - m2.KE(0))))
