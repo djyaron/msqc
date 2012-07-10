@@ -3,9 +3,9 @@
 %topDir = 'T:\matdl\yaron\6-22-12\scaleconst\';
 topDir = 'scaleconst/';
 if (Aprocess == 1)
-   ics = [1 4];
+   ics = [8];
 elseif (Aprocess == 2)
-   ics = [2 6];
+   ics = [9];
 else
    ics = [3 7];
 end
@@ -39,6 +39,15 @@ filePrefix{6} = 'ch4f-c2h6';
 trainC{7}  = {'h2',[],'ch4',1:19,'ethane',1:7,'ethylene',1:7,'envs',1:10};
 testC{7} = {'h2',[],'ch4',1:19,'ethane',1:7,'ethylene',1:7,'envs',20:30};
 filePrefix{7} = 'ch4f-c2h6-c2h4';
+
+trainC{8}  = {'h2',[],'propane',1:7,'envs',1:10};
+testC{8} = {'h2',[],'propane',1:7,'envs',20:30};
+filePrefix{8} = 'c3h8';
+
+trainC{9}  = {'h2',[],'ch4',1:19,'ethane',1:7,'propane',1:7,'envs',1:10};
+testC{9} = {'h2',[],'ch4',1:19,'ethane',1:7,'propane',1:7,'envs',20:30};
+filePrefix{9} = 'ch4f-c2h6-c3h8';
+
 
 commonIn = {};
 %
