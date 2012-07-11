@@ -1,14 +1,15 @@
 %% Fitting multiple molecules, using makeFitme
 %clear classes;
 %topDir = 'T:\matdl\yaron\6-22-12\scaleconst\';
-topDir = 'scalehybrid/';
-if (Aprocess == 1)
-   ics = [1 6];
-elseif (Aprocess == 2)
-   ics = [2 7];
-else
-   ics = [3 9];
-end
+topDir = 'scalehybridparallel/';
+% if (Aprocess == 1)
+%    ics = [1 6];
+% elseif (Aprocess == 2)
+%    ics = [2 7];
+% else
+%    ics = [3 9];
+% end
+ics = [1 2 3 6 7 9];
 
 %trainC{1}  = {'h2',2:7,'envs',1:10};
 %testC{1} = {'h2',2:7,'envs',20:30};
