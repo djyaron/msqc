@@ -9,7 +9,7 @@ topDir = 'scalehybridparallel/';
 % else
 %    ics = [3 9];
 % end
-ics = [1 2 3 6 7 9];
+ics = 1;%[1 2 3 6 7 9];
 
 %trainC{1}  = {'h2',2:7,'envs',1:10};
 %testC{1} = {'h2',2:7,'envs',20:30};
