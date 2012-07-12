@@ -19,10 +19,10 @@ function [P,orb,Eorb,Ehf,failed ] = ...
 %   failed:  1 if failed to converge
 
 if (nargin < 7)
-   eps = 1.0e-6;
+   eps = 1.0e-10;
 end
 if (nargin < 8)
-   maxIter = 1000;
+   maxIter = 5000;
 end
 if (nargin < 9)
    minIter = 5;

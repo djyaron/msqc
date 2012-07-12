@@ -17,10 +17,10 @@ if (nargin < 2)
    ienv = 0;
 end
 if (nargin < 3)
-   eps = 1.0e-6;
+   eps = 1.0e-10;
 end
 if (nargin < 4)
-   maxIter = 1000;
+   maxIter = 5000;
 end
 if (nargin < 5)
    minIter = 5;

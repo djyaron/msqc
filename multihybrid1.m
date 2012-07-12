@@ -1,7 +1,7 @@
 %% Fitting multiple molecules, using makeFitme
 %clear classes;
 %topDir = 'T:\matdl\yaron\6-22-12\scaleconst\';
-topDir = 'scalehybridparallel/';
+%topDir = 'scalehybridparallel/';
 % if (Aprocess == 1)
 %    ics = [1 6];
 % elseif (Aprocess == 2)
@@ -9,8 +9,15 @@ topDir = 'scalehybridparallel/';
 % else
 %    ics = [3 9];
 % end
-ics = 1;%[1 2 3 6 7 9];
-
+%ics = [1 2 3 6 7 9];
+ics = [1 2 3 6 7];
+if (Aprocess == 1)
+   runParallel = 1;
+   topDir = 'scalehybridparallel/tight10/';
+else
+   runParallel = 0;
+   topDir = 'scalehybrid/tight10/';
+end
 %trainC{1}  = {'h2',2:7,'envs',1:10};
 %testC{1} = {'h2',2:7,'envs',20:30};
 ftype = 2;
@@ -98,7 +105,7 @@ for iC = ics% [1 2 3 4 6 7]
          f1 = makeFitme(trainIn{:},commonIn{:},'enstructh',en,'kestructh',ke, ...
             'e2struct',e2);%,'testFitme',ftest);
          f1.plot = 0;
-         f1.parallel = 1;
+         f1.parallel = runParallel;
          %pst = [ -1.2840    1.4139   -0.9773   -0.1648    2.9684   -1.7791    5.7310   -9.6449    8.0355  12.5867   -0.1876   -0.1118    2.0048   -0.3105];
          %f1.setPars(pst);
          %          f1.parHF = zeros(size(f1.getPars));
