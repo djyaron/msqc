@@ -5,7 +5,7 @@ if (nargin < 2)
    envs = 0:obj.nenv;
 end
 if (nargin < 3)
-   eps = 1.0e-8;
+   eps = 1.0e-10;
 end
 
 nenv = size(envs,2);
