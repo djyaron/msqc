@@ -31,6 +31,8 @@ classdef Fitme < handle
       arms       % (npar,narms): for bandit algorithm
       parallel   % true to run updateDensity in parallel
       restartFile % place to save intermediate results
+      
+      hftime
    end
    methods
       function res = Fitme

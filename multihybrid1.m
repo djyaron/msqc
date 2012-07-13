@@ -10,13 +10,14 @@
 %    ics = [3 9];
 % end
 %ics = [1 2 3 6 7 9];
+Aprocess = 1;
 ics = [1 2 3 6 7];
 if (Aprocess == 1)
    runParallel = 1;
-   topDir = 'scalehybridparallel/tight10/';
+   topDir = 'scalehybridparallel/fixedE2/';
 else
    runParallel = 0;
-   topDir = 'scalehybrid/tight10/';
+   topDir = 'scalehybridparics/tight10/';
 end
 %trainC{1}  = {'h2',2:7,'envs',1:10};
 %testC{1} = {'h2',2:7,'envs',20:30};
@@ -63,6 +64,10 @@ for iC = ics% [1 2 3 4 6 7]
    trainIn = trainC{iC};
    testIn = testC{iC};
    filePre = filePrefix{iC};
+   ke = [];
+   en = [];
+   e2 = [];
+   f1 = [];
    for iPar = 1:5
       if (iPar == 1)
          if (ftype == 2)
@@ -70,6 +75,7 @@ for iC = ics% [1 2 3 4 6 7]
          else
             iP = 0;
          end
+         
          ke.H = Mixer(iP,1,'ke.H',ftype);
          ke.Cs = Mixer(iP,1,'ke.C',ftype);
          ke.Cp = ke.Cs;

@@ -52,13 +52,13 @@ orb = cell(ncalcs,1);
 Eorb = cell(ncalcs,1);
 Ehf = zeros(ncalcs,1);
 failed = zeros(ncalcs,1);
-
+tic;
 parfor icalc = 1:ncalcs
 [P{icalc},orb{icalc},Eorb{icalc},Ehf(icalc),failed(icalc) ] = ...
    HFsolve(H1{icalc}, H2{icalc}, S{icalc}, Enuc(icalc), Nelec(icalc), ...
    guessDensity{icalc});
 end
-
+obj.hftime = toc;
 % copy results back into the model
 for icalc = 1:ncalcs
    mod = obj.models{modNumber(icalc)};
