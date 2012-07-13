@@ -554,15 +554,17 @@ classdef Model3 < handle
          mixerAdded = 0;
          for iatom = 1:obj.natom
             for jatom = 1:obj.natom
-               if ( ((obj.Z(iatom) == Z1) && (obj.Z(jatom) == Z2)) || ...
-                     ((obj.Z(iatom) == Z2) && (obj.Z(jatom) == Z1)) )
-                  mixerAdded = 1;
-                  mod.ilist = obj.onAtom{iatom}';
-                  mod.jlist = obj.onAtom{iatom}';
-                  mod.klist = obj.onAtom{jatom}';
-                  mod.llist = obj.onAtom{jatom}';
-                  mod.mixer = mix;
-                  obj.H2mods{1,end+1} = mod;
+               if (iatom ~= jatom)
+                  if ( ((obj.Z(iatom) == Z1) && (obj.Z(jatom) == Z2)) || ...
+                        ((obj.Z(iatom) == Z2) && (obj.Z(jatom) == Z1)) )
+                     mixerAdded = 1;
+                     mod.ilist = obj.onAtom{iatom}';
+                     mod.jlist = obj.onAtom{iatom}';
+                     mod.klist = obj.onAtom{jatom}';
+                     mod.llist = obj.onAtom{jatom}';
+                     mod.mixer = mix;
+                     obj.H2mods{1,end+1} = mod;
+                  end
                end
             end
          end
