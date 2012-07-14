@@ -7,6 +7,8 @@ classdef Mixer < handle
       fixed   % (1,npar) 0 if parameter should be fit, 1 if fixed
       hybrid  % 0 = no hybridization, 1 = sigma mods, 2 = pi mods
       funcType
+      index   % field that can be used to store an external unique ID
+              % index is not used internally in this class
    end
    
    methods
@@ -33,7 +35,26 @@ classdef Mixer < handle
       function res = deepCopy(obj)
          res = Mixer(obj.par,obj.mixType,obj.desc,obj.funcType);
          res.fixed = obj.fixed;
+         res.hybrid = obj.hybrid;
       end
+      function res = constructionData(obj)
+         % data needed to reconstruct this mixer
+         res.mixType = obj.mixType;
+         res.par = obj.par;
+         res.desc = obj.desc;
+         res.fixed = obj.fixed;
+         res.hybrid = obj.hybrid;
+         res.funcType = obj.funcType;
+      end
+   end
+   methods (Static)
+      function res = createFromData(dat)
+         res = Mixer(dat.par,dat.mixType,dat.desc,dat.funcType);
+         res.hybrid = dat.hybrid;
+         res.fixed = dat.fixed;
+      end
+   end
+   methods
       function res = npar(obj)
          res = sum(obj.fixed == 0);
       end
