@@ -1,24 +1,25 @@
 %% Fitting multiple molecules, using makeFitme
 %clear classes;
-%topDir = 'T:\matdl\yaron\6-22-12\scaleconst\';
+topDir = 'C:\matdl\yaron\7-13-12\scalehybrid\parallel\fixedE2\';
 %topDir = 'scalehybridparallel/';
-% if (Aprocess == 1)
-%    ics = [1 6];
-% elseif (Aprocess == 2)
-%    ics = [2 7];
-% else
-%    ics = [3 9];
-% end
-%ics = [1 2 3 6 7 9];
-Aprocess = 1;
-ics = [1 2 3 6 7];
+runParallel = 1;
 if (Aprocess == 1)
-   runParallel = 1;
-   topDir = 'scalehybridparallel/fixedE2/';
+   ics = [1 6];
+elseif (Aprocess == 2)
+   ics = [2 7];
 else
-   runParallel = 0;
-   topDir = 'scalehybridparics/tight10/';
+   ics = [3 9];
 end
+%ics = [1 2 3 6 7 9];
+%Aprocess = 1;
+%ics = [1 2 3 6 7];
+% if (Aprocess == 1)
+%    runParallel = 1;
+%    topDir = 'scalehybridparallel/fixedE2/';
+% else
+%    runParallel = 0;
+%    topDir = 'scalehybridparics/tight10/';
+% end
 %trainC{1}  = {'h2',2:7,'envs',1:10};
 %testC{1} = {'h2',2:7,'envs',20:30};
 ftype = 2;
