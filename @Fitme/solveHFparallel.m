@@ -15,8 +15,9 @@ ncalcs = 0;
 for imod = 1:obj.nmodels
    ncalcs = ncalcs + length(obj.envs{1,imod});
 end
-H1 = cell(ncalcs,1);
-H2 = cell(ncalcs,1);
+%H1 = cell(ncalcs,1);
+%H2 = cell(ncalcs,1);
+mdata = cell(ncalcs,1);
 S  = cell(ncalcs,1);
 Enuc = zeros(ncalcs,1);
 Nelec = zeros(ncalcs,1);
@@ -30,8 +31,9 @@ for imod = 1:obj.nmodels
       icalc = icalc + 1;
       modNumber(icalc) = imod;
       envNumber(icalc) = ienv;
-      H1{icalc} = mod.H1(ienv);
-      H2{icalc} = mod.H2(ienv);
+      %H1{icalc} = mod.H1(ienv);
+      %H2{icalc} = mod.H2(ienv);
+      mdata{icalc} = mod.dataForParallel;
       S{icalc}  = mod.S; % could be optimized since no ienv dependence
       Enuc(icalc) = mod.Hnuc(ienv);
       Nelec(icalc) = mod.nelec;
@@ -52,13 +54,21 @@ orb = cell(ncalcs,1);
 Eorb = cell(ncalcs,1);
 Ehf = zeros(ncalcs,1);
 failed = zeros(ncalcs,1);
-tic;
+%disp('starting calc loop');
 parfor icalc = 1:ncalcs
-[P{icalc},orb{icalc},Eorb{icalc},Ehf(icalc),failed(icalc) ] = ...
-   HFsolve(H1{icalc}, H2{icalc}, S{icalc}, Enuc(icalc), Nelec(icalc), ...
+   %disp(['calc number ',num2str(icalc)]);
+   mod = Model3.createFromData(mdata{icalc});
+   %disp('starting H1');
+   H1 = mod.H1(envNumber(icalc));
+   %disp('starting H2');
+   H2 = mod.H2(envNumber(icalc));
+   %disp('starting HFsolve');
+  [P{icalc},orb{icalc},Eorb{icalc},Ehf(icalc),failed(icalc) ] = ...
+   HFsolve(H1,H2, S{icalc}, Enuc(icalc), Nelec(icalc), ...
    guessDensity{icalc});
+   %disp('HFsovle over');
 end
-obj.hftime = toc;
+
 % copy results back into the model
 for icalc = 1:ncalcs
    mod = obj.models{modNumber(icalc)};
