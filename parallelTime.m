@@ -1,5 +1,5 @@
 %clear classes
-if 1
+if 0
 iP = 1;
 ftype = 2;
 ke.H = Mixer(iP,1,'ke.H',ftype);

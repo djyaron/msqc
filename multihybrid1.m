@@ -1,16 +1,16 @@
 %% Fitting multiple molecules, using makeFitme
 %clear classes;
-topDir = 'C:\matdl\yaron\7-13-12\scalehybrid\parallel\fixedE2\';
+topDir = 'C:\matdl\yaron\7-13-12\scalehybrid\parallel2\fixedE2\';
 %topDir = 'scalehybridparallel/';
 runParallel = 1;
-if (Aprocess == 1)
-   ics = [1 6];
-elseif (Aprocess == 2)
-   ics = [2 7];
-else
-   ics = [3 9];
-end
-%ics = [1 2 3 6 7 9];
+% if (Aprocess == 1)
+%    ics = [1 6];
+% elseif (Aprocess == 2)
+%    ics = [2 7];
+% else
+%    ics = [3 9];
+% end
+ics = [1 2 3 6 7 9];
 %Aprocess = 1;
 %ics = [1 2 3 6 7];
 % if (Aprocess == 1)
