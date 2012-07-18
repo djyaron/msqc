@@ -5,7 +5,10 @@ classdef Mixer < handle
       par     % (1,npar) current parameters
       desc    % string description
       fixed   % (1,npar) 0 if parameter should be fit, 1 if fixed
-      funcType 
+      hybrid  % 0 = no hybridization, 1 = sigma mods, 2 = pi mods
+      funcType
+      index   % field that can be used to store an external unique ID
+              % index is not used internally in this class
    end
    
    methods
@@ -27,11 +30,31 @@ classdef Mixer < handle
          obj.fixed = zeros(size(parIn));
          obj.desc = desc;
          obj.funcType = funcType;
+         obj.hybrid = 0;
       end
       function res = deepCopy(obj)
          res = Mixer(obj.par,obj.mixType,obj.desc,obj.funcType);
          res.fixed = obj.fixed;
+         res.hybrid = obj.hybrid;
       end
+      function res = constructionData(obj)
+         % data needed to reconstruct this mixer
+         res.mixType = obj.mixType;
+         res.par = obj.par;
+         res.desc = obj.desc;
+         res.fixed = obj.fixed;
+         res.hybrid = obj.hybrid;
+         res.funcType = obj.funcType;
+      end
+   end
+   methods (Static)
+      function res = createFromData(dat)
+         res = Mixer(dat.par,dat.mixType,dat.desc,dat.funcType);
+         res.hybrid = dat.hybrid;
+         res.fixed = dat.fixed;
+      end
+   end
+   methods
       function res = npar(obj)
          res = sum(obj.fixed == 0);
       end
@@ -49,13 +72,23 @@ classdef Mixer < handle
             res = [];
          end
       end
-      function res = mixFunction(obj,x,v0,v1,v2)
+      function res = mixFunction(obj,x,v0,v1,v2, model, ii, jj)
+         if (obj.hybrid)
+            res = obj.mixFunctionHybrid(x,v0,v1,v2, model, ii, jj);
+         else
+            res = obj.mixFunctionNormal(x,v0,v1,v2);
+         end
+      end
+      function res = mixFunctionNormal(obj,x,v0,v1,v2)
          if (obj.funcType == 1)
             res = ((1.0-x)/2.0) * v1 + ((1.0+x)/2.0) * v2;
          elseif (obj.funcType == 2)
             res = x * v0;
          elseif (obj.funcType == 3)
             res = x * v0 + obj.par(end) * eye(size(v0));
+         elseif (obj.funcType == 4)
+            res = ((1.0-x)/2.0) * v1 + ((1.0+x)/2.0) * v2 ...
+               + obj.par(end) * eye(size(v0));
          end
       end
       function res = mix(obj, v0, v1, v2, model, ii, jj, ienv)
@@ -74,7 +107,7 @@ classdef Mixer < handle
             %                 res = v2 at x = 1;
             % potentially faster (since v's are matrices while x is scalar)
             %res = ((1.0-x)/2.0) * v1 + ((1.0+x)/2.0) * v2;
-            res = obj.mixFunction(x,v0,v1,v2);
+            res = obj.mixFunction(x,v0,v1,v2,model, ii, jj);
          elseif (obj.mixType == 2)
             % charge dependent mixing
             iatom = model.basisAtom(ii(1));
@@ -83,8 +116,8 @@ classdef Mixer < handle
             xslope = obj.par(2);
             x = x0 + xslope*ch;
             %res = ((1.0-x)/2.0) * v1 + ((1.0+x)/2.0) * v2;
-            res = obj.mixFunction(x,v0,v1,v2);
-         elseif (obj.mixType == 3) 
+            res = obj.mixFunction(x,v0,v1,v2,model, ii, jj);
+         elseif (obj.mixType == 3)
             % bond order dependent mixing
             iatom = model.basisAtom(ii(1));
             jatom = model.basisAtom(jj(1));
@@ -93,14 +126,58 @@ classdef Mixer < handle
             xslope = obj.par(2);
             x = x0 + xslope*(bo-1);
             %res = ((1.0-x)/2.0) * v1 + ((1.0+x)/2.0) * v2;
-            res = obj.mixFunction(x,v0,v1,v2);
+            res = obj.mixFunction(x,v0,v1,v2,model, ii, jj);
+         elseif (obj.mixType == 4)
+            % bond length dependent mixing
+            iatom = model.basisAtom(ii(1));
+            jatom = model.basisAtom(jj(1));
+            Zs = zeros(1,2);
+            Zs(1) = model.Z(iatom);
+            Zs(2) = model.Z(jatom);
+            Zs = sort(Zs);
+            bl = norm(model.rcart(:,iatom)-model.rcart(:,jatom));
+            if (Zs(1) == 1 && Zs(2) == 1)
+               bl = bl - 0.74;
+            elseif (Zs(1) == 1 && Zs(2) == 6)
+               bl = bl - 1.1;
+            else
+               bl = bl - 1.5;
+            end
+            x0 = obj.par(1);
+            xslope = obj.par(2);
+            x = x0 + xslope*bl;
+            %res = ((1.0-x)/2.0) * v1 + ((1.0+x)/2.0) * v2;
+            res = obj.mixFunction(x,v0,v1,v2,model, ii, jj);
+         elseif (obj.mixType == 5)
+            % bond order and bond length dependent mixing
+            iatom = model.basisAtom(ii(1));
+            jatom = model.basisAtom(jj(1));
+            bo = model.bondOrders(iatom,jatom,ienv+1);
+            Zs = zeros(1,2);
+            Zs(1) = model.Z(iatom);
+            Zs(2) = model.Z(jatom);
+            Zs = sort(Zs);
+            bl = norm(model.rcart(:,iatom)-model.rcart(:,jatom));
+            if (Zs(1) == 1 && Zs(2) == 1)
+               bl = bl - 0.74;
+            elseif (Zs(1) == 1 && Zs(2) == 6)
+               bl = bl - 1.1;
+            else
+               bl = bl - 1.5;
+            end
+            x0 = obj.par(1);
+            xslopebo = obj.par(2);
+            xslopebl = obj.par(3);
+            x = x0 + xslopebo*(bo-1) + xslopebl*bl;
+            %res = ((1.0-x)/2.0) * v1 + ((1.0+x)/2.0) * v2;
+            res = obj.mixFunction(x,v0,v1,v2,model, ii, jj);
          else
             error(['unknown mix type in Mixer: ',num2str(obj.mixType)]);
          end
       end
       function res = print(obj)
-         types = {'sigmoid','linear','ch-dep','bo-dep'};
-         ftypes = {' ','mult','m01','m02'};
+         types = {'sigmoid','linear','ch-dep','bo-dep','bl-dep','bo-bl-dep'};
+         ftypes = {' ','mult','mult-c','mix-c'};
          res = [obj.desc,' ',types{obj.mixType+1},' ',...
             ftypes{obj.funcType}];
          for i = 1:size(obj.par,2)

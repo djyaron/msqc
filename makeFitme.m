@@ -42,12 +42,16 @@ geomsEthane = checkForInput(varargin,'ethane',[]); % allowed range is 1:7
 geomsEthylene = checkForInput(varargin,'ethylene',[]); % allowed range is 1:7
 geomsPropane = checkForInput(varargin,'propane',[]); % allowed range is 1:7
 geomsPropene = checkForInput(varargin,'propene',[]); % allowed range is 1:9
+geomsCH3F = checkForInput(varargin,'ch3f',[]); % allowed range is 1:19
+geomsC2H5F = checkForInput(varargin,'c2h5f',[]); % allowed range is 1:9
 includeKEmods = checkForInput(varargin,'kemods',1);
 includeENmods = checkForInput(varargin,'enmods',1);
 useDeltaCharges = checkForInput(varargin,'deltarho',1);
 enstruct = checkForInput(varargin,'enstruct',[]);
 enstruct1 = checkForInput(varargin,'enstruct1',[]);
+enstructh = checkForInput(varargin,'enstructh',[]);
 kestruct = checkForInput(varargin,'kestruct',[]);
+kestructh = checkForInput(varargin,'kestructh',[]);
 e2struct = checkForInput(varargin,'e2struct',[]);
 testFitme = checkForInput(varargin,'testFitme',[]);
 separatePars = checkForInput(varargin, 'separatePars', 0);
@@ -138,7 +142,7 @@ for ipar = params
    m{ipar} = Model3(LL{ipar,1},LL{ipar,2},LL{ipar,3});
 end
 if (includeKEmods)
-   if (size(kestruct,1) == 0)
+   if (isempty(kestruct) && isempty(kestructh))
       mixKEdiagH = Mixer([0 0],2,'KEdiagH');
       mixKEdiagC = Mixer([0 0],2,'KEdiagC');
       mixKEdiagCp = Mixer([0 0],2,'KEdiagCp');
@@ -155,7 +159,7 @@ if (includeKEmods)
          m{ipar}.addKEmodBonded(1,6,1,2,mixKEbondCHp);
          m{ipar}.addKEmodBonded(6,6,[1 2],[1 2],mixKEbondCC);
       end
-   else
+   elseif (size(kestruct,1) == 1)
       for ipar = params
          m{ipar}.addKEmodDiag(1,1,kestruct.H);
          m{ipar}.addKEmodDiag(6,1,kestruct.Cs);
@@ -167,10 +171,20 @@ if (includeKEmods)
          m{ipar}.addKEmodBonded(6,6,1,2,kestruct.CsCp);
          m{ipar}.addKEmodBonded(6,6,2,2,kestruct.CpCp);
       end
+   elseif (size(kestructh,1) == 1)
+      for ipar = params
+         m{ipar}.addKEmodDiag(1,1,kestructh.H);
+         m{ipar}.addKEmodDiag(6,1,kestructh.Cs);
+         m{ipar}.addKEmodDiag(6,2,kestructh.Cp);
+         m{ipar}.addKEmodBondedh(1,1,kestructh.HH);
+         m{ipar}.addKEmodBondedh(1,6,kestructh.CH);
+         m{ipar}.addKEmodBondedh(6,6,kestructh.CCs);
+         m{ipar}.addKEmodBondedh(6,6,kestructh.CCp);
+      end
    end
 end
 if (includeENmods)
-   if (isempty(enstruct) && isempty(enstruct1))
+   if (isempty(enstruct) && isempty(enstruct1) && isempty(enstructh))
       mixENdiagH = Mixer([0 0],2,'ENdiagH');
       mixENdiagC = Mixer([0 0],2,'ENdiagC');
       mixENdiagCp = Mixer([0 0],2,'ENdiagCp');
@@ -212,6 +226,17 @@ if (includeENmods)
          m{ipar}.addENmodBonded(6,6,1,1,enstruct1.CsCs);
          m{ipar}.addENmodBonded(6,6,1,2,enstruct1.CsCp);
          m{ipar}.addENmodBonded(6,6,2,2,enstruct1.CpCp);
+      end
+   elseif (size(enstructh,1) == 1)
+      for ipar = params
+         m{ipar}.addENmodDiag(1,1,enstructh.H);
+         m{ipar}.addENmodDiag(6,1,enstructh.Cs);
+         m{ipar}.addENmodDiag(6,2,enstructh.Cp);
+         m{ipar}.addENmodBonded1h(1,1,enstructh.HH);
+         m{ipar}.addENmodBonded1h(6,1,enstructh.CH);
+         m{ipar}.addENmodBonded1h(1,6,enstructh.HC);
+         m{ipar}.addENmodBonded1h(6,6,enstructh.CCs);
+         m{ipar}.addENmodBonded1h(6,6,enstructh.CCp);
       end
    end
 end

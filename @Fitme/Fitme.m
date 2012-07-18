@@ -30,6 +30,9 @@ classdef Fitme < handle
       
       arms       % (npar,narms): for bandit algorithm
       parallel   % true to run updateDensity in parallel
+      restartFile % place to save intermediate results
+      
+      hftime
    end
    methods
       function res = Fitme
@@ -160,32 +163,11 @@ classdef Fitme < handle
             if (~obj.parallel)
                disp(['solving for density matrices']);
                for imod = 1:obj.nmodels
-               obj.models{imod}.solveHF(obj.envs{1,imod});
+                  obj.models{imod}.solveHF(obj.envs{1,imod});
                end
             else
                disp(['parallel solving for density matrices']);
-               for imod = 1:obj.nmodels
-                  modFile1 = obj.models{imod};
-                  envsFile1 = obj.envs{1,imod};
-                  save(['scratch/todo',num2str(imod),'.mat'], ...
-                     'modFile1','envsFile1');
-               end
-               runModelsParallel('scratch/',obj.nmodels);
-               for imod = 1:obj.nmodels
-                  modd = obj.models{imod};
-                  filename = ['scratch/done',num2str(imod),'.mat'];
-                  load(filename); % contains outFile
-                  if (sum(obj.envs{1,imod}==0))
-                     modd.orb = modFile2.orb;
-                     modd.Eorb = modFile2.Eorb;
-                     modd.Ehf = modFile2.Ehf;
-                  end
-                  modd.orbEnv      = modFile2.orbEnv;
-                  modd.EorbEnv     = modFile2.EorbEnv;
-                  modd.EhfEnv      = modFile2.EhfEnv;
-                  modd.densitySave = modFile2.densitySave;
-                  delete(filename);
-               end
+               obj.solveHFparallel;
             end
             obj.parHF = par;
          end
@@ -207,7 +189,7 @@ classdef Fitme < handle
          end
          res = ic;
       end
-      function res = err(obj,par)
+      function [res plotnum etype] = err(obj,par)
          flip = 0; % to handle fit routines that pass row or column
          if (size(par,1)>size(par,2))
             par = par';
@@ -219,6 +201,7 @@ classdef Fitme < handle
          
          doPlots = obj.plot && (dpar > 1.0e-4);
          
+         
          if (doPlots)
             for i=unique([obj.plotNumber])
                figure(i);
@@ -229,6 +212,8 @@ classdef Fitme < handle
          ic = 1;
          ndat = obj.ndata;
          res = zeros(1,ndat);
+         plotnum = zeros(1,ndat);
+         etype = zeros(1,ndat);
          for imod = 1:obj.nmodels
             if (obj.includeKE == 1)
                hlevel = obj.HLKE{1,imod};
@@ -236,6 +221,8 @@ classdef Fitme < handle
                t1 = hlevel - modpred;
                n = size(t1,2);
                res(1,ic:(ic+n-1))= t1;
+               plotnum(1,ic:(ic+n-1))= obj.plotNumber(imod);
+               etype(1,ic:(ic+n-1))= 1;
                ic = ic + n;
                if (doPlots)
                   figure(obj.plotNumber(imod));
@@ -264,6 +251,8 @@ classdef Fitme < handle
                   t1 = hlevel - modpred;
                   n = size(t1,2);
                   res(1,ic:(ic+n-1)) = t1;
+                  plotnum(1,ic:(ic+n-1))= obj.plotNumber(imod);
+                  etype(1,ic:(ic+n-1))= 10 + obj.models{imod}.Z(iatom);
                   ic = ic + n;
                   if (doPlots)
                      if (obj.models{imod}.Z(iatom) == 1)
@@ -300,6 +289,8 @@ classdef Fitme < handle
                t1 = hlevel - modpred;
                n = size(t1,2);
                res(1,ic:(ic+n-1))= t1;
+               plotnum(1,ic:(ic+n-1))= obj.plotNumber(imod);
+               etype(1,ic:(ic+n-1))= 2;
                ic = ic + n;
                if (doPlots)
                   figure(obj.plotNumber(imod));
@@ -324,7 +315,13 @@ classdef Fitme < handle
          end
          disp(['RMS err/ndata = ',num2str(sqrt(res*res')/ndat), ...
             ' kcal/mol err = ',num2str(sqrt(res*res'/ndat)*627.509)]);
-         
+         obj.itcount = obj.itcount + 1;
+         obj.errTrain(obj.itcount) = norm(res);
+         if (size(obj.testFitme,1) > 0)
+            err1 = obj.testFitme.err(par);
+            obj.errTest(obj.itcount) = norm(err1);
+         end
+
          if (doPlots)
             figure(obj.plotNumErr);
             if (obj.errCalls == 0)
@@ -333,22 +330,29 @@ classdef Fitme < handle
             else
                hold on;
             end
-            obj.itcount = obj.itcount + 1;
             plot(obj.errCalls+1, log10(norm(res)/length(res)),'bo');
-            obj.errTrain(obj.itcount) = norm(res);
             if (size(obj.testFitme,1) > 0)
-               disp('**** TEST SET START ****');
-               err1 = obj.testFitme.err(par);
-               disp('**** TEST SET END ****');
                hold on;
                plot(obj.errCalls+1, log10(norm(err1)/length(err1)),'r+');
-               obj.errTest(obj.itcount) = norm(err1);
             end
          end
          if (flip == 1)
             res = res';
          end
          obj.errCalls = obj.errCalls + 1;
+         
+         if (dpar > 1.0e-4)
+            if (~isempty(obj.restartFile))
+               disp('saving restart file');
+               ptSave = par;
+               itSave = obj.itcount;
+               errTrainSave = obj.errTrain;
+               errTestSave = obj.errTest;
+               save(obj.restartFile,'ptSave','itSave', ...
+                  'errTrainSave','errTestSave');
+            end
+         end
+         
       end
       function generateArms(obj,narms,plow,phigh)
          rr = rand(obj.npar,narms);

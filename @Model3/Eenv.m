@@ -7,7 +7,11 @@ n = size(envs,2);
 res = zeros(1,n);
 for i = 1:n
    ienv = envs(i);
-   res(i)  = sum(sum( obj.density(ienv).*obj.frag.H1Env(:,:,ienv) ) );
-   res(i) = res(i) + obj.frag.HnucEnv(ienv);
+   if (ienv == 0)
+      res(i) = 0.0;
+   else
+      res(i)  = sum(sum( obj.density(ienv).*obj.frag.H1Env(:,:,ienv) ) );
+      res(i) = res(i) + obj.frag.HnucEnv(ienv);
+   end
 end
 

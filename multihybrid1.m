@@ -1,17 +1,28 @@
 %% Fitting multiple molecules, using makeFitme
 %clear classes;
-%topDir = 'T:\matdl\yaron\6-22-12\scaleconst\';
-topDir = 'scaleconst/';
-if (Aprocess == 1)
-   ics = [9];
-elseif (Aprocess == 2)
-   ics = [9];
-else
-   ics = [3 7];
-end
+topDir = 'C:\matdl\yaron\7-13-12\scalehybrid\parallel2\fixedE2\';
+%topDir = 'scalehybridparallel/';
+runParallel = 1;
+% if (Aprocess == 1)
+%    ics = [1 6];
+% elseif (Aprocess == 2)
+%    ics = [2 7];
+% else
+%    ics = [3 9];
+% end
+ics = [1 2 3 6 7 9];
+%Aprocess = 1;
+%ics = [1 2 3 6 7];
+% if (Aprocess == 1)
+%    runParallel = 1;
+%    topDir = 'scalehybridparallel/fixedE2/';
+% else
+%    runParallel = 0;
+%    topDir = 'scalehybridparics/tight10/';
+% end
 %trainC{1}  = {'h2',2:7,'envs',1:10};
 %testC{1} = {'h2',2:7,'envs',20:30};
-ftype = 1;
+ftype = 2;
 trainC{1}  = {'h2',[],'ch4',1:17,'envs',1:10};
 testC{1} = {'h2',[],'ch4',1:17,'envs',20:30};
 filePrefix{1} = 'ch4';
@@ -48,13 +59,16 @@ trainC{9}  = {'h2',[],'ch4',1:19,'ethane',1:7,'propane',1:7,'envs',1:10};
 testC{9} = {'h2',[],'ch4',1:19,'ethane',1:7,'propane',1:7,'envs',20:30};
 filePrefix{9} = 'ch4f-c2h6-c3h8';
 
-
 commonIn = {};
 %
 for iC = ics% [1 2 3 4 6 7]
    trainIn = trainC{iC};
    testIn = testC{iC};
    filePre = filePrefix{iC};
+   ke = [];
+   en = [];
+   e2 = [];
+   f1 = [];
    for iPar = 1:5
       if (iPar == 1)
          if (ftype == 2)
@@ -62,27 +76,29 @@ for iC = ics% [1 2 3 4 6 7]
          else
             iP = 0;
          end
+         
          ke.H = Mixer(iP,1,'ke.H',ftype);
          ke.Cs = Mixer(iP,1,'ke.C',ftype);
          ke.Cp = ke.Cs;
          ke.HH = Mixer(iP,1,'ke.HH',ftype);
-         ke.CsH = Mixer(iP,1,'ke.CH',ftype);
-         ke.CpH = ke.CsH;
-         ke.CsCs = Mixer(iP,1,'ke.CC',ftype);
-         ke.CsCp = ke.CsCs;
-         ke.CpCp = ke.CsCs;
+         ke.CH = Mixer(iP,1,'ke.CH',ftype);
+         ke.CH.hybrid = 1;
+         ke.CCs = Mixer(iP,1,'ke.CCs',ftype);
+         ke.CC.hybrid = 1;
+         ke.CCp = Mixer(iP,1,'ke.CCp',ftype);
+         ke.CCp.hybrid = 2;
          
          en.H = Mixer(iP,1,'en.H',ftype);
          en.Cs = Mixer(iP,1,'en.C',ftype);
          en.Cp = en.Cs;
          en.HH = Mixer(iP,1,'en.HH',ftype);
-         en.CsH = Mixer(iP,1,'en.CH',ftype);
-         en.CpH = en.CsH;
-         en.HCs = Mixer(iP,1,'en.HC',ftype);
-         en.HCp = en.HCs;
-         en.CsCs = Mixer(iP,1,'en.CC',ftype);
-         en.CsCp = en.CsCs;
-         en.CpCp = en.CsCs;
+         en.CH = Mixer(iP,1,'en.CH',ftype);
+         en.CH.hybrid = 1;
+         en.HC = en.CH;
+         en.CCs = Mixer(iP,1,'en.CCs',ftype);
+         en.CCs.hybrid = 1;
+         en.CCp = Mixer(iP,1,'en.CCp',ftype);
+         en.CCp.hybrid = 2;
          
          e2.H = Mixer(iP,1,'e2.H',ftype);
          e2.C = Mixer(iP,1,'e2.C',ftype);
@@ -93,10 +109,10 @@ for iC = ics% [1 2 3 4 6 7]
          %              'kestruct',ke,'e2struct',e2,'plot',2);
          %           ftest.parallel = 0;
          %           ftest.plot = 0;
-         f1 = makeFitme(trainIn{:},commonIn{:},'enstruct1',en,'kestruct',ke, ...
+         f1 = makeFitme(trainIn{:},commonIn{:},'enstructh',en,'kestructh',ke, ...
             'e2struct',e2);%,'testFitme',ftest);
          f1.plot = 0;
-         f1.parallel = 0;
+         f1.parallel = runParallel;
          %pst = [ -1.2840    1.4139   -0.9773   -0.1648    2.9684   -1.7791    5.7310   -9.6449    8.0355  12.5867   -0.1876   -0.1118    2.0048   -0.3105];
          %f1.setPars(pst);
          %          f1.parHF = zeros(size(f1.getPars));
@@ -115,7 +131,7 @@ for iC = ics% [1 2 3 4 6 7]
             m1.par(2) = 0;
             m1.fixed(2) = 0;
          end
-      elseif (iPar == 3) % add context sensitive (bond order)
+      elseif (iPar == 3) % add context sensitive
          for m1 = [ke.H ke.Cs en.H en.Cs]
             m1.mixType = 2;
             m1.par(3) = m1.par(2);
@@ -127,34 +143,25 @@ for iC = ics% [1 2 3 4 6 7]
             m1.par(2) = 0;
             m1.fixed(2) = 0;
          end
-         for m1 = [ke.HH ke.CsH ke.CsCs en.HH en.HCs en.CsH en.CsCs ...
-               e2.HH e2.CH e2.CC]
+         for m1 = [ke.HH ke.CH ke.CCs ke.CCp en.HH en.CH en.HC en.CCs ...
+               en.CCp] % e2.HH e2.CH e2.CC]
             m1.mixType = 3;
             m1.par(2) = 0;
             m1.fixed(2) = 0;
          end
       elseif (iPar == 4) % add context sensitive (bond length)
-         for m1 = [ke.HH ke.CsH ke.CsCs en.HH en.HCs en.CsH en.CsCs]
+         for m1 = [ke.HH ke.CH ke.CCs ke.CCp en.HH en.CH en.HC en.CCs ...
+               en.CCp] % e2.HH e2.CH e2.CC]
             m1.mixType = 4;
             m1.par(2) = 0;
          end
-      elseif (iPar == 5) % add context sensitive (bond length)
-         for m1 = [ke.HH ke.CsH ke.CsCs en.HH en.HCs en.CsH en.CsCs]
+      elseif (iPar == 5) % add context sensitive (both)
+         for m1 = [ke.HH ke.CH ke.CCs ke.CCp en.HH en.CH en.HC en.CCs ...
+               en.CCp] % e2.HH e2.CH e2.CC]
             m1.mixType = 5;
             m1.par(3) = m1.par(2);
             m1.par(2) = 0.0;
          end
-      elseif (iPar == 6)
-         ke.Cp = ke.Cs.deepCopy();     ke.Cs.desc ='ke.Cs';     ke.Cp.desc = 'ke.Cp';
-         ke.CpH = ke.CsH.deepCopy();   ke.CsH.desc ='ke.CsH';   ke.CpH.desc = 'ke.CpH';
-         ke.CsCp = ke.CsCs.deepCopy(); ke.CsCs.desc ='ke.CsCs'; ke.CsCp.desc = 'ke.CsCp';
-         ke.CpCp = ke.CsCs.deepCopy();                          ke.CpCp.desc = 'ke.CpCp';
-         
-         en.Cp = en.Cs.deepCopy();     en.Cs.desc ='en.Cs';     en.Cp.desc = 'en.Cp';
-         en.CpH = en.CsH.deepCopy();   en.CsH.desc ='en.CsH';   en.CpH.desc = 'en.CpH';
-         en.CpH = en.CsH.deepCopy();   en.CsH.desc ='en.CsH';   en.CpH.desc = 'en.CpH';
-         en.CsCp = en.CsCs.deepCopy(); en.CsCs.desc ='en.CsCs'; en.CsCp.desc = 'en.CsCp';
-         en.CpCp = en.CsCs.deepCopy();                          en.CpCp.desc = 'en.CpCp';
       end
       
       
@@ -166,7 +173,8 @@ for iC = ics% [1 2 3 4 6 7]
          disp([filePre,' iC ',num2str(iC),'fit# ',num2str(iPar),...
             'loaded from file']);
       else
-         options = optimset('DiffMinChange',1.0e-5,'TolFun',1.0e-3,'TolX',3.0e-3);
+         options = optimset('DiffMinChange',1.0e-5,'TolFun',1.0e-3, ...
+            'TolX',3.0e-3,'MaxFunEvals',500);
          if (exist(dataDir,'dir') ~= 7)
             status = mkdir(dataDir);
          end
