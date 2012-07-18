@@ -22,6 +22,7 @@ classdef Model3 < handle
       Z       % (1,natom) atomic numbers of the molecules
       rcart   % (3,natom) cartesian coordinates of the atoms
       nenv
+      X       % Transformation matrix used in hartreeFock
       
       nbasis  % number of atomic (and molecular) basis functions
       basisAtom  % (nbasis,1) atom # on which the function is centered
@@ -62,6 +63,7 @@ classdef Model3 < handle
          res.Z     = frag_.Z;
          res.rcart = frag_.rcart;
          res.nenv  = frag_.nenv;
+         res.X     = inv(sqrtm(frag_.S));
          res.nbasis = frag_.nbasis;
          res.basisAtom = frag_.basisAtom;
          res.basisType = frag_.basisType;
@@ -502,8 +504,4 @@ classdef Model3 < handle
          res = obj.frag.S;
       end
    end % methods
-   methods (Static)
-       [orb,Eorb,Ehf,densitySaveOut] = hartreeFock2(H1,H2,S,Enuc,Nelec, ...
-           densitySaveIn,density,H2j,H2k,ienv,eps,maxIter,minIter)
-   end
 end %
