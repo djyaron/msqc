@@ -139,7 +139,9 @@ HL = HL1;
 %disp('building models');
 m = cell(1,size(params,2));
 for ipar = params
-   m{ipar} = Model3(LL{ipar,1},LL{ipar,2},LL{ipar,3});
+    mod = Model3(LL{ipar,1},LL{ipar,2},LL{ipar,3});
+    mod.X = inv(sqrtm(mod.frag.S));
+    m{ipar} = mod;
 end
 if (includeKEmods)
    if (isempty(kestruct) && isempty(kestructh))

@@ -64,7 +64,6 @@ classdef Model3 < handle
          res.Z     = frag_.Z;
          res.rcart = frag_.rcart;
          res.nenv  = frag_.nenv;
-         res.X     = inv(sqrtm(frag_.S));
          res.nbasis = frag_.nbasis;
          res.basisAtom = frag_.basisAtom;
          res.basisType = frag_.basisType;
