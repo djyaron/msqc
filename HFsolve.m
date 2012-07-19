@@ -61,14 +61,17 @@ while (~finished) %step 11 -- Test convergence
    end
    
    %step 5 -- Build 2-electron components of Fock matrix
-   G = zeros(Nbasis);
-   for i=1:Nbasis
-      for j=1:Nbasis
-         t1 = sum(sum( P'.* H2j{i,j} ));
-         t2 = sum(sum( P'.* H2k{i,j} ));
-         G(i,j) = G(i,j) + t1 - t2/2;
-      end
-   end
+   %G = zeros(Nbasis);
+   %for i=1:Nbasis
+   %   for j=1:Nbasis
+   %      t1 = sum(sum( P'.* H2j{i,j} ));
+   %      t2 = sum(sum( P'.* H2k{i,j} ));
+   %      G(i,j) = G(i,j) + t1 - t2/2;
+   %   end
+   %end
+   
+   G = twoElecFock(P, H2j, H2k);
+   
    %step 6 -- Obtain F (fock matrix)
    F = H1 + G;
    
