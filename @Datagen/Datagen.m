@@ -264,7 +264,6 @@ classdef Datagen < handle
                 fieldOpt(fieldOrder == 3,:), varargin);
             env(4*obj.nenv+1:5*obj.nenv) = obj.makeFieldEnv('fieldType', ...
                 fieldOpt(fieldOrder == 4,:), varargin);
-            obj.nenv = 5 * obj.nenv;
         end
     
         function [HL, LL] = runData(obj, varargin)
