@@ -1,30 +1,20 @@
 %% Fitting multiple molecules, using makeFitme
 %clear classes;
-%topDir = 'T:\matdl\yaron\6-22-12\scaleconst\';
+topDir = 'T:\matdl\yaron\8-3-12\quadratic\';
 %topDir = 'scalehybridparallel/';
-% if (Aprocess == 1)
-%    ics = [1 6];
-% elseif (Aprocess == 2)
-%    ics = [2 7];
-% else
-%    ics = [3 9];
-% end
-%ics = [1 2 3 6 7 9];
-Aprocess = 1;
-ics = [1 2 3 6 7];
-if (Aprocess == 1)
-   runParallel = 1;
-   topDir = 'scalehybridparallel/fixedE2/';
-else
-   runParallel = 0;
-   topDir = 'scalehybridparics/tight10/';
-end
-%trainC{1}  = {'h2',2:7,'envs',1:10};
-%testC{1} = {'h2',2:7,'envs',20:30};
+ics = 1;
+
 ftype = 2;
-trainC{1}  = {'h2',[],'ch4',1:17,'envs',1:10};
-testC{1} = {'h2',[],'ch4',1:17,'envs',20:30};
-filePrefix{1} = 'ch4';
+runParallel = 0;
+showPlots = 1;
+
+trainC{1}  = {'h2',3,'envs',1:100};
+testC{1} = []; %{'h2',4,'envs',1:100};
+filePrefix{1} = 'h2-3';
+
+%trainC{1}  = {'h2',[],'ch4',1:17,'envs',1:10};
+%testC{1} = {'h2',[],'ch4',1:17,'envs',20:30};
+%filePrefix{1} = 'ch4';
 
 trainC{2}  = {'h2',[],'ethane',1:7,'envs',1:10};
 testC{2} = {'h2',[],'ethane',1:7,'envs',20:30};
@@ -60,7 +50,7 @@ filePrefix{9} = 'ch4f-c2h6-c3h8';
 
 commonIn = {};
 %
-for iC = ics% [1 2 3 4 6 7]
+for iC = ics
    trainIn = trainC{iC};
    testIn = testC{iC};
    filePre = filePrefix{iC};
@@ -104,23 +94,21 @@ for iC = ics% [1 2 3 4 6 7]
          e2.HH = Mixer(iP,1,'e2.HH',ftype);
          e2.CC = Mixer(iP,1,'e2.CC',ftype);
          e2.CH = Mixer(iP,1,'e2.CH',ftype);
-         %           ftest = makeFitme(testIn{:},commonIn{:},'enstruct1',en, ...
-         %              'kestruct',ke,'e2struct',e2,'plot',2);
-         %           ftest.parallel = 0;
-         %           ftest.plot = 0;
-         f1 = makeFitme(trainIn{:},commonIn{:},'enstructh',en,'kestructh',ke, ...
-            'e2struct',e2);%,'testFitme',ftest);
-         f1.plot = 0;
+
+         if (isempty(testIn))
+            f1 = makeFitme(trainIn{:},commonIn{:},'enstructh',en, ...
+               'kestructh',ke,'e2struct',e2);
+         else
+            ftest = makeFitme(testIn{:},commonIn{:},'enstructh',en, ...
+               'kestructh',ke,'e2struct',e2,'plot',2);
+            ftest.parallel = runParallel;
+            ftest.plot = showPlots;
+            f1 = makeFitme(trainIn{:},commonIn{:},'enstructh',en, ...
+               'kestructh',ke,'e2struct',e2,'testFitme',ftest);
+         end
+         f1.plot = showPlots;
          f1.parallel = runParallel;
-         %pst = [ -1.2840    1.4139   -0.9773   -0.1648    2.9684   -1.7791    5.7310   -9.6449    8.0355  12.5867   -0.1876   -0.1118    2.0048   -0.3105];
-         %f1.setPars(pst);
-         %          f1.parHF = zeros(size(f1.getPars));
-         %          etest1 = f1.err(f1.getPars);
-         %          f1.parHF = zeros(size(f1.getPars));
-         %          f1.parallel = 1;
-         %          etest2 = f1.err(f1.getPars);
-         %          input('hi');
-      elseif (iPar == 2) % add constants
+      elseif (iPar == 2) % add constants to diagonal 1-elec terms
          for m1 = [ke.H ke.Cs en.H en.Cs]
             if (ftype == 2)
                m1.funcType = 3;
@@ -130,36 +118,19 @@ for iC = ics% [1 2 3 4 6 7]
             m1.par(2) = 0;
             m1.fixed(2) = 0;
          end
-      elseif (iPar == 3) % add context sensitive
-         for m1 = [ke.H ke.Cs en.H en.Cs]
+      elseif (iPar == 3) % ke diag linear
+         for m1 = [ke.H ke.Cs]
             m1.mixType = 2;
             m1.par(3) = m1.par(2);
+            m1.par(2) = 0;
             m1.fixed(3) = 0;
-            m1.par(2) = 0;
          end
-         for m1 = [e2.H e2.C]
-            m1.mixType = 2;
-            m1.par(2) = 0;
-            m1.fixed(2) = 0;
-         end
-         for m1 = [ke.HH ke.CH ke.CCs ke.CCp en.HH en.CH en.HC en.CCs ...
-               en.CCp] % e2.HH e2.CH e2.CC]
-            m1.mixType = 3;
-            m1.par(2) = 0;
-            m1.fixed(2) = 0;
-         end
-      elseif (iPar == 4) % add context sensitive (bond length)
-         for m1 = [ke.HH ke.CH ke.CCs ke.CCp en.HH en.CH en.HC en.CCs ...
-               en.CCp] % e2.HH e2.CH e2.CC]
-            m1.mixType = 4;
-            m1.par(2) = 0;
-         end
-      elseif (iPar == 5) % add context sensitive (both)
-         for m1 = [ke.HH ke.CH ke.CCs ke.CCp en.HH en.CH en.HC en.CCs ...
-               en.CCp] % e2.HH e2.CH e2.CC]
-            m1.mixType = 5;
-            m1.par(3) = m1.par(2);
-            m1.par(2) = 0.0;
+      elseif (iPar == 4) % ke diag quad
+         for m1 = [ke.H ke.Cs]
+            m1.mixType = 22;
+            m1.par(4) = m1.par(3);
+            m1.par(3) = 0.0;
+            m1.fixed(4) = 0;
          end
       end
       
@@ -214,9 +185,6 @@ for iC = ics% [1 2 3 4 6 7]
          else
             start = f1.getPars;
          end
-         %f1.parallel = 0;
-         %etest3 = f1.err(start);
-         %f1.parallel = 1;
          [pt,resnorm,residual,exitflag,output,lambda,jacobian] = ...
             lsqnonlin(@f1.err, start,lowLimits,highLimits,options);
          %       options = LMFnlsq;
@@ -229,6 +197,7 @@ for iC = ics% [1 2 3 4 6 7]
          resnorm
          f1.printMixers;
          save([dataDir,'all.mat']);
+         
          diary off;
          if (f1.plot)
             figure(799); saveas(gcf,[dataDir,'error.fig']);
@@ -248,5 +217,3 @@ for iC = ics% [1 2 3 4 6 7]
       end
    end
 end
-
-

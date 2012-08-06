@@ -15,11 +15,13 @@ function fitme = makeFitme(varargin)
 %  ethylene []               range of ethylene geometries to include (1..7)
 %  kemods   1                include mixers to modify kinetic energy
 %  enmods   1                include mixers to modify elec-nuc interaction
-%  deltarho 1                based charge dependence on charges induced
+%  deltarho 1                base charge dependence on charges induced
 %                            by field
 %  enstruct  []              structure with enmods
 %  enstruct1 []              structure with enmods (1 oper only)
+%  enstructh []              structure with enmods hybrid
 %  kestruct  []              structure with kemods
+%  kestructh  []             structure with kemods hybrid
 %  e2struct  []              structure with e2mods
 %  testFitme []              Fitme object with test data
 

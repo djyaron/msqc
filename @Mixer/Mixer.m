@@ -6,7 +6,8 @@ classdef Mixer < handle
       desc    % string description
       fixed   % (1,npar) 0 if parameter should be fit, 1 if fixed
       hybrid  % 0 = no hybridization, 1 = sigma mods, 2 = pi mods
-      funcType
+      funcType % 1 = interp 2 = scale 3 = scale with const 
+               % 4 = iterp with const
       index   % field that can be used to store an external unique ID
               % index is not used internally in this class
    end
@@ -74,6 +75,8 @@ classdef Mixer < handle
       end
       function res = mixFunction(obj,x,v0,v1,v2, model, ii, jj)
          if (obj.hybrid)
+            % mixFunctionHybrid rotates to hybrid orbitals
+            % and then call mixFunctionNormal on these rotated orbitals
             res = obj.mixFunctionHybrid(x,v0,v1,v2, model, ii, jj);
          else
             res = obj.mixFunctionNormal(x,v0,v1,v2);
@@ -116,6 +119,15 @@ classdef Mixer < handle
             xslope = obj.par(2);
             x = x0 + xslope*ch;
             %res = ((1.0-x)/2.0) * v1 + ((1.0+x)/2.0) * v2;
+            res = obj.mixFunction(x,v0,v1,v2,model, ii, jj);
+         elseif (obj.mixType == 22)
+            % charge dependent mixing
+            iatom = model.basisAtom(ii(1));
+            ch = model.charges(iatom,ienv+1);
+            x0 = obj.par(1);
+            xslope = obj.par(2);
+            xquad = obj.par(3);
+            x = x0 + xslope*ch + xquad*ch*ch;
             res = obj.mixFunction(x,v0,v1,v2,model, ii, jj);
          elseif (obj.mixType == 3)
             % bond order dependent mixing
@@ -177,6 +189,7 @@ classdef Mixer < handle
       end
       function res = print(obj)
          types = {'sigmoid','linear','ch-dep','bo-dep','bl-dep','bo-bl-dep'};
+         types{23} = 'ch-dep-quad';
          ftypes = {' ','mult','mult-c','mix-c'};
          res = [obj.desc,' ',types{obj.mixType+1},' ',...
             ftypes{obj.funcType}];

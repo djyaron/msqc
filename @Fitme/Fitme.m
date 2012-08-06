@@ -189,7 +189,7 @@ classdef Fitme < handle
          end
          res = ic;
       end
-      function [res plotnum etype] = err(obj,par)
+      function [res plotnum etype modelnum envnum] = err(obj,par)
          flip = 0; % to handle fit routines that pass row or column
          if (size(par,1)>size(par,2))
             par = par';
@@ -222,6 +222,8 @@ classdef Fitme < handle
                n = size(t1,2);
                res(1,ic:(ic+n-1))= t1;
                plotnum(1,ic:(ic+n-1))= obj.plotNumber(imod);
+               modelnum(1,ic:(ic+n-1)) = imod;
+               envnum(1,ic:(ic+n-1)) = obj.envs{1,imod};
                etype(1,ic:(ic+n-1))= 1;
                ic = ic + n;
                if (doPlots)
@@ -252,6 +254,8 @@ classdef Fitme < handle
                   n = size(t1,2);
                   res(1,ic:(ic+n-1)) = t1;
                   plotnum(1,ic:(ic+n-1))= obj.plotNumber(imod);
+                  modelnum(1,ic:(ic+n-1)) = imod;
+                  envnum(1,ic:(ic+n-1)) = obj.envs{1,imod};
                   etype(1,ic:(ic+n-1))= 10 + obj.models{imod}.Z(iatom);
                   ic = ic + n;
                   if (doPlots)
@@ -290,6 +294,8 @@ classdef Fitme < handle
                n = size(t1,2);
                res(1,ic:(ic+n-1))= t1;
                plotnum(1,ic:(ic+n-1))= obj.plotNumber(imod);
+               modelnum(1,ic:(ic+n-1)) = imod;
+               envnum(1,ic:(ic+n-1)) = obj.envs{1,imod};
                etype(1,ic:(ic+n-1))= 2;
                ic = ic + n;
                if (doPlots)

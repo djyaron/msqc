@@ -70,7 +70,7 @@ else
 end
 end
 
-function rot = getRotationPi(mod,a1,a2)
+function rot = getRotationPi(mod,a1)
 % For double bonds, we use one mixer to do the sigma bond and a different
 % mixer to do the pi bond. For the pi bond, we do the same thing as above, 
 % but we use the non-hybridized p-orbital instead of the hybrid.
@@ -83,7 +83,7 @@ function rot = getRotationPi(mod,a1,a2)
 bonded = mod.isBonded(a1,:);
 coord = mod.coord(a1);
 if (coord ~= 3)
-   error('pi bond between atoms with 3 fold coordination');
+   error('pi bond between atoms without 3 fold coordination');
 end
 [~,bondedAtoms] = find(bonded == 1);
 r1 = mod.rcart(:,bondedAtoms(1));
