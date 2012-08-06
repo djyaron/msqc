@@ -1,21 +1,21 @@
 function demo4
 % Function that demonstrates use of getFitme
 
-% % EXAMPLE 1 Hydrogen
-% f1 = getFitme(1,1,1,1,'h2',2:7);
-% 
-% [lowLimits,highLimits] = getLimits(f1);
-% start = f1.getPars;
-% options = optimset('DiffMinChange',1.0e-5,'TolFun',1.0e-3,'TolX',3.0e-3);
-% 
-% [pt,resnorm,residual,exitflag,output,lambda,jacobian] = ...
-%    lsqnonlin(@f1.err, start,lowLimits,highLimits,options);
-% display('Hydrogen results');
-% display(['pt = ',num2str(pt)]);
-% display(['resnorm = ',num2str(resnorm)]);
-% 
-% %pt = 0.62343  1.9482  0.67907  1.2712  0.48982  1.4852
-% %resnorm = 0.076006  (7.706 kcal/mol)
+% EXAMPLE 1 Hydrogen
+f1 = getFitme(1,1,1,1,'h2',2:7);
+
+[lowLimits,highLimits] = getLimits(f1);
+start = f1.getPars;
+options = optimset('DiffMinChange',1.0e-5,'TolFun',1.0e-3,'TolX',3.0e-3);
+
+[pt,resnorm,residual,exitflag,output,lambda,jacobian] = ...
+   lsqnonlin(@f1.err, start,lowLimits,highLimits,options);
+display('Hydrogen results');
+display(['pt = ',num2str(pt)]);
+display(['resnorm = ',num2str(resnorm)]);
+
+%pt = 0.62343  1.9482  0.67907  1.2712  0.48982  1.4852
+%resnorm = 0.076006  (7.706 kcal/mol)
 
 %
 % EXAMPLE 2 methane fit: KE only for 7 geometries (geoms can go up to 1:17)
@@ -36,23 +36,23 @@ display(['resnorm = ',num2str(resnorm)]);
 %pt = 1.0211     0.85864      1.3767
 %resnorm = 0.2444 (25.5857 kcal/mol)
 
-% % EXAMPLE 3: methane fit: all energies, for 7 geometries (geoms can go up to 1:17)
-% f1 = getFitme(1,1,1,1,'ch4',1:7);
-% 
-% [lowLimits,highLimits] = getLimits(f1);
-% start = f1.getPars;
-% options = optimset('DiffMinChange',1.0e-5,'TolFun',1.0e-3,'TolX',3.0e-3);
-% 
-% [pt,resnorm,residual,exitflag,output,lambda,jacobian] = ...
-%    lsqnonlin(@f1.err, start,lowLimits,highLimits,options);
-% 
-% display('Methane results');
-% display(['pt = ',num2str(pt)]);
-% display(['resnorm = ',num2str(resnorm)]);
-% 
-% %Methane results
-% %pt = 1.1305     0.77577      1.9704     0.79484     0.92042      1.1347     0.20348     0.95222     0.95053     0.93869
-% %resnorm = 0.32642 (11.1763 kcal/mol)
+% EXAMPLE 3: methane fit: all energies, for 7 geometries (geoms can go up to 1:17)
+f1 = getFitme(1,1,1,1,'ch4',1:7);
+
+[lowLimits,highLimits] = getLimits(f1);
+start = f1.getPars;
+options = optimset('DiffMinChange',1.0e-5,'TolFun',1.0e-3,'TolX',3.0e-3);
+
+[pt,resnorm,residual,exitflag,output,lambda,jacobian] = ...
+   lsqnonlin(@f1.err, start,lowLimits,highLimits,options);
+
+display('Methane results');
+display(['pt = ',num2str(pt)]);
+display(['resnorm = ',num2str(resnorm)]);
+
+%Methane results
+%pt = 1.1305 0.77577 1.9704 0.79484 0.92042 1.1347 0.20348 0.95222 0.95053 0.93869
+%resnorm = 0.32642 (11.1763 kcal/mol)
 end
 
 function f1 = getFitme(KE,EN,E2,scale,varargin)
