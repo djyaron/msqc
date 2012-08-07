@@ -1,5 +1,5 @@
 %% Fitting multiple molecules, using makeFitme
-%clear classes;
+clear classes;
 topDir = 'T:\matdl\yaron\8-3-12\quadratic\';
 %topDir = 'scalehybridparallel/';
 ics = 1;
@@ -8,13 +8,14 @@ ftype = 2;
 runParallel = 0;
 showPlots = 1;
 
-trainC{1}  = {'h2',3,'envs',1:100};
-testC{1} = []; %{'h2',4,'envs',1:100};
-filePrefix{1} = 'h2-3';
+%trainC{1}  = {'h2',3,'envs',1:100};
+%testC{1} = []; %{'h2',4,'envs',1:100};
+%filePrefix{1} = 'h2-geom3';
 
-%trainC{1}  = {'h2',[],'ch4',1:17,'envs',1:10};
-%testC{1} = {'h2',[],'ch4',1:17,'envs',20:30};
-%filePrefix{1} = 'ch4';
+for igeom = 2:17
+trainC{1}  = {'h2',[],'ch4',igeom,'envs',1:100};
+testC{1} = []; %{'h2',[],'ch4',1:17,'envs',20:30};
+filePrefix{1} = ['ch4-geom',num2str(igeom)];
 
 trainC{2}  = {'h2',[],'ethane',1:7,'envs',1:10};
 testC{2} = {'h2',[],'ethane',1:7,'envs',20:30};
@@ -58,8 +59,14 @@ for iC = ics
    en = [];
    e2 = [];
    f1 = [];
-   for iPar = 1:5
+   if (exist([topDir,filePre],'dir') ~= 7)
+      status = mkdir([topDir,filePre]);
+   end
+   summaryName = [topDir,filePre,'\summary.txt'];
+   summaryFile = fopen(summaryName,'a');
+   for iPar = 1:6
       if (iPar == 1)
+         fprintf(summaryFile,' %s \n','no shift, no context');
          if (ftype == 2)
             iP = 1;
          else
@@ -94,7 +101,7 @@ for iC = ics
          e2.HH = Mixer(iP,1,'e2.HH',ftype);
          e2.CC = Mixer(iP,1,'e2.CC',ftype);
          e2.CH = Mixer(iP,1,'e2.CH',ftype);
-
+         
          if (isempty(testIn))
             f1 = makeFitme(trainIn{:},commonIn{:},'enstructh',en, ...
                'kestructh',ke,'e2struct',e2);
@@ -108,7 +115,8 @@ for iC = ics
          end
          f1.plot = showPlots;
          f1.parallel = runParallel;
-      elseif (iPar == 2) % add constants to diagonal 1-elec terms
+      elseif (iPar == 2)
+         fprintf(summaryFile,' %s \n','with shift, no context');
          for m1 = [ke.H ke.Cs en.H en.Cs]
             if (ftype == 2)
                m1.funcType = 3;
@@ -118,22 +126,47 @@ for iC = ics
             m1.par(2) = 0;
             m1.fixed(2) = 0;
          end
-      elseif (iPar == 3) % ke diag linear
+      elseif (iPar == 3)
+         fprintf(summaryFile,' %s \n','ke diag linear');
          for m1 = [ke.H ke.Cs]
             m1.mixType = 2;
             m1.par(3) = m1.par(2);
             m1.par(2) = 0;
             m1.fixed(3) = 0;
          end
-      elseif (iPar == 4) % ke diag quad
+      elseif (iPar == 3)
+         fprintf(summaryFile,' %s \n','ke diag linear');
+         for m1 = [ke.H ke.Cs]
+            m1.mixType = 2;
+            m1.par(3) = m1.par(2);
+            m1.par(2) = 0;
+            m1.fixed(3) = 0;
+         end
+      elseif (iPar == 4)
+         fprintf(summaryFile,' %s \n','en diag linear');
+         for m1 = [en.H en.Cs]
+            m1.mixType = 2;
+            m1.par(3) = m1.par(2);
+            m1.par(2) = 0;
+            m1.fixed(3) = 0;
+         end
+      elseif (iPar == 5)
+         fprintf(summaryFile,' %s \n','ke diag quad');
          for m1 = [ke.H ke.Cs]
             m1.mixType = 22;
             m1.par(4) = m1.par(3);
             m1.par(3) = 0.0;
             m1.fixed(4) = 0;
          end
+      elseif (iPar == 6)
+         fprintf(summaryFile,' %s \n','en diag quad');
+         for m1 = [en.H en.Cs]
+            m1.mixType = 22;
+            m1.par(4) = m1.par(3);
+            m1.par(3) = 0.0;
+            m1.fixed(4) = 0;
+         end
       end
-      
       
       dataDir = [topDir,filePre,'/fit-',num2str(iPar),'/'];
       allFile = [dataDir,'all.mat'];
@@ -187,15 +220,16 @@ for iC = ics
          end
          [pt,resnorm,residual,exitflag,output,lambda,jacobian] = ...
             lsqnonlin(@f1.err, start,lowLimits,highLimits,options);
-         %       options = LMFnlsq;
-         %      options.Display =1;
-         %    options.FunTol = 1.0e-6;
-         %    options.XTol = 1.0e-5;
-         %    [pt,resnorm, CNT, Res, XY] = LMFnlsq(@f1.err,start',options);
+         %  options = LMFnlsq;
+         %  options.Display =1;
+         %  options.FunTol = 1.0e-6;
+         %  options.XTol = 1.0e-5;
+         %  [pt,resnorm, CNT, Res, XY] = LMFnlsq(@f1.err,start',options);
          clockTime = toc
          pt
          resnorm
          f1.printMixers;
+         f1.printEDetails(summaryFile);
          save([dataDir,'all.mat']);
          
          diary off;
@@ -216,4 +250,6 @@ for iC = ics
          end
       end
    end
+   fclose(summaryFile);
+end
 end
