@@ -19,7 +19,7 @@ else
    save('ch4/env2.mat','env');
 end
 nenv = size(env,2);
-nenv = 20;
+%nenv = 20;
 
 pars{1} = [1.12 1.12 1.12 1.12 109.47 109.47 109.47 120.0 -120.0];
 pars{2} = [0.97 0.97 0.97 0.97 109.47 109.47 109.47 120.0 -120.0];
@@ -56,10 +56,10 @@ HLbasis = {'6-31G'};% '6-31G*' '6-31G**'};
 HL = cell(npar,3);
 LL = cell(npar,3);
 %%
-if (exist('ch4/ch4Dat.mat','file'))
-   disp('loading existing data');
-   load('ch4/ch4Dat.mat');
-else
+%if (exist([root,'ch4/ch4Dat.mat'],'file'))
+%   disp('loading existing data');
+%   load([root,'ch4/ch4Dat.mat');
+%else
    for ipar = 1:size(pars,2)
       par = pars{ipar};
       disp(['rch ',num2str(par(1))]);
@@ -115,5 +115,5 @@ else
    end
    
    % since even loading all the files will take time, we'll dave everything
-   save('ch4/ch4Dat.mat');
-end
+   save([root,'ch4/ch4Dat.mat']);
+%end

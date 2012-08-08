@@ -12,7 +12,7 @@ showPlots = 1;
 %testC{1} = []; %{'h2',4,'envs',1:100};
 %filePrefix{1} = 'h2-geom3';
 
-for igeom = 2:17
+for igeom = 20:23
 trainC{1}  = {'h2',[],'ch4',igeom,'envs',1:100};
 testC{1} = []; %{'h2',[],'ch4',1:17,'envs',20:30};
 filePrefix{1} = ['ch4-geom',num2str(igeom)];
