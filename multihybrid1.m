@@ -1,6 +1,6 @@
 %% Fitting multiple molecules, using makeFitme
 clear classes;
-topDir = 'T:\matdl\yaron\8-3-12\quadratic\';
+topDir = 'T:\matdl\yaron\8-3-12\quadratic-sp\';
 %topDir = 'scalehybridparallel/';
 ics = 1;
 
@@ -12,7 +12,7 @@ showPlots = 1;
 %testC{1} = []; %{'h2',4,'envs',1:100};
 %filePrefix{1} = 'h2-geom3';
 
-for igeom = 20:23
+for igeom =[1:3 20:23]
 trainC{1}  = {'h2',[],'ch4',igeom,'envs',1:100};
 testC{1} = []; %{'h2',[],'ch4',1:17,'envs',20:30};
 filePrefix{1} = ['ch4-geom',num2str(igeom)];
@@ -64,8 +64,8 @@ for iC = ics
    end
    summaryName = [topDir,filePre,'\summary.txt'];
    summaryFile = fopen(summaryName,'a');
-   for iPar = 1:6
-      if (iPar == 1)
+   for iPar = 0:9
+      if (iPar == 0)
          fprintf(summaryFile,' %s \n','no shift, no context');
          if (ftype == 2)
             iP = 1;
@@ -80,7 +80,7 @@ for iC = ics
          ke.CH = Mixer(iP,1,'ke.CH',ftype);
          ke.CH.hybrid = 1;
          ke.CCs = Mixer(iP,1,'ke.CCs',ftype);
-         ke.CC.hybrid = 1;
+         ke.CCs.hybrid = 1;
          ke.CCp = Mixer(iP,1,'ke.CCp',ftype);
          ke.CCp.hybrid = 2;
          
@@ -115,9 +115,13 @@ for iC = ics
          end
          f1.plot = showPlots;
          f1.parallel = runParallel;
+      elseif (iPar == 1)
+         fprintf(summaryFile,' %s \n','with shift, no context');
+         ke.Cp = ke.Cs.deepCopy;
+         en.Cp = en.Cs.deepCopy;         
       elseif (iPar == 2)
          fprintf(summaryFile,' %s \n','with shift, no context');
-         for m1 = [ke.H ke.Cs en.H en.Cs]
+         for m1 = [ke.H ke.Cs ke.Cp en.H en.Cs en.Cp]
             if (ftype == 2)
                m1.funcType = 3;
             else
@@ -128,7 +132,7 @@ for iC = ics
          end
       elseif (iPar == 3)
          fprintf(summaryFile,' %s \n','ke diag linear');
-         for m1 = [ke.H ke.Cs]
+         for m1 = [ke.H ke.Cs ke.Cp]
             m1.mixType = 2;
             m1.par(3) = m1.par(2);
             m1.par(2) = 0;
@@ -136,7 +140,7 @@ for iC = ics
          end
       elseif (iPar == 3)
          fprintf(summaryFile,' %s \n','ke diag linear');
-         for m1 = [ke.H ke.Cs]
+         for m1 = [ke.H ke.Cs ke.Cp]
             m1.mixType = 2;
             m1.par(3) = m1.par(2);
             m1.par(2) = 0;
@@ -144,7 +148,7 @@ for iC = ics
          end
       elseif (iPar == 4)
          fprintf(summaryFile,' %s \n','en diag linear');
-         for m1 = [en.H en.Cs]
+         for m1 = [en.H en.Cs en.Cp]
             m1.mixType = 2;
             m1.par(3) = m1.par(2);
             m1.par(2) = 0;
@@ -152,7 +156,7 @@ for iC = ics
          end
       elseif (iPar == 5)
          fprintf(summaryFile,' %s \n','ke diag quad');
-         for m1 = [ke.H ke.Cs]
+         for m1 = [ke.H ke.Cs ke.Cp]
             m1.mixType = 22;
             m1.par(4) = m1.par(3);
             m1.par(3) = 0.0;
@@ -160,11 +164,32 @@ for iC = ics
          end
       elseif (iPar == 6)
          fprintf(summaryFile,' %s \n','en diag quad');
-         for m1 = [en.H en.Cs]
+         for m1 = [en.H en.Cs en.Cp]
             m1.mixType = 22;
             m1.par(4) = m1.par(3);
             m1.par(3) = 0.0;
             m1.fixed(4) = 0;
+         end
+      elseif (iPar == 7)
+         fprintf(summaryFile,' %s \n','ke off diag BO');
+         for m1 = ke.CH
+            m1.mixType = 3;
+            m1.par(2) = 0.0;
+            m1.fixed(2) = 0;
+         end
+      elseif (iPar == 8)
+         fprintf(summaryFile,' %s \n','en off diag BO');
+         for m1 = en.CH
+            m1.mixType = 3;
+            m1.par(2) = 0.0;
+            m1.fixed(2) = 0;
+         end
+      elseif (iPar == 9)
+         fprintf(summaryFile,' %s \n','e2 off diag BO');
+         for m1 = e2.CH
+            m1.mixType = 3;
+            m1.par(2) = 0.0;
+            m1.fixed(2) = 0;
          end
       end
       
