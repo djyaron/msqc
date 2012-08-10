@@ -121,7 +121,7 @@ classdef Mixer < handle
             %res = ((1.0-x)/2.0) * v1 + ((1.0+x)/2.0) * v2;
             res = obj.mixFunction(x,v0,v1,v2,model, ii, jj);
          elseif (obj.mixType == 22)
-            % charge dependent mixing
+            % charge dependent mixing quadratic
             iatom = model.basisAtom(ii(1));
             ch = model.charges(iatom,ienv+1);
             x0 = obj.par(1);
