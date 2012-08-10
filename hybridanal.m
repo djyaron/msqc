@@ -1,4 +1,4 @@
-commonDirName = 'T:\matdl\yaron\8-3-12\quadratic\ch4-geom';
+commonDirName = 'T:\matdl\yaron\8-3-12\quadratic-sp\ch4-geom';
 % bond lengths are:
 % pars{2} = [0.97 0.97 0.97 0.97 109.47 109.47 109.47 120.0 -120.0];
 % pars{20} = [1.02 1.02 1.02 1.02 109.47 109.47 109.47 120.0 -120.0];
