@@ -183,6 +183,21 @@ classdef Mixer < handle
             x = x0 + xslopebo*(bo-1) + xslopebl*bl;
             %res = ((1.0-x)/2.0) * v1 + ((1.0+x)/2.0) * v2;
             res = obj.mixFunction(x,v0,v1,v2,model, ii, jj);
+         elseif (obj.mixType == 11)
+            % context dependent, diagonal
+            iatom = model.basisAtom(ii(1));
+            xcontext = model.atomContext(iatom,ienv);
+            nx = length(xcontext);
+            x = obj.par(1) + sum(obj.par(2:(1+nx)).*xcontext');
+            res = obj.mixFunction(x,v0,v1,v2,model, ii, jj);
+         elseif (obj.mixType == 12)
+            % context dependent, diagonal
+            iatom = model.basisAtom(ii(1));
+            jatom = model.basisAtom(jj(1));
+            xcontext = model.bondContext(iatom,jatom,ienv);
+            nx = length(xcontext);
+            x = obj.par(1) + sum(obj.par(2:(1+nx)).*xcontext');
+            res = obj.mixFunction(x,v0,v1,v2,model, ii, jj);
          else
             error(['unknown mix type in Mixer: ',num2str(obj.mixType)]);
          end
@@ -190,6 +205,8 @@ classdef Mixer < handle
       function res = print(obj)
          types = {'sigmoid','linear','ch-dep','bo-dep','bl-dep','bo-bl-dep'};
          types{23} = 'ch-dep-quad';
+         types{11} = 'context-atom';
+         types{12} = 'context-bond';
          ftypes = {' ','mult','mult-c','mix-c'};
          res = [obj.desc,' ',types{obj.mixType+1},' ',...
             ftypes{obj.funcType}];

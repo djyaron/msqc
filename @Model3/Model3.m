@@ -51,6 +51,11 @@ classdef Model3 < handle
    %properties (Transient)
       densitySave   % cell array {1:nenv+1} of most recent density matrices
       % used to start HF iterations
+      % cached contexts (see atomContext and bondContext)
+      atomContextXSaved % {iatom,ienv}
+      atomContextNSaved % {iatom}
+      bondContextXSaved % {iatom,jatom,ienv}
+      bondContextNSaved % {iatom,jatom}
    end
    methods
       function res = Model3(frag_,fnar_, fdif_)
@@ -117,6 +122,10 @@ classdef Model3 < handle
          res.EhfEnv  = zeros(1,res.nenv);
          res.EorbEnv = zeros(res.nbasis,res.nenv);
          res.orbEnv  = zeros(res.nbasis,res.nbasis,res.nenv);
+         res.atomContextXSaved = {};
+         res.atomContextNSaved = {};
+         res.bondContextXSaved = {};
+         res.bondContextNSaved = {};
          end
       end
       function res = npar(obj)
