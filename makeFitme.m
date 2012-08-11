@@ -270,6 +270,9 @@ if (~isempty(e2struct))
    fitme.includeE2 = 1;
 end
 fitme.setEnvs(envs);
+% setEnvs calculates the HL values of everything we are fitting to, so the
+% HLs are no longer needed. By removing these from fitme, we make the fitme
+% object quite a bit smaller.
 fitme.HLs = [];
 if (doPlot > 0)
    fitme.plot = 1;
