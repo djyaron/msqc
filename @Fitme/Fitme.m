@@ -14,6 +14,9 @@ classdef Fitme < handle
       
       parHF   % Last parameters for which HF was solved
       epsDensity % re-evaluate density matrix if par change > eps
+      epsDensity2 % re-set density matrices if par change > eps
+                  % this is because odd parameters can lead to odd
+                  % densities, that should be reset.
       
       plot       % Plot results on every call to err()
       LLKE       % {1,nmodels}(1,nenv) used only for plots
@@ -41,6 +44,7 @@ classdef Fitme < handle
          res.HLKE   = cell(0,0);
          res.HLEN   = cell(0,0);
          res.epsDensity = 0.0;
+         res.epsDensity2 = 0.01;
          res.includeKE = 1;
          res.includeEN = zeros(1,6);
          res.includeE2 = 0;
@@ -158,6 +162,12 @@ classdef Fitme < handle
             dpar = 1e10;
          else
             dpar = max(abs(obj.parHF-par));
+         end
+         if (dpar > obj.epsDensity2)
+            for imod = 1:obj.nmodels
+               obj.models{imod}.densitySave = ...
+                  cell(1,obj.models{imod}.nenv+1);
+            end
          end
          if (dpar > obj.epsDensity)
             if (~obj.parallel)
