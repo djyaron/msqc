@@ -67,7 +67,7 @@ classdef Mixer < handle
       end
       function res = getPars(obj)
          ic = find(obj.fixed == 0);
-         if (size(ic,2) > 0)
+         if (length(ic) > 0)
             res = obj.par(ic);
          else
             res = [];
