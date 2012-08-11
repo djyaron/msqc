@@ -9,7 +9,7 @@ commonDirName = 'T:\matdl\yaron\8-3-12\quadratic-sp\ch4-geom';
 % pars{3} = [1.27 1.27 1.27 1.27 109.47 109.47 109.47 120.0 -120.0];
 
 extensions = {'2','20','21','1','22','23','3'};
-postName = '\fit-1\';
+postName = '\fit-9\';
 
 for i = 1:length(extensions)
    dirName = [commonDirName,extensions{i},postName];
