@@ -212,6 +212,9 @@ classdef Mixer < handle
             ftypes{obj.funcType}];
          for i = 1:size(obj.par,2)
             res = [res,' ',num2str(obj.par(i))];
+            if (obj.fixed(i))
+               res = [res,'*'];
+            end
          end
          disp(res);
       end
