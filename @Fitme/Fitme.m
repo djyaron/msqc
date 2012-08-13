@@ -34,6 +34,7 @@ classdef Fitme < handle
       arms       % (npar,narms): for bandit algorithm
       parallel   % true to run updateDensity in parallel
       restartFile % place to save intermediate results
+      silent     % suppress all displayed output
       
       hftime
    end
@@ -57,6 +58,7 @@ classdef Fitme < handle
          res.errCalls = 0;
          res.itcount = 0;
          res.parallel = 0;
+         res.silent = 0;
       end
       function addMixer(obj, mix)
          add = 1;
@@ -171,12 +173,16 @@ classdef Fitme < handle
          end
          if (dpar > obj.epsDensity)
             if (~obj.parallel)
-               disp(['solving for density matrices']);
+               if (~obj.silent)
+                  disp(['solving for density matrices']);
+               end
                for imod = 1:obj.nmodels
                   obj.models{imod}.solveHF(obj.envs{1,imod});
                end
             else
-               disp(['parallel solving for density matrices']);
+               if (~obj.silent)
+                  disp(['parallel solving for density matrices']);
+               end
                obj.solveHFparallel;
             end
             obj.parHF = par;
@@ -205,7 +211,9 @@ classdef Fitme < handle
             par = par';
             flip = 1;
          end
-         disp(['Fitme.err called with par = ',num2str(par)]);
+         if (~obj.silent)
+            disp(['Fitme.err called with par = ',num2str(par)]); 
+         end
          obj.setPars(par);
          dpar = obj.updateDensity();
          
@@ -329,8 +337,10 @@ classdef Fitme < handle
                end
             end
          end
-         disp(['RMS err/ndata = ',num2str(sqrt(res*res')/ndat), ...
-            ' kcal/mol err = ',num2str(sqrt(res*res'/ndat)*627.509)]);
+         if (~obj.silent)
+            disp(['RMS err/ndata = ',num2str(sqrt(res*res')/ndat), ...
+               ' kcal/mol err = ',num2str(sqrt(res*res'/ndat)*627.509)]);
+         end
          obj.itcount = obj.itcount + 1;
          obj.errTrain(obj.itcount) = norm(res);
          if (size(obj.testFitme,1) > 0)
@@ -359,7 +369,9 @@ classdef Fitme < handle
          
          if (dpar > 1.0e-4)
             if (~isempty(obj.restartFile))
-               disp('saving restart file');
+               if (~obj.silent)
+                  disp('saving restart file');
+               end
                ptSave = par;
                itSave = obj.itcount;
                errTrainSave = obj.errTrain;
