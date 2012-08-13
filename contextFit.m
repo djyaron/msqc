@@ -1,5 +1,8 @@
 function [err,pt] = contextFit(f1,mixNumber,parNumber)
 
+if (isempty(f1))
+   load('f1temp.mat','f1');
+end
 if (mixNumber > 0)
    f1.mixers{mixNumber}.fixed(parNumber) = 0;
 end

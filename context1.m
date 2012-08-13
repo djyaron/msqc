@@ -1,7 +1,7 @@
 %% Playing around with ways to ramp up context
 clear classes;
 close all;
-%% choose representative environments
+% choose representative environments
 % load('datasets/ch4Dat.mat');
 % 
 % m1 = LL{1,1};
@@ -13,24 +13,24 @@ close all;
 % hold on;
 % plot(ikeep,Ehf(ikeep),'ro');
 % save('ch4keep.mat','ikeep');
-%%
+%
 iprocess = 2;
-topDir = 'C:\matdl\yaron\8-11-12\context\';
+topDir = 'C:\matdl\yaron\8-12-12\context-par\';
 ftype = 3;
-runParallel = 0;
+runParallel = 1;
 showPlots = 1;
 
 ics = 1;
 
 if (iprocess == 1)
-   trainC{1} = {'h2',2:4,'envs',1:5};
+   trainC{1} = {'h2',2:3,'envs',1:5};
    testC{1} = []; %{'h2',4,'envs',1:100};
-   filePrefix{1} = 'h2-27';
+   filePrefix{1} = 'h2-2-3';
 elseif (iprocess == 2)
    load('ch4keep.mat');
-   trainC{1} = {'ch4',1:17,'envs',ikeep};
+   trainC{1} = {'ch4',[1:8,20:23],'envs',ikeep};
    testC{1} = []; %{'h2',4,'envs',1:100};
-   filePrefix{1} = 'ch4-17';
+   filePrefix{1} = 'ch4-bl';
 end
 filePre = filePrefix{1};
 dataDir = [topDir,filePre];
@@ -48,7 +48,7 @@ if (exist(diaryName,'file'))
 end
 diary(diaryName);
 diary on;
-commonIn = {};
+commonIn = {'silent',0};
 %
 iC = 1;
 trainIn = trainC{iC};
@@ -122,43 +122,72 @@ end
 [currentError,currentPar] = contextFit(f1,0,0);
 disp(['starting error ', num2str(currentError)]);
 fprintf(summaryFile,'initial error %12.5f \n',currentError);
-errors = [];
-mixes = {};
-pars = {};
-for iter = 1:20
-   fprintf(1,'STARTING INTERATION %i \n',iter);
-   fprintf(summaryFile,'STARTING INTERATION %i \n',iter);
+ticID = tic;
+for iter = 1:15
+   fprintf(1,'STARTING ITERATION %i \n',iter);
+   fprintf(summaryFile,'STARTING ITERATION %i \n',iter);
+   if (runParallel)
+      save('f1temp.mat','f1');
+   end
+   % set up loop over imix and ipar, so we can do one big parfor loop
+   ic = 0;
+   mixes = {};
    for imix = 1:length(f1.mixers)
       mix = f1.mixers{imix};
-      if (mix.mixType == 11)
-         names = diagNames;
-      elseif (mix.mixType == 12)
-         names = bondNames;
-      elseif (mixType == 4)
-         names = {'val','r'};
-      end
       for ipar = 1:length(mix.par)
          if (mix.fixed(ipar) == 1)
-            [etemp, ptemp] = contextFit(f1,imix,ipar);
-            errors(end+1) = etemp;
-            pars{end+1} = ptemp;
-            temp.imix = imix;
-            temp.ipar = ipar;
-            temp.name = [mix.desc,' ',names{ipar}];
-            mixes{end+1} = temp;
-            disp([mix.desc,' context ',names{ipar},' err ', ...
-               num2str(etemp - currentError)]);
-            f1.printMixers;
-%            input('junk');
-            f1.mixers{imix}.fixed(ipar) = 1;
-            f1.mixers{imix}.par(ipar) = 0;
-            f1.setPars(currentPar);
-            fprintf(summaryFile, ...
-               '  %s context %s %12.5f \n',mix.desc,names{ipar},etemp);
+            temp2.imix = imix;
+            temp2.ipar = ipar;
+            if (mix.mixType == 11)
+               names = diagNames;
+            elseif (mix.mixType == 12)
+               names = bondNames;
+            elseif (mix.mixType == 4)
+               names = {'val','r'};
+            end
+            temp2.name = [mix.desc,' ',names{ipar}];
+            ic = ic+1;
+            mixes{ic} = temp2;
          end
       end
    end
+   nSave = length(mixes);
+   errors = zeros(nSave,1);
+   pars = cell(nSave,1);
+   parfor ic = 1:nSave
+      imix = mixes{ic}.imix;
+      ipar = mixes{ic}.ipar;
+      %name = mixes{ic}.name;
+%      if (runParallel)
+         [etemp,ptemp] = contextFit([],imix,ipar);
+%      else
+%         [etemp, ptemp] = contextFit(f1,imix,ipar);
+%      end
+      errors(ic) = etemp;
+      pars{ic} = ptemp;
+%       temp.imix = imix;
+%       temp.ipar = ipar;
+%       temp.name = [desc,' ',names{ipar}];
+%       mixes{ic} = temp;
+%      disp([desc,' context ',names{ipar},' err ', ...
+%         num2str(etemp - currentError)]);
+%       if (~runParallel)
+%          f1.printMixers;
+%          %            input('junk');
+%          f1.mixers{imix}.fixed(ipar) = 1;
+%          f1.mixers{imix}.par(ipar) = 0;
+%          f1.setPars(currentPar);
+%       end
+%      fprintf(summaryFile, ...
+%         '%s %12.5f \n',name,etemp);
+%       fprintf(summaryFile, ' %i %12.5f \n',ic,etemp);
+
+   end
    disp('Done with loop over all mixers');
+   for ic=1:nSave
+      fprintf(summaryFile, ...
+         '%s %12.5f \n',mixes{ic}.name,errors(ic));
+   end      
    [lowErr,lowi] = min(errors);
    currentError = lowErr;
    currentPar = pars{lowi};
@@ -172,6 +201,8 @@ for iter = 1:20
    f1.mixers{imix}.fixed(ipar) = 0;
    f1.setPars(pars{lowi});
    f1.printMixers;
+   allName = [topDir,filePre,'/all-',num2str(iter),'.mat'];
+   save(allName);
 end
 diary off;
 fclose(summaryFile);
@@ -184,3 +215,4 @@ fclose(summaryFile);
 %          num2str(etemp)]);
 %       disp(['pars ',num2str(pars{i})]);
 %    end
+runTime = toc(ticID)
