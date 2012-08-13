@@ -1,4 +1,5 @@
-%% Playing around with ways to ramp up context
+%function context1(iprocess)
+% Playing around with ways to ramp up context
 clear classes;
 close all;
 % choose representative environments
@@ -15,7 +16,8 @@ close all;
 % save('ch4keep.mat','ikeep');
 %
 iprocess = 2;
-topDir = 'C:\matdl\yaron\8-12-12\context-par\';
+topDir = 'C:/matdl/yaron/8-12-12/context-psc/';
+%topDir = '/brashear/yaron/matdl/8-12-12/context-psc/';
 ftype = 3;
 runParallel = 1;
 showPlots = 1;
@@ -27,10 +29,11 @@ if (iprocess == 1)
    testC{1} = []; %{'h2',4,'envs',1:100};
    filePrefix{1} = 'h2-2-3';
 elseif (iprocess == 2)
-   load('ch4keep.mat');
-   trainC{1} = {'ch4',[1:8,20:23],'envs',ikeep};
+%   load('ch4keep.mat');
+ikeep = [ 12    26    37    41    47    48    62    92    94];
+   trainC{1} = {'ch4',1:23,'envs',ikeep};
    testC{1} = []; %{'h2',4,'envs',1:100};
-   filePrefix{1} = 'ch4-bl';
+   filePrefix{1} = 'ch4-23';
 end
 filePre = filePrefix{1};
 dataDir = [topDir,filePre];
@@ -135,7 +138,7 @@ for iter = 1:15
    for imix = 1:length(f1.mixers)
       mix = f1.mixers{imix};
       for ipar = 1:length(mix.par)
-         if (mix.fixed(ipar) == 1)
+         if ((ipar < 4) && (mix.fixed(ipar) == 1))
             temp2.imix = imix;
             temp2.ipar = ipar;
             if (mix.mixType == 11)
