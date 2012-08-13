@@ -24,6 +24,7 @@ function fitme = makeFitme(varargin)
 %  kestructh  []             structure with kemods hybrid
 %  e2struct  []              structure with e2mods
 %  testFitme []              Fitme object with test data
+%  silent    0               suppress fitme displayed output
 
 % To test parsing of input, use:
 %makeFitme('datadir','./mydata','nhl',2,'plot',0,'envs',1:3,'h2',1:3, ...
@@ -56,6 +57,7 @@ kestruct = checkForInput(varargin,'kestruct',[]);
 kestructh = checkForInput(varargin,'kestructh',[]);
 e2struct = checkForInput(varargin,'e2struct',[]);
 testFitme = checkForInput(varargin,'testFitme',[]);
+silent = checkForInput(varargin,'silent',0);
 
 if (~isempty(enstruct) && ~isempty(enstruct1))
    error('Do not set both enstruct and enstruct1');
@@ -269,6 +271,7 @@ fitme.includeEN = includeENmods * ones(1,6);
 if (~isempty(e2struct))
    fitme.includeE2 = 1;
 end
+fitme.silent = silent;
 fitme.setEnvs(envs);
 % setEnvs calculates the HL values of everything we are fitting to, so the
 % HLs are no longer needed. By removing these from fitme, we make the fitme
