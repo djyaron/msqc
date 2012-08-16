@@ -26,6 +26,22 @@ maxpars = 1000;
 HLbasis = {'6-31G'};% '6-31G*' '6-31G**'};
 HL = cell(0,0);
 LL = cell(0,0);
+loadResults = 1;
+%% Load data into a *.mat file
+if (loadResults)
+   lfiles = dir([dataroot,'/*_cfg.mat']);
+   parsIn = {};
+   for i = 1:length(lfiles)
+      % disp(lfiles(i).name);
+      load([dataroot,'/',lfiles(i).name]);
+      % disp([Cfile.template,' ',Cfile.basisSet]);
+      if (strcmpi(Cfile.basisSet,HLbasis{1}))
+         parsIn{end+1} = Cfile.par;
+      end
+   end
+end
+maxpars = length(parsIn);
+maxpars = 25;
 %%
 if (exist('dataz/ch4r/ch4rDat.mat','file'))
    disp('loading existing data');
@@ -33,9 +49,13 @@ if (exist('dataz/ch4r/ch4rDat.mat','file'))
 else
    for ipar = 1:maxpars
       %pars{1} = [1.12 1.12 1.12 1.12 109.47 109.47 109.47 120.0 -120.0];
-      par = [rr1(r1,r2) rr1(r1,r2) rr1(r1,r2) rr1(r1,r2) ...
-         rr1(t1,t2) rr1(t1,t2) rr1(t1,t2) ...
-         rr1(p1,p2) -rr1(p1,p2)];
+      if (loadResults)
+         par = parsIn{ipar};
+      else
+         par = [rr1(r1,r2) rr1(r1,r2) rr1(r1,r2) rr1(r1,r2) ...
+            rr1(t1,t2) rr1(t1,t2) rr1(t1,t2) ...
+            rr1(p1,p2) -rr1(p1,p2)];
+      end
       pars{ipar} = par;
       disp([num2str(ipar),' par = ',num2str(par)]);
       
@@ -53,7 +73,7 @@ else
             display(['HL env ',num2str(ienv)]);
             frag1.addEnv(env{ienv});
          end
-         %HL{ipar,ihl} = frag1;
+         HL{ipar,ihl} = frag1;
       end
       % LL 1
       config.basisSet = 'STO-3G';
@@ -63,7 +83,7 @@ else
          display(['LL env ',num2str(ienv)]);
          frag2.addEnv(env{ienv});
       end
-      %LL{ipar,1} = frag2;
+      LL{ipar,1} = frag2;
       
       % LL 2
       config.template = 'ch4-gen';
@@ -75,7 +95,7 @@ else
          display(['LL env ',num2str(ienv)]);
          frag3.addEnv(env{ienv});
       end
-      %LL{ipar,2} = frag3;
+      LL{ipar,2} = frag3;
       % LL 3
       config.template = 'ch4-gen';
       config.basisSet = 'GEN';
@@ -86,9 +106,12 @@ else
          display(['LL env ',num2str(ienv)]);
          frag4.addEnv(env{ienv});
       end
-      %LL{ipar,3} = frag4;
+      LL{ipar,3} = frag4;
    end
    
    % since even loading all the files will take time, we'll dave everything
-   %save('ch4r/ch4rDat.mat');
+   save('ch4r/ch4rDat.mat','LL','HL');
 end
+
+
+
