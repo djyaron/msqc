@@ -16,7 +16,7 @@ close all;
 % save('ch4keep.mat','ikeep');
 %
 iprocess = 2;
-topDir = 'C:/matdl/yaron/8-12-12/context-psc/';
+topDir = 'C:/matdl/yaron/8-15-12/context/';
 %topDir = '/brashear/yaron/matdl/8-12-12/context-psc/';
 ftype = 3;
 runParallel = 1;
@@ -31,9 +31,15 @@ if (iprocess == 1)
 elseif (iprocess == 2)
    %   load('ch4keep.mat');
    ikeep = [ 12    26    37    41    47    48    62    92    94];
-   trainC{1} = {'ch4',1:23,'envs',ikeep};
-   testC{1} = []; %{'h2',4,'envs',1:100};
+   trainC{1} = {'ch4',1:3,'envs',ikeep};
+   testC{1} = {'ch4',4:19,'envs',ikeep};
    filePrefix{1} = 'ch4-23';
+elseif (iprocess == 3)
+   %   load('ch4keep.mat');
+   ikeep = [ 12    26    37    41    47    48    62    92    94];
+   trainC{1} = {'ethane',[1 3 5 7],'envs',ikeep};
+   testC{1} = []; %{'h2',4,'envs',1:100};
+   filePrefix{1} = 'ethane-4geoms';
 end
 filePre = filePrefix{1};
 dataDir = [topDir,filePre];
