@@ -41,6 +41,7 @@ doPlot = checkForInput(varargin,'plot',1);
 envs = checkForInput(varargin,'envs',0:20); 
 geomsH2 = checkForInput(varargin,'h2',[]); % allowed range is 1:7
 geomsCH4 = checkForInput(varargin,'ch4',[]); % allowed range is 1:19
+geomsCH4r = checkForInput(varargin,'ch4r',[]); % allowed range is 1:25
 geomsEthane = checkForInput(varargin,'ethane',[]); % allowed range is 1:7
 geomsEthylene = checkForInput(varargin,'ethylene',[]); % allowed range is 1:7
 geomsPropane = checkForInput(varargin,'propane',[]); % allowed range is 1:7
@@ -71,6 +72,17 @@ plotNumber = [];
 if (~isempty(geomsCH4))
    load([dataDir,'/ch4Dat.mat']);
    for i = geomsCH4
+      ic = ic+1;
+      plotNumber(1,ic) = 801 + 10 * (doPlot-1);
+      for j = 1:size(LL,2)
+         LL1{ic,j} = LL{i,j};
+      end
+      HL1{ic,1} = HL{i,nhl};
+   end
+end
+if (~isempty(geomsCH4r))
+   load([dataDir,'/ch4rDat.mat']);
+   for i = geomsCH4r
       ic = ic+1;
       plotNumber(1,ic) = 801 + 10 * (doPlot-1);
       for j = 1:size(LL,2)
