@@ -194,9 +194,17 @@ classdef Mixer < handle
             % context dependent, diagonal
             iatom = model.basisAtom(ii(1));
             jatom = model.basisAtom(jj(1));
+%             disp(['iatom ',num2str(iatom),' jatom ',num2str(jatom), ...
+%                ' ienv ',num2str(ienv)]);
             xcontext = model.bondContext(iatom,jatom,ienv);
             nx = length(xcontext);
-            x = obj.par(1) + sum(obj.par(2:(1+nx)).*xcontext');
+%             disp(['In mix 12 ',obj.desc,' nx ',num2str(nx),' pars ',num2str(obj.par)]);
+            % if no bond, then we don't do context sensitive scaling
+            if (nx == 0) 
+               x = obj.par(1);
+            else
+               x = obj.par(1) + sum(obj.par(2:(1+nx)).*xcontext');
+            end
             res = obj.mixFunction(x,v0,v1,v2,model, ii, jj);
          else
             error(['unknown mix type in Mixer: ',num2str(obj.mixType)]);
