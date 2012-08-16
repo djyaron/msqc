@@ -1,10 +1,21 @@
-function [err,pt] = contextFit(f1,mixNumber,parNumber)
+function [err,pt] = contextFit(f1,mixNumber,parNumber,remove, maxIter)
 
+if (nargin < 4)
+   remove = 0;
+end
+if (nargin < 5)
+   maxIter = 500;
+end
 if (isempty(f1))
    load('f1temp.mat','f1');
 end
 if (mixNumber > 0)
-   f1.mixers{mixNumber}.fixed(parNumber) = 0;
+   if (remove == 0)
+      f1.mixers{mixNumber}.fixed(parNumber) = 0;
+   else
+      f1.mixers{mixNumber}.fixed(parNumber) = 1;
+      f1.mixers{mixNumber}.par(parNumber) = 0.0;
+   end
 end
 
 f1.plot = 0; % showPlots;
@@ -18,7 +29,7 @@ f1.parallel = 0;
 %   diary on;
 tic
 options = optimset('DiffMinChange',1.0e-4,'TolFun',1.0e-3, ...
-   'TolX',3.0e-3,'MaxFunEvals',500);
+   'TolX',3.0e-3,'MaxFunEvals',maxIter);
 lowLimits = zeros(f1.npar,1);
 highLimits = lowLimits;
 i1 = 1;
