@@ -2,20 +2,24 @@
 % Playing around with ways to ramp up context
 clear classes;
 close all;
-%% choose representative environments
-% load('datasets/ch4Dat.mat');
+% choose representative environments
+% load('datasets/ch4rDat.mat');
 % m1 = LL{1,1};
 % Ehf = m1.EhfEnv;
 % [a,i] = sort(Ehf);
 % plot(a,'b.');
 % %ikeep = i(5:10:90); % used for train of methane
-% ikeep = i(8:10:88); % used for test of methane
-% ikeep = sort(ikeep);
+% %ikeep = i(8:10:88); % used for test of methane
+% ikeep1 = i(4:3:20);
+% ikeep1 = sort(ikeep1);
+% ikeep2 = i(5:3:21);
+% ikeep2 = sort(ikeep2);
 % hold on;
-% plot(ikeep,Ehf(ikeep),'ro');
-% save('ch4keep.mat','ikeep');
-%%
-iprocess = 3;
+% plot(ikeep1,Ehf(ikeep1),'ro');
+% plot(ikeep2,Ehf(ikeep2),'go');
+% %save('ch4keep.mat','ikeep');
+%
+iprocess = 5;
 topDir = 'C:/matdl/yaron/8-16-12/context/';
 %topDir = '/brashear/yaron/matdl/8-12-12/context-psc/';
 ftype = 3;
@@ -36,17 +40,25 @@ elseif (iprocess == 2)
    testC{1} = {'ch4',4:19,'envs',ikeep2};
    filePrefix{1} = 'ch4-cross1';
 elseif (iprocess == 3)
-   ikeep = [ 12    26    37    41    47    48    62    92    94];
+   ikeep = [6     7     8    13    16    24];
    trainC{1} = {'ch4r',1:10,'envs',ikeep};
-   ikeep2 = [7    20    22    23    30    54    75    81    88];
+   ikeep2 = [5    10    14    17    20    25];
    testC{1} = {'ch4r',11:25,'envs',ikeep2};
    filePrefix{1} = 'ch4r-cross1';
 elseif (iprocess == 4)
    %   load('ch4keep.mat');
-   ikeep = [ 12    26    37    41    47    48    62    92    94];
+   ikeep = [6     7     8    13    16    24];
+   trainC{1} = {'ch4r',1:10,'ethane',[1 3 5 7],'envs',ikeep};
+   ikeep2 = [5    10    14    17    20    25];
+   testC{1} = {'ch4r',11:20,'ethane',[2 4 6],'envs',ikeep2};
+   filePrefix{1} = 'hcfit1';
+elseif (iprocess == 5)
+   %   load('ch4keep.mat');
+   ikeep = [6     7     8    13    16    24];
    trainC{1} = {'ethane',[1 3 5 7],'envs',ikeep};
-   testC{1} = []; %{'h2',4,'envs',1:100};
-   filePrefix{1} = 'ethane-4geoms';
+   ikeep2 = [5    10    14    17    20    25];
+   testC{1} = {'ethane',[2 4 6],'envs',ikeep2};
+   filePrefix{1} = 'ethane-cross';
 end
 filePre = filePrefix{1};
 dataDir = [topDir,filePre];
