@@ -31,7 +31,7 @@ if (length(unique(pnum)) > 1)
       H = norm(eH)/sqrt(length(eH));
       C = norm(eC)/sqrt(length(eC));
       r2 = norm(e2)/sqrt(length(e2));
-      fprintf(ofile,'>> %s ',molName{ip-800});
+      fprintf(ofile,'>> %s ',molName{ip-790});
       fprintf(ofile,'tot %5.3f ke %5.3f H %5.3f C %5.3f E2 %5.3f \n',...
          tot, ke, H, C, r2);
    end
