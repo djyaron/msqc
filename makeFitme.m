@@ -116,7 +116,7 @@ if (~isempty(geomsEthane))
    end
 end
 if (~isempty(geomsEthaner))
-   for i = geomsEthane
+   for i = geomsEthaner
       load([dataDir,'/ethanerDat.mat']);
       ic = ic+1;
       plotNumber(1,ic) = 802 + 10 * (doPlot-1);
