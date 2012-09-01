@@ -2,11 +2,11 @@ clear classes;
 reload = 1;
 nhl = 2;
 fields = 0;
-plotCorrelations = 0;
+plotCorrelations = 1;
 includeKEmods = 1;
 includeENmods = 1;
 handFit = 0;
-doFit = 1;
+doFit = 0;
 plotResults = 0;
 useStart = 0;
 pstart =  [-0.5 3 7];% 0 0 0];
@@ -17,7 +17,7 @@ if (reload)
    if (fields)
       load('h2fld/h2fldDat.mat');
    else
-      load('h2/h2Dat.mat');
+      load('datasets/h2Dat.mat');
    end
 end
 

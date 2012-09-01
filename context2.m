@@ -2,7 +2,7 @@
 % Playing around with ways to ramp up context
 clear classes;
 close all;
-%% choose representative environments
+% choose representative environments
 % load('datasets/ch4Dat.mat');
 % m1 = LL{1,1};
 % Ehf = m1.EhfEnv;
@@ -14,10 +14,10 @@ close all;
 % hold on;
 % plot(ikeep,Ehf(ikeep),'ro');
 % save('ch4keep.mat','ikeep');
-%%
-iprocess = 3;
-topDir = 'C:/matdl/yaron/8-16-12/context/';
-%topDir = '/brashear/yaron/matdl/8-12-12/context-psc/';
+%
+iprocess = 1;
+%topDir = 'C:/matdl/yaron/8-16-12/context/';
+topDir = '/brashear/yaron/matdl/8-17-12/context2/';
 ftype = 3;
 runParallel = 1;
 showPlots = 0;
@@ -152,7 +152,7 @@ str1 = 'initial error %12.5f test %12.5f \n';
 fprintf(1,str1,currentTrainErr,currentErr);
 fprintf(summaryFile,str1,currentTrainErr,currentErr);
 ticID = tic;
-for iter = 1:30
+for iter = 1:2
    allName = [topDir,filePre,'/all-',num2str(iter),'.mat'];
    if (exist(allName,'file'))
       fprintf(1,'LOADING ITERATION %i \n',iter);
