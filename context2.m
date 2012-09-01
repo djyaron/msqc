@@ -19,8 +19,8 @@ close all;
 % plot(ikeep2,Ehf(ikeep2),'go');
 % %save('ch4keep.mat','ikeep');
 %
-iprocess = 5;
-topDir = 'C:/matdl/yaron/8-16-12/context/';
+iprocess = 6;
+topDir = 'C:/matdl/yaron/8-31-12/context/';
 %topDir = '/brashear/yaron/matdl/8-12-12/context-psc/';
 ftype = 3;
 runParallel = 1;
@@ -59,6 +59,13 @@ elseif (iprocess == 5)
    ikeep2 = [5    10    14    17    20    25];
    testC{1} = {'ethane',[2 4 6],'envs',ikeep2};
    filePrefix{1} = 'ethane-cross';
+elseif (iprocess == 6)
+   %   load('ch4keep.mat');
+   ikeep = [6     7     8    13    16    24];
+   trainC{1} = {'ch4r',1:10,'ethaner',1:10,'envs',ikeep};
+   ikeep2 = [5    10    14    17    20    25];
+   testC{1} = {'ch4r',11:20,'ethaner',11:20,'envs',ikeep2};
+   filePrefix{1} = 'ch4r-ethaner';
 end
 filePre = filePrefix{1};
 dataDir = [topDir,filePre];
