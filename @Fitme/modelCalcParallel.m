@@ -8,7 +8,7 @@ function [ke, en, e2, newDensity] = modelCalcParallel(imod,ienv,updateDensity,..
 %    includeEN     : vector of bool of 1:(maximum Z)
 
 % retrieve model from mod
-fileName = ['e:\fitmeMod',num2str(imod),'.mat'];
+fileName = ['fitmeMod',num2str(imod),'.mat'];
 load(fileName);
 if (updateDensity)
    mod.solveHF(ienv);

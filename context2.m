@@ -19,12 +19,13 @@ close all;
 % plot(ikeep2,Ehf(ikeep2),'go');
 % %save('ch4keep.mat','ikeep');
 %
-iprocess = 6;
-topDir = 'C:/matdl/yaron/8-31-12/context-newparallel-ramd-den/';
-%topDir = '/brashear/yaron/matdl/8-12-12/context-psc/';
+iprocess = 1;
+%topDir = 'C:/matdl/yaron/8-31-12/context-newparallel-ramd-den/';
+topDir = '/brashear/yaron/matdl/9-2-12/context-psc/';
 ftype = 3;
 runParallel = 1;
 showPlots = 0;
+psc = 1; % does not use optimization toolbox
 
 ics = 1;
 
@@ -165,7 +166,7 @@ if (exist(startName,'file'))
    fprintf(summaryFile,'LOADING START \n');
    load(startName,toSave{:});
 else
-   [currentTrainErr,currentPar,currentErr] = contextFit2(f1,ftest,0,0);
+   [currentTrainErr,currentPar,currentErr] = contextFit2(f1,ftest,0,0,0,500,1);
    save(startName);
 end
 
@@ -173,7 +174,7 @@ str1 = 'initial error %12.5f test %12.5f \n';
 fprintf(1,str1,currentTrainErr,currentErr);
 fprintf(summaryFile,str1,currentTrainErr,currentErr);
 ticID = tic;
-for iter = 1:25
+for iter = 1:2
    allName = [topDir,filePre,'/all-',num2str(iter),'.mat'];
    if (exist(allName,'file'))
       fprintf(1,'LOADING ITERATION %i \n',iter);
@@ -183,7 +184,7 @@ for iter = 1:25
       fprintf(1,'STARTING ITERATION %i \n',iter);
       fprintf(summaryFile,'STARTING ITERATION %i \n',iter);
       if (runParallel)
-         save('e:\f1temp.mat','f1','ftest');
+         save('f1temp.mat','f1','ftest');
       end
       % set up loop over imix and ipar, so we can do one big parfor loop
       ic = 0;
@@ -216,7 +217,7 @@ for iter = 1:25
          ipar = mixes{ic}.ipar;
          %name = mixes{ic}.name;
          %      if (runParallel)
-         [etemp,ptemp,etest] = contextFit2([],[],imix,ipar,0,100);
+         [etemp,ptemp,etest] = contextFit2([],[],imix,ipar,0,100,1);
          %      else
          %         [etemp, ptemp] = contextFit(f1,imix,ipar);
          %      end

@@ -40,7 +40,7 @@ else
    % Write out matlab files that hold each of the models
    maxEnv = 0;
    for imod = 1:obj.nmodels
-      fileName = ['e:\fitmeMod',num2str(imod),'.mat'];
+      fileName = ['fitmeMod',num2str(imod),'.mat'];
       mod = obj.models{imod};
       save(fileName,'mod');
       maxEnv = max([maxEnv, length(obj.envs{1,imod})]);
