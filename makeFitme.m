@@ -12,6 +12,7 @@ function fitme = makeFitme(varargin)
 %  h2       2:7              range of h2 geometries to include (1..7)
 %  ch4      []               range of ch4 geometries to include (1..19)
 %  ethane   []               range of ethane geometries to include (1..7)
+%  ethaner   []              range of random ethane geometries to include (1..50)
 %  ethylene []               range of ethylene geometries to include (1..7)
 %  kemods   1                include mixers to modify kinetic energy
 %  enmods   1                include mixers to modify elec-nuc interaction
@@ -43,6 +44,7 @@ geomsH2 = checkForInput(varargin,'h2',[]); % allowed range is 1:7
 geomsCH4 = checkForInput(varargin,'ch4',[]); % allowed range is 1:19
 geomsCH4r = checkForInput(varargin,'ch4r',[]); % allowed range is 1:25
 geomsEthane = checkForInput(varargin,'ethane',[]); % allowed range is 1:7
+geomsEthaner = checkForInput(varargin,'ethaner',[]); % allowed range is 1:7
 geomsEthylene = checkForInput(varargin,'ethylene',[]); % allowed range is 1:7
 geomsPropane = checkForInput(varargin,'propane',[]); % allowed range is 1:7
 geomsPropene = checkForInput(varargin,'propene',[]); % allowed range is 1:9
@@ -105,6 +107,17 @@ end
 if (~isempty(geomsEthane))
    for i = geomsEthane
       load([dataDir,'/ethaneDat.mat']);
+      ic = ic+1;
+      plotNumber(1,ic) = 802 + 10 * (doPlot-1);
+      for j = 1:size(LL,2)
+         LL1{ic,j} = LL{i,j};
+      end
+      HL1{ic,1} = HL{i,nhl};
+   end
+end
+if (~isempty(geomsEthaner))
+   for i = geomsEthaner
+      load([dataDir,'/ethanerDat.mat']);
       ic = ic+1;
       plotNumber(1,ic) = 802 + 10 * (doPlot-1);
       for j = 1:size(LL,2)

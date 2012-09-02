@@ -40,18 +40,13 @@ else
    % Write out matlab files that hold each of the models
    maxEnv = 0;
    for imod = 1:obj.nmodels
-      fileName = ['fitmeMod',num2str(imod),'.mat'];
+      fileName = ['e:\fitmeMod',num2str(imod),'.mat'];
       mod = obj.models{imod};
       save(fileName,'mod');
       maxEnv = max([maxEnv, length(obj.envs{1,imod})]);
    end
    
    % create structure saying which calcs to do
-   % Caution: calc{icalc}.ienv is the environment number as  understood
-   %  by model3
-   %  In calcsInv{imod,ienv}, ienv is 1..N, which are the computed 
-   %  environments
-   %  TODO: Make this aspect of the code more readable
    calcs = {};
    calcsInv = zeros(obj.nmodels,maxEnv);
    for imod = 1:obj.nmodels
@@ -70,6 +65,7 @@ else
    includeKE = obj.includeKE;
    includeEN = obj.includeEN;
    includeE2 = obj.includeE2;
+   % disp('starting parfor loop');
    parfor icalc = 1:ncalc
       imod = calcs{icalc}.imod;
       ienv = calcs{icalc}.ienv;
