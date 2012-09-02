@@ -7,7 +7,7 @@ if (nargin < 5)
    maxIter = 500;
 end
 if (isempty(f1))
-   load('f1temp.mat','f1','ftest');
+   load('e:\f1temp.mat','f1','ftest');
 end
 if (mixNumber > 0)
    if (remove == 0)
@@ -19,7 +19,6 @@ if (mixNumber > 0)
 end
 
 f1.plot = 0; % showPlots;
-f1.parallel = 0;
 ftest.plot = 0;
 % dataDir = [topDir,filePre,'/cfit/'];
 % if (exist(dataDir,'dir') ~= 7)
@@ -64,8 +63,8 @@ err = sqrt(residual*residual'/length(residual))*627.509;
 %    pt = pt';
 %    err = sqrt(ssq/f1.ndata)*627.509;
 % 
-%   testres = ftest.err(pt);
-%   testErr = sqrt(testres*testres'/length(testres))*627.509;
+testres = ftest.err(pt);
+testErr = sqrt(testres*testres'/length(testres))*627.509;
 %pt
 %resnorm
 %f1.printMixers;

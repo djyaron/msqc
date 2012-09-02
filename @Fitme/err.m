@@ -40,7 +40,7 @@ else
    % Write out matlab files that hold each of the models
    maxEnv = 0;
    for imod = 1:obj.nmodels
-      fileName = ['fitmeMod',num2str(imod),'.mat'];
+      fileName = ['e:\fitmeMod',num2str(imod),'.mat'];
       mod = obj.models{imod};
       save(fileName,'mod');
       maxEnv = max([maxEnv, length(obj.envs{1,imod})]);
@@ -65,7 +65,8 @@ else
    includeKE = obj.includeKE;
    includeEN = obj.includeEN;
    includeE2 = obj.includeE2;
-   for icalc = 1:ncalc
+   % disp('starting parfor loop');
+   parfor icalc = 1:ncalc
       imod = calcs{icalc}.imod;
       ienv = calcs{icalc}.ienv;
       [ke, en, e2, newDensity] = Fitme.modelCalcParallel(imod,ienv,redoDensity,...
@@ -76,6 +77,12 @@ else
       t1.e2 = e2;
       t1.density = newDensity;
       calcRes{icalc} = t1;
+   end
+   
+   for icalc = 1:ncalc
+      imod = calcs{icalc}.imod;
+      ienv = calcs{icalc}.ienv;
+      obj.models{imod}.densitySave{ienv+1} = calcRes{icalc}.density;
    end
 end
    

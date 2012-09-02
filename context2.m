@@ -20,7 +20,7 @@ close all;
 % %save('ch4keep.mat','ikeep');
 %
 iprocess = 6;
-topDir = 'C:/matdl/yaron/8-31-12/context/';
+topDir = 'C:/matdl/yaron/8-31-12/context-newparallel-ramd-den/';
 %topDir = '/brashear/yaron/matdl/8-12-12/context-psc/';
 ftype = 3;
 runParallel = 1;
@@ -137,8 +137,10 @@ e2.CH = Mixer(iP2,12,'e2.CH',2);
 % Create fitme object
 f1 = makeFitme(trainIn{:},commonIn{:},'enstructh',en, ...
    'kestructh',ke,'e2struct',e2);
+f1.parallel = 1;
 ftest = makeFitme(testIn{:},commonIn{:},'enstructh',en, ...
    'kestructh',ke,'e2struct',e2);
+ftest.parallel = 1;
 %f1 = makeFitme(trainIn{:},commonIn{:},'enmods',0, ...
 %   'kestructh',ke);
 
@@ -171,7 +173,7 @@ str1 = 'initial error %12.5f test %12.5f \n';
 fprintf(1,str1,currentTrainErr,currentErr);
 fprintf(summaryFile,str1,currentTrainErr,currentErr);
 ticID = tic;
-for iter = 1:30
+for iter = 1:25
    allName = [topDir,filePre,'/all-',num2str(iter),'.mat'];
    if (exist(allName,'file'))
       fprintf(1,'LOADING ITERATION %i \n',iter);
@@ -181,7 +183,7 @@ for iter = 1:30
       fprintf(1,'STARTING ITERATION %i \n',iter);
       fprintf(summaryFile,'STARTING ITERATION %i \n',iter);
       if (runParallel)
-         save('f1temp.mat','f1','ftest');
+         save('e:\f1temp.mat','f1','ftest');
       end
       % set up loop over imix and ipar, so we can do one big parfor loop
       ic = 0;
@@ -209,7 +211,7 @@ for iter = 1:30
       etrain = zeros(nSave,1);
       errors = zeros(nSave,1);
       pars = cell(nSave,1);
-      parfor ic = 1:nSave
+      for ic = 1:nSave
          imix = mixes{ic}.imix;
          ipar = mixes{ic}.ipar;
          %name = mixes{ic}.name;
