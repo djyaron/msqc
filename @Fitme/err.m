@@ -47,6 +47,11 @@ else
    end
    
    % create structure saying which calcs to do
+   % Caution: calc{icalc}.ienv is the environment number as  understood
+   %  by model3
+   %  In calcsInv{imod,ienv}, ienv is 1..N, which are the computed 
+   %  environments
+   %  TODO: Make this aspect of the code more readable
    calcs = {};
    calcsInv = zeros(obj.nmodels,maxEnv);
    for imod = 1:obj.nmodels
@@ -65,7 +70,7 @@ else
    includeKE = obj.includeKE;
    includeEN = obj.includeEN;
    includeE2 = obj.includeE2;
-   for icalc = 1:ncalc
+   parfor icalc = 1:ncalc
       imod = calcs{icalc}.imod;
       ienv = calcs{icalc}.ienv;
       [ke, en, e2, newDensity] = Fitme.modelCalcParallel(imod,ienv,redoDensity,...
@@ -76,6 +81,12 @@ else
       t1.e2 = e2;
       t1.density = newDensity;
       calcRes{icalc} = t1;
+   end
+   
+   for icalc = 1:ncalc
+      imod = calcs{icalc}.imod;
+      ienv = calcs{icalc}.ienv;
+      obj.models{imod}.densitySave{ienv+1} = calcRes{icalc}.density;
    end
 end
    
