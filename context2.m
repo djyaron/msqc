@@ -19,13 +19,13 @@ close all;
 % plot(ikeep2,Ehf(ikeep2),'go');
 % %save('ch4keep.mat','ikeep');
 %
-iprocess = 1;
-%topDir = 'C:/matdl/yaron/8-31-12/context-newparallel-ramd-den/';
-topDir = '/brashear/yaron/matdl/9-2-12/context-psc/';
+iprocess = 3;
+topDir = 'C:/matdl/yaron/9-4-12/context-rapidon/';
+%topDir = '/brashear/yaron/matdl/9-2-12/context-psc-batchqueue/';
 ftype = 3;
 runParallel = 1;
 showPlots = 0;
-psc = 1; % does not use optimization toolbox
+psc = 0; % does not use optimization toolbox
 
 ics = 1;
 
