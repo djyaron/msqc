@@ -24,6 +24,7 @@ topDir = 'C:/matdl/yaron/8-31-12/context-newparallel-ramd-den/';
 %topDir = '/brashear/yaron/matdl/8-12-12/context-psc/';
 ftype = 3;
 runParallel = 1;
+fitmeParallel = 0;
 showPlots = 0;
 
 ics = 1;
@@ -137,10 +138,10 @@ e2.CH = Mixer(iP2,12,'e2.CH',2);
 % Create fitme object
 f1 = makeFitme(trainIn{:},commonIn{:},'enstructh',en, ...
    'kestructh',ke,'e2struct',e2);
-f1.parallel = 1;
+f1.parallel = fitmeParallel;
 ftest = makeFitme(testIn{:},commonIn{:},'enstructh',en, ...
    'kestructh',ke,'e2struct',e2);
-ftest.parallel = 1;
+ftest.parallel = fitmeParallel;
 %f1 = makeFitme(trainIn{:},commonIn{:},'enmods',0, ...
 %   'kestructh',ke);
 
@@ -179,6 +180,8 @@ for iter = 1:25
       fprintf(1,'LOADING ITERATION %i \n',iter);
       fprintf(summaryFile,'LOADING ITERATION %i \n',iter);
       load(allName,toSave{:});
+      f1.parallel = fitmeParallel;
+      ftest.parallel = fitmeParallel;
    else
       fprintf(1,'STARTING ITERATION %i \n',iter);
       fprintf(summaryFile,'STARTING ITERATION %i \n',iter);
@@ -211,7 +214,7 @@ for iter = 1:25
       etrain = zeros(nSave,1);
       errors = zeros(nSave,1);
       pars = cell(nSave,1);
-      for ic = 1:nSave
+      parfor ic = 1:nSave
          imix = mixes{ic}.imix;
          ipar = mixes{ic}.ipar;
          %name = mixes{ic}.name;
