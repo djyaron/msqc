@@ -24,6 +24,7 @@ topDir = 'C:/matdl/yaron/9-4-12/context-rapidon/';
 %topDir = '/brashear/yaron/matdl/9-2-12/context-psc-batchqueue/';
 ftype = 3;
 runParallel = 1;
+fitmeParallel = 0;
 showPlots = 0;
 psc = 0; % does not use optimization toolbox
 
@@ -138,10 +139,10 @@ e2.CH = Mixer(iP2,12,'e2.CH',2);
 % Create fitme object
 f1 = makeFitme(trainIn{:},commonIn{:},'enstructh',en, ...
    'kestructh',ke,'e2struct',e2);
-f1.parallel = 1;
+f1.parallel = fitmeParallel;
 ftest = makeFitme(testIn{:},commonIn{:},'enstructh',en, ...
    'kestructh',ke,'e2struct',e2);
-ftest.parallel = 1;
+ftest.parallel = fitmeParallel;
 %f1 = makeFitme(trainIn{:},commonIn{:},'enmods',0, ...
 %   'kestructh',ke);
 
@@ -180,6 +181,8 @@ for iter = 1:2
       fprintf(1,'LOADING ITERATION %i \n',iter);
       fprintf(summaryFile,'LOADING ITERATION %i \n',iter);
       load(allName,toSave{:});
+      f1.parallel = fitmeParallel;
+      ftest.parallel = fitmeParallel;
    else
       fprintf(1,'STARTING ITERATION %i \n',iter);
       fprintf(summaryFile,'STARTING ITERATION %i \n',iter);
@@ -212,7 +215,7 @@ for iter = 1:2
       etrain = zeros(nSave,1);
       errors = zeros(nSave,1);
       pars = cell(nSave,1);
-      for ic = 1:nSave
+      parfor ic = 1:nSave
          imix = mixes{ic}.imix;
          ipar = mixes{ic}.ipar;
          %name = mixes{ic}.name;
