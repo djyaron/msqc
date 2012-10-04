@@ -191,7 +191,7 @@ classdef Mixer < handle
             x = obj.par(1) + sum(obj.par(2:(1+nx)).*xcontext');
             res = obj.mixFunction(x,v0,v1,v2,model, ii, jj);
          elseif (obj.mixType == 12)
-            % context dependent, diagonal
+            % context dependent, off-diagonal
             iatom = model.basisAtom(ii(1));
             jatom = model.basisAtom(jj(1));
 %             disp(['iatom ',num2str(iatom),' jatom ',num2str(jatom), ...
