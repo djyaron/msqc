@@ -20,6 +20,7 @@ classdef Model3 < handle
       natom   % number of atoms in fragment
       nelec   % number of electrons in the fragment
       Z       % (1,natom) atomic numbers of the molecules
+      aType   % (1,natom) atom type (initialized to Z)
       rcart   % (3,natom) cartesian coordinates of the atoms
       nenv
       
@@ -66,6 +67,7 @@ classdef Model3 < handle
          res.natom = frag_.natom;
          res.nelec = frag_.nelec;
          res.Z     = frag_.Z;
+         res.aType = res.Z;
          res.rcart = frag_.rcart;
          res.nenv  = frag_.nenv;
          res.nbasis = frag_.nbasis;
