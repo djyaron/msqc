@@ -1,4 +1,5 @@
-%function fillInContexts(mtrain,envsTrain,mtest,envsTest)
+function [atypes, atomContexts, bondContexts] = ...
+   fillInContexts(mtrain,envsTrain,mtest,envsTest)
 % Input
 %    mtrain      {ntrain} models for training
 %    envsTrain   {ntrain}(1:nenv)  envs for each train model
@@ -6,9 +7,6 @@
 %    envsTest    {ntest}(1:nenv) envs for each test model
 
 %%
-clear classes
-load('tmp1.mat');
-
 ntrain = length(mtrain);
 % determine atom types in the train set
 allTypes = [];
@@ -43,7 +41,7 @@ for itype = 1:length(atypes)
    atomContexts{itype} = c1;
 end
 
-%% verify project
+%% verify project for atoms
 ic = 0;
 for imod = 1:ntrain
    for ienv = envsTrain{imod}
@@ -52,7 +50,7 @@ for imod = 1:ntrain
          itype = find(atypes == mtrain{imod}.aType(iatom));
          c1 = atomContexts{itype};
          proj = c1.project(mtrain{imod},ienv,iatom);
-         sc1 = c1.score(ic,:);
+         sc1 = c1.score(ic,:)';
          atomDiff(ic) = max(abs(proj - sc1));
       end
    end
@@ -127,7 +125,7 @@ for imod = 1:ntrain
                   jtype = find(atypes == mtrain{imod}.aType(atom2));
                   c1 = bondContexts{itype,jtype};
                   proj = c1.project(mtrain{imod},ienv,atom1,atom2);
-                  sc1 = c1.score(ic,:);
+                  sc1 = c1.score(ic,:)';
                   bondDiff(ic) = max(abs(proj - sc1));
                end
             end
@@ -165,5 +163,3 @@ for imod = 1:length(allMods)
       end
    end
 end
-
-

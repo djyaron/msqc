@@ -6,14 +6,14 @@ if (nargin < 5) % atom context
    end
    features = obj.atomContext(mod,ienv,iatom);
    f2 = (features-obj.mu)./obj.sigma;
-   res = f2*obj.coeff;
+   res = (f2*obj.coeff)';
 else
    if (obj.isBondContext ~= 1)
       error('Context.addModel: Context not created as bond context');
    end
    features = obj.bondContext(mod,ienv,iatom,jatom);
    f2 = (features-obj.mu)./obj.sigma;
-   res = f2*obj.coeff;
+   res = (f2*obj.coeff)';
 end
 
 end
