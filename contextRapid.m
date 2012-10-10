@@ -19,15 +19,15 @@ close all;
 % plot(ikeep2,Ehf(ikeep2),'go');
 % %save('ch4keep.mat','ikeep');
 %
-iprocess = 7;
-topDir = 'C:/matdl/yaron/9-5-12/context-rapid/';
+topDir = 'C:/matdl/yaron/10-4-12/context-rapid-sp/';
 %topDir = '/brashear/yaron/matdl/9-2-12/context-psc-batchqueue/';
 ftype = 3;
-runParallel = 1;
+fitmeParallel = 1;
 showPlots = 0;
+separateSP = 1;
 psc = 0; % does not use optimization toolbox
 
-ics = 1;
+for iprocess = [3 8 6];
 
 if (iprocess == 1)
    trainC{1} = {'h2',[2 3 4],'envs',1:5};
@@ -74,6 +74,13 @@ elseif (iprocess == 7)
    ikeep2 = [5    10    14    17    20    25];
    testC{1} = {'ethaner',11:20,'envs',ikeep2};
    filePrefix{1} = 'ethaner';
+elseif (iprocess == 8)
+   %   load('ch4keep.mat');
+   ikeep = [6     7     8    13    16    24];
+   trainC{1} = {'ethaner',1:10,'envs',ikeep};
+   ikeep2 = [5    10    14    17    20    25];
+   testC{1} = {'ethaner',11:20,'envs',ikeep2};
+   filePrefix{1} = 'ethaner';
 end
 filePre = filePrefix{1};
 dataDir = [topDir,filePre];
@@ -109,8 +116,13 @@ diagNames = {'val','rho','avg r','avg bo','shift'};
 bondNames = {'val','r','bo','drho'};
 
 ke.H = Mixer(iP3,11,'ke.H',3);
-ke.Cs = Mixer(iP3,11,'ke.C',3);
-ke.Cp = ke.Cs;
+if (separateSP)
+   ke.Cs = Mixer(iP3,11,'ke.Cs',3);
+   ke.Cp = Mixer(iP3,11,'ke.Cp',3);
+else
+   ke.Cs = Mixer(iP3,11,'ke.C',3);
+   ke.Cp = ke.Cs;
+end
 ke.HH = Mixer(iP2,12,'ke.HH',2);
 ke.CH = Mixer(iP2,12,'ke.CH',2);
 ke.CH.hybrid = 1;
@@ -120,8 +132,13 @@ ke.CCp = Mixer(iP2,12,'ke.CCp',2);
 ke.CCp.hybrid = 2;
 
 en.H = Mixer(iP3,11,'en.H',3);
-en.Cs = Mixer(iP3,11,'en.C',3);
-en.Cp = en.Cs;
+if (separateSP)
+   en.Cs = Mixer(iP3,11,'en.Cs',3);
+   en.Cp = Mixer(iP3,11,'en.Cp',3);
+else
+   en.Cs = Mixer(iP3,11,'en.C',3);
+   en.Cp = en.Cs;
+end
 en.HH = Mixer(iP2,12,'en.HH',2);
 en.CH = Mixer(iP2,12,'en.CH',2);
 en.CH.hybrid = 1;
@@ -141,16 +158,17 @@ end
 e2.CC = Mixer(iP2,12,'e2.CC',2);
 e2.CH = Mixer(iP2,12,'e2.CH',2);
 
-
 % Create fitme object
 f1 = makeFitme(trainIn{:},commonIn{:},'enstructh',en, ...
    'kestructh',ke,'e2struct',e2);
-f1.parallel = 1;
+f1.parallel = fitmeParallel;
 ftest = makeFitme(testIn{:},commonIn{:},'enstructh',en, ...
    'kestructh',ke,'e2struct',e2);
-ftest.parallel = 1;
+ftest.parallel = fitmeParallel;
 %f1 = makeFitme(trainIn{:},commonIn{:},'enmods',0, ...
 %   'kestructh',ke);
+
+
 
 % Fix all context sensitive parameters
 for imix = 1:length(f1.mixers)
@@ -211,6 +229,7 @@ for iter = 1:5
 
    end
 end
+runTime = toc(ticID)
 diary off;
 fclose(summaryFile);
 %    %%
@@ -222,4 +241,4 @@ fclose(summaryFile);
 %          num2str(etemp)]);
 %       disp(['pars ',num2str(pars{i})]);
 %    end
-runTime = toc(ticID)
+end
