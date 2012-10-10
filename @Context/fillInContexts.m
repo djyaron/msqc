@@ -1,49 +1,169 @@
-function fillInContexts(m1,envsTrain,m2,envsTest)
-% m1 is the train set;  m2 is the test set
-% load('datasets\ch4rDat.mat');
-% m1 = LL(1:4,1);
-% m2 = LL(5:8,1);
-% envsTrain = 1:3;
-% envsTest = 4:6;
+%function fillInContexts(mtrain,envsTrain,mtest,envsTest)
+% Input
+%    mtrain      {ntrain} models for training
+%    envsTrain   {ntrain}(1:nenv)  envs for each train model
+%    mtest       {ntest}  models of test set
+%    envsTest    {ntest}(1:nenv) envs for each test model
+
 %%
-ntrain = length(m1);
-% figure out how many atom types are in the train set
+clear classes
+load('tmp1.mat');
+
+ntrain = length(mtrain);
+% determine atom types in the train set
 allTypes = [];
 for i=1:ntrain
-   allTypes = [allTypes,m1{i}.Z];
+   allTypes = [allTypes,mtrain{i}.aType];
 end
 atypes = unique(allTypes);
-%% determine the atom contexts
+
+% determine the atom contexts
 atomContexts = cell(length(atypes),1);
 for itype = 1:length(atypes)
    atype = atypes(itype);
-   ndim = sum(allTypes == atype) * length(envs);
-   c1 = Context(ndim);
+   % determine amount of training data
+   ndim = 0;
+   for imod=1:ntrain
+      ndim = ndim + sum(mtrain{imod}.aType == atype) * ...
+         length(envsTrain{imod});
+   end
+   c1 = Context(ndim,Context.atypeToZtype(atype));
    % add all the data
-   for imod = 1:length(m1)
-      for ienv = envsTrain
-         for iatom = find(m1{imod}.Z == atype)
-            c1.addModel(m1{imod},ienv,iatom);
+   for imod = 1:ntrain
+      for ienv = envsTrain{imod}
+         for iatom = find(mtrain{imod}.aType == atype)
+            c1.addModel(mtrain{imod},ienv,iatom);
          end
       end
    end
+   
    % do the fetaure extraction
    c1.extractFeatures;
+   c1.plotLatent(1000+atype);
    atomContexts{itype} = c1;
 end
 
-% determine the bond contexts
-
-%% insert features into model based on the contexts
-% want to save atomContextXSaved{iatom,ienv}
-for imod = 1:length(m1)
-   mm = m1{imod};
-   mm.atomContextSaved = cell(mm.natom,mm.nenv + 1);
-   for iatom = 1:m1{imod}.natom
-      c1 = atomContexts{mm.aType(iatom)};
-      for ienv = envsTrain
-         mm.atomContextSaved{iatom,ienv+1} = c1.project(mm,iatom);
+%% verify project
+ic = 0;
+for imod = 1:ntrain
+   for ienv = envsTrain{imod}
+      for iatom = find(mtrain{imod}.aType == atype)
+         ic = ic + 1;
+         itype = find(atypes == mtrain{imod}.aType(iatom));
+         c1 = atomContexts{itype};
+         proj = c1.project(mtrain{imod},ienv,iatom);
+         sc1 = c1.score(ic,:);
+         atomDiff(ic) = max(abs(proj - sc1));
       end
    end
 end
-% do the same for the test set
+
+
+%% determine the bond contexts
+bondContexts = cell(length(atypes),length(atypes));
+for type1 = 1:length(atypes)
+   for type2 = type1:length(atypes)
+      atype1 = atypes(type1);
+      atype2 = atypes(type2);
+      
+      % determine amount of training data
+      ndim = 0;
+      for imod=1:ntrain
+         atoms1 = find(mtrain{imod}.aType == atype1);
+         atoms2 = find(mtrain{imod}.aType == atype2);
+         for atom1 = atoms1
+            for atom2 = atoms2
+               if mtrain{imod}.isBonded(atom1,atom2)
+                  ndim = ndim + length(envsTrain{imod});
+               end
+            end
+         end
+      end
+      
+      if (ndim == 0)
+         continue
+      end
+      
+      c1 = Context(ndim,Context.atypeToZtype(atype1), ...
+         Context.atypeToZtype(atype2));
+      % add all the data
+      for imod = 1:ntrain
+         for ienv = envsTrain{imod}
+            for iatom = find(mtrain{imod}.aType == atype)
+               atoms1 = find(mtrain{imod}.aType == atype1);
+               atoms2 = find(mtrain{imod}.aType == atype2);
+               for atom1 = atoms1
+                  for atom2 = atoms2
+                     if mtrain{imod}.isBonded(atom1,atom2)
+                        c1.addModel(mtrain{imod},ienv,atom1,atom2);
+                     end
+                  end
+               end
+            end
+         end
+      end
+      
+      % do the fetaure extraction
+      c1.extractFeatures;
+      c1.plotLatent(2000 + atype1 + atype2);
+      bondContexts{type1,type2} = c1;
+      bondContexts{type2,type1} = c1;
+      %end
+   end
+end
+
+%% verify project for bonds
+ic = 0;
+for imod = 1:ntrain
+   for ienv = envsTrain{imod}
+      for iatom = find(mtrain{imod}.aType == atype)
+         atoms1 = find(mtrain{imod}.aType == atype1);
+         atoms2 = find(mtrain{imod}.aType == atype2);
+         for atom1 = atoms1
+            for atom2 = atoms2
+               if (mtrain{imod}.isBonded(atom1,atom2))
+                  ic = ic + 1;
+                  itype = find(atypes == mtrain{imod}.aType(atom1));
+                  jtype = find(atypes == mtrain{imod}.aType(atom2));
+                  c1 = bondContexts{itype,jtype};
+                  proj = c1.project(mtrain{imod},ienv,atom1,atom2);
+                  sc1 = c1.score(ic,:);
+                  bondDiff(ic) = max(abs(proj - sc1));
+               end
+            end
+         end
+      end
+   end
+end
+
+%% insert features into model based on the contexts
+
+allMods = {mtrain{:},mtest{:}};
+allEnvs = {envsTrain{:},envsTest{:}};
+for imod = 1:length(allMods)
+   mod = allMods{imod};
+   envs = allEnvs{imod};
+   mod.atomContextXSaved = cell(mod.natom,mod.nenv + 1);
+   for iatom = 1:mod.natom
+      itype = find(atypes == mod.aType(iatom));
+      c1 = atomContexts{itype};
+      for ienv = allEnvs{imod}
+         mod.atomContextXSaved{iatom,ienv+1} = c1.project(mod,ienv,iatom);
+      end
+   end
+   
+   mod.bondContextXSaved = cell(mod.natom,mod.natom,mod.nenv+1);
+   for iatom = 1:mod.natom
+      for jatom = find(mod.isBonded(iatom,:))
+         itype = find(atypes == mod.aType(iatom));
+         jtype = find(atypes == mod.aType(jatom));
+         c1 = bondContexts{itype,jtype};
+         for ienv = allEnvs{imod}
+            mod.bondContextXSaved{iatom,jatom,ienv+1} = ...
+               c1.project(mod,ienv,iatom,jatom);
+         end
+      end
+   end
+end
+
+
