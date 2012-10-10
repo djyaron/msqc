@@ -94,9 +94,13 @@ classdef Fitme < handle
       end
       function setEnvs(obj,envsIn)
          % currently assumes same environments for every frag/model
-         obj.envs = cell(1,obj.nmodels);
-         for i=1:obj.nmodels
-            obj.envs{1,i} = envsIn;
+         if (~iscell(envsIn))
+            obj.envs = cell(1,obj.nmodels);
+            for i=1:obj.nmodels
+               obj.envs{1,i} = envsIn;
+            end
+         else
+            obj.envs = envsIn;
          end
          obj.HLKE = cell(0,0);
          obj.HLEN = cell(0,0);
@@ -105,7 +109,7 @@ classdef Fitme < handle
          obj.LLEN = cell(0,0);
          obj.LLE2 = cell(0,0);
          for imod = 1:obj.nmodels
-            envs1 = obj.envs{1,i};
+            envs1 = obj.envs{1,imod};
             HL = obj.HLs{imod};
             % will plot against the STO-3G result
             LL = obj.models{imod}.frag;
