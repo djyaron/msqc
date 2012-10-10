@@ -278,6 +278,8 @@ if (~isempty(e2struct) > 0)
    end
 end
 
+
+
 if (useDeltaCharges)
    for ipar = params
       for ienv = 1:m{ipar}.nenv
