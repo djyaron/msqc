@@ -1,6 +1,13 @@
 function res = analyzeBond(mod,ienv,atom1,atom2)
 % Determine variables that characterize a bond from iatom to jatom
 
+charge1 = mod.charges(atom1, ienv+1);
+charge2 = mod.charges(atom2, ienv+1);
+bondOrder = mod.bondOrders(atom1,atom2,ienv+1);
+
+res = [charge1, bondOrder, charge2];
+
+if (0)
 % rot = <non-hybrid|hybrid>
 rot1 = getRotationSigma(mod,atom1,atom2);
 rot2 = getRotationSigma(mod,atom2,atom1);
@@ -15,6 +22,7 @@ rho22 = fullRho(basis2,basis2);
 % rho = <hybridN|rho|hybridM>
 %     = <hybridN|nonhybridN><nonhybridN|rho|nonhybridM><nonhybridM|hybridM>
 res = [ rot1'*rho11*rot1, rot1'*rho12*rot2, rot2'*rho22*rot2];
+end
 end
 
 function rot = getRotationSigma(mod,a1,a2)
