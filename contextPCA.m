@@ -1,11 +1,11 @@
 clear classes;
 close all;
-topDir = 'C:/matdl/yaron/10-10-12/contextPCA/';
+topDir = 'C:/matdl/yaron/10-10-12/contextPCA1/';
 
 fitmeParallel = 1;
 psc = 0; % does not use optimization toolbox
 includeMethane = 1;
-includeEthane = 0;
+includeEthane = 1;
 mtrain = cell(0,0);
 HLtrain = cell(0,0);
 envsTrain = cell(0,0);
@@ -58,13 +58,13 @@ diaryName = [topDir,filePre,'/cfit.diary'];
 diary(diaryName);
 diary on;
 
-%% Create fitme object
+% Create fitme object
 [f1 ftest] = Context.makeFitme(mtrain,envsTrain,HLtrain, ...
    mtest,envsTest,HLtest);
 f1.parallel = fitmeParallel;
 ftest.parallel = fitmeParallel;
 
-%%
+%
 startName = [topDir,filePre,'/start.mat'];
 toSave = {'f1','ftest','currentTrainErr','currentPar','currentErr'};
 if (exist(startName,'file'))
