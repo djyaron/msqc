@@ -1,14 +1,26 @@
-function [ftrain ftest] = makeFitme(mtrain,envsTrain,HLTrain,mtest,envsTest,HLTest)
+function [ftrain ftest] = makeFitme(mtrain,envsTrain,HLTrain,mtest, ...
+   envsTest,HLTest,includeAdhoc)
 % Input
 %    mtrain      {ntrain} models for training
 %    envsTrain   {ntrain}(1:nenv)  envs for each train model
 %    mtest       {ntest}  models of test set
 %    envsTest    {ntest}(1:nenv) envs for each test model
 
+if (nargin < 7)
+   includeAdhoc = 0;
+end
+
 % get all the necessary contexts for this set of molecules
 [atypes, atomContexts, bondContexts] =  ...
-   Context.fillInContexts(mtrain,envsTrain,mtest,envsTest);
+   Context.fillInContexts(mtrain,envsTrain,mtest,envsTest,includeAdhoc);
 %% create a mixer for every atom and bond context
+
+% need to expand # context variables by 3 if including adhoc
+if (includeAdhoc)
+   extraContexts = 3;
+else
+   extraContexts = 0;
+end
 
 ic = 0;
 mixInfo = cell(0,0);
@@ -16,7 +28,7 @@ for itype =1:length(atypes)
    atype = atypes(itype);
    if (~isempty(atomContexts{itype}))
       %Mixer(parIn,mixType,desc,funcType)
-      ncontexts = atomContexts{itype}.ndim;
+      ncontexts = atomContexts{itype}.ndim + extraContexts;
       parIn = [1 zeros(1,ncontexts) 0];
       mixType = 11; % diagonal context mixer
       desc = ['KE atype ',num2str(atype),' pca '];
@@ -50,7 +62,7 @@ for itype =1:length(atypes)
       for jtype = itype:length(atypes)
          atype2 = atypes(jtype);
          if (~isempty(bondContexts{itype,jtype}))
-            ncontexts = bondContexts{itype,jtype}.ndim;
+            ncontexts = bondContexts{itype,jtype}.ndim + extraContexts;
             parIn = [1 zeros(1,ncontexts)];
             mixType = 12; % off-diagonal context mixer
             desc = ['KE atypes ',num2str(atype),' ',num2str(atype2),' pca '];

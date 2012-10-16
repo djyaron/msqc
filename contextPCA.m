@@ -1,11 +1,12 @@
 clear classes;
 close all;
-topDir = 'C:/matdl/yaron/10-10-12/contextPCA1/';
+topDir = 'C:/matdl/yaron/10-10-12/contextPCA3/';
 
 fitmeParallel = 1;
 psc = 0; % does not use optimization toolbox
 includeMethane = 1;
-includeEthane = 1;
+includeEthane = 0;
+includeAdhoc = 1;
 mtrain = cell(0,0);
 HLtrain = cell(0,0);
 envsTrain = cell(0,0);
@@ -60,7 +61,7 @@ diary on;
 
 % Create fitme object
 [f1 ftest] = Context.makeFitme(mtrain,envsTrain,HLtrain, ...
-   mtest,envsTest,HLtest);
+   mtest,envsTest,HLtest,includeAdhoc);
 f1.parallel = fitmeParallel;
 ftest.parallel = fitmeParallel;
 

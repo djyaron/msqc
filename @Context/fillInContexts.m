@@ -1,11 +1,16 @@
 function [atypes, atomContexts, bondContexts] = ...
-   fillInContexts(mtrain,envsTrain,mtest,envsTest)
+   fillInContexts(mtrain,envsTrain,mtest,envsTest,includeAdhoc)
 % Input
 %    mtrain      {ntrain} models for training
 %    envsTrain   {ntrain}(1:nenv)  envs for each train model
 %    mtest       {ntest}  models of test set
 %    envsTest    {ntest}(1:nenv) envs for each test model
+%    includeAdhoc   true to start context variables with Model3 adhoc
+%                   (defaults to false)
 
+if (nargin < 5)
+   includeAdhoc = 0;
+end
 %%
 ntrain = length(mtrain);
 % determine atom types in the train set
@@ -135,9 +140,21 @@ for imod = 1:ntrain
 end
 
 %% insert features into model based on the contexts
-
 allMods = {mtrain{:},mtest{:}};
 allEnvs = {envsTrain{:},envsTest{:}};
+if (includeAdhoc)
+   % get Model3 to fill in the ad hoc contexts, and then same them
+   atomAdhoc = cell(length(allMods),1);
+   bondAdhoc = cell(length(allMods),1);
+   for imod = 1:length(allMods)
+      mod = allMods{imod};
+      mod.atomContext(1,1); % will fill in all atom contexts
+      mod.bondContext(1,2,1); % will fill in all bond contexts
+      atomAdhoc{imod} = mod.atomContextXSaved;
+      bondAdhoc{imod} = mod.bondContextXSaved;
+   end
+end
+
 for imod = 1:length(allMods)
    mod = allMods{imod};
    envs = allEnvs{imod};
@@ -146,7 +163,14 @@ for imod = 1:length(allMods)
       itype = find(atypes == mod.aType(iatom));
       c1 = atomContexts{itype};
       for ienv = allEnvs{imod}
-         mod.atomContextXSaved{iatom,ienv+1} = c1.project(mod,ienv,iatom);
+         pcaContext = c1.project(mod,ienv,iatom);
+         if (~includeAdhoc)
+            mod.atomContextXSaved{iatom,ienv+1} = pcaContext;
+         else
+            adHoc = atomAdhoc{imod}{iatom,ienv};
+            fullContext = [adHoc(:);pcaContext(:)];
+            mod.atomContextXSaved{iatom,ienv+1} = fullContext;
+         end
       end
    end
    
@@ -157,8 +181,16 @@ for imod = 1:length(allMods)
          jtype = find(atypes == mod.aType(jatom));
          c1 = bondContexts{itype,jtype};
          for ienv = allEnvs{imod}
-            mod.bondContextXSaved{iatom,jatom,ienv+1} = ...
-               c1.project(mod,ienv,iatom,jatom);
+            pcaContext = c1.project(mod,ienv,iatom,jatom);
+            if (~includeAdhoc)
+               mod.bondContextXSaved{iatom,jatom,ienv+1} = ...
+                  pcaContext;
+            else
+               adhoc = bondAdhoc{imod}{iatom,jatom,ienv};
+               fullContext = [adHoc(:);pcaContext(:)];
+               mod.bondContextXSaved{iatom,jatom,ienv+1} = ...
+               fullContext;
+            end
          end
       end
    end
