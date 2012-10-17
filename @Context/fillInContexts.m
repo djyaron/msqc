@@ -186,7 +186,7 @@ for imod = 1:length(allMods)
                mod.bondContextXSaved{iatom,jatom,ienv+1} = ...
                   pcaContext;
             else
-               adhoc = bondAdhoc{imod}{iatom,jatom,ienv+1};
+               adHoc = bondAdhoc{imod}{iatom,jatom,ienv+1};
                fullContext = [adHoc(:);pcaContext(:)];
                mod.bondContextXSaved{iatom,jatom,ienv+1} = ...
                fullContext;

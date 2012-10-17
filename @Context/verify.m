@@ -78,9 +78,42 @@ Context.fillInContexts(mtrain,envsTrain,mtest,envsTest);
 %% Verification of combined contexts
 clear all;
 load('C:\matdl\yaron\10-16-12\context-rapid\ch4r-cross1\all-1.mat');
-x1 = f1;
+x1 = f1; % old rapid context
 load('C:\matdl\yaron\10-17-12\contextPCA\ch4r\all-3.mat');
-x2 = f1;
+x2 = f1; % shoudl be identical to x1
+%%
+diff1 = [];
+for imod = 1:x1.nmodels
+   mod1 = x1.models{imod};
+   mod2 = x2.models{imod};
+   for iatom = 1:mod1.natom
+      for ienv = x1.envs{imod};
+         ac1 = mod1.atomContext(iatom,ienv);
+         ac2 = mod2.atomContext(iatom,ienv);
+         diff1(end+1) = max(abs(ac1-ac2(1:3)));
+      end
+   end
+end
+%%
+diff1 = [];
+for imod = 1:x1.nmodels
+   for iatom = 1:mod1.natom
+      for jatom = 1:mod1.natom
+         if (mod1.isBonded(iatom,jatom))
+            for ienv = x1.envs{imod};
+               ac1 = mod1.bondContext(iatom,jatom,ienv);
+               ac2 = mod2.bondContext(iatom,jatom,ienv);
+               diff1(end+1) = max(abs(ac1-ac2(1:3)));
+               if (diff1(end) < 0.1)
+                  disp([num2str(diff1(end)), ' for ', num2str(iatom), ...
+                     ' and ',num2str(jatom)]);
+               end
+            end
+         end
+      end
+   end
+end
+
 
 
 
