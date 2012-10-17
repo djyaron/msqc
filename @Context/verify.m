@@ -75,5 +75,12 @@ plot(cumsum(latent)./sum(latent));
 %%
 Context.fillInContexts(mtrain,envsTrain,mtest,envsTest);
 
+%% Verification of combined contexts
+clear all;
+load('C:\matdl\yaron\10-16-12\context-rapid\ch4r-cross1\all-1.mat');
+x1 = f1;
+load('C:\matdl\yaron\10-17-12\contextPCA\ch4r\all-3.mat');
+x2 = f1;
+
 
 

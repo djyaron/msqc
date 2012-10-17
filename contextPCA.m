@@ -1,6 +1,6 @@
 clear classes;
 close all;
-topDir = 'C:/matdl/yaron/10-10-12/contextPCA3/';
+topDir = 'C:/matdl/yaron/10-17-12/contextPCA/';
 
 fitmeParallel = 1;
 psc = 0; % does not use optimization toolbox
@@ -62,6 +62,8 @@ diary on;
 % Create fitme object
 [f1 ftest] = Context.makeFitme(mtrain,envsTrain,HLtrain, ...
    mtest,envsTest,HLtest,includeAdhoc);
+f1.silent = 0;
+ftest.silent = 0;
 f1.parallel = fitmeParallel;
 ftest.parallel = fitmeParallel;
 
@@ -100,9 +102,10 @@ for iter = 1:12
             end
          end
       end
+      if (iter >2)
       [currentTrainErr,currentPar,currentErr] = contextFit2(f1,ftest,0,0,0,500,psc);
       save(allName);
-      
+      end
       str2 = 'context error %12.5f test %12.5f \n';
       fprintf(1,str2,currentTrainErr,currentErr);
       fprintf(summaryFile,str2,currentTrainErr,currentErr);

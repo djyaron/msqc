@@ -95,7 +95,11 @@ for itype =1:length(atypes)
    end
 end
 
-
+minfo.mixer = Mixer([1 0],4,'e2.HH',2);
+minfo.type = 'E2bond';
+minfo.atype1 = 1;
+minfo.atype2 = 1;
+mixInfo{end+1} = minfo;
 
 %% add mixers to all models
 allModels = {mtrain{:},mtest{:}};
@@ -143,6 +147,8 @@ for imix = 1:length(mixInfo)
       end
    end
 end
+
+
 %% make the fitme classes
 
 ftrain = Fitme;
