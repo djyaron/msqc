@@ -212,9 +212,9 @@ classdef Mixer < handle
       end
       function res = print(obj)
          types = {'sigmoid','linear','ch-dep','bo-dep','bl-dep','bo-bl-dep'};
-         types{23} = 'ch-dep-quad';
-         types{11} = 'context-atom';
-         types{12} = 'context-bond';
+         types{22 + 1} = 'ch-dep-quad';
+         types{11 + 1} = 'context-atom';
+         types{12 + 1} = 'context-bond';
          ftypes = {' ','mult','mult-c','mix-c'};
          res = [obj.desc,' ',types{obj.mixType+1},' ',...
             ftypes{obj.funcType}];
