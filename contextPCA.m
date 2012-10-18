@@ -1,6 +1,6 @@
 clear classes;
 close all;
-topDir = 'C:/matdl/yaron/10-17-12/contextPCA/';
+topDir = 'C:/matdl/yaron/10-18-12/contextPCAh/';
 
 fitmeParallel = 1;
 psc = 0; % does not use optimization toolbox
@@ -23,7 +23,7 @@ if (includeEthane)
    files{end+1} = 'datasets\ethanerDat.mat';
    fileprefix = [fileprefix 'ethaner'];
 end
-for i = 1:length(files)
+for i1 = 1:length(files)
    load(files{i});
    train = 1:10;
    test = 11:20;
