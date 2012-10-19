@@ -27,7 +27,7 @@ showPlots = 0;
 separateSP = 0;
 psc = 0; % does not use optimization toolbox
 
-for iprocess = 3; % [3 8 6];
+for iprocess = 1; % [3 8 6];
 
 if (iprocess == 1)
    trainC{1} = {'h2',[2 3 4],'envs',1:5};
