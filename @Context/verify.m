@@ -79,39 +79,39 @@ Context.fillInContexts(mtrain,envsTrain,mtest,envsTest);
 clear all;
 load('C:\matdl\yaron\10-16-12\context-rapid\ch4r-cross1\all-1.mat');
 x1 = f1; % old rapid context
-% load('C:\matdl\yaron\10-17-12\contextPCA\ch4r\all-3.mat');
-% x2 = f1; % shoudl be identical to x1
-includeAdhoc = 1;
-mtrain = cell(0,0);
-HLtrain = cell(0,0);
-envsTrain = cell(0,0);
-mtest = cell(0,0);
-HLtest = cell(0,0);
-envsTest = cell(0,0);
-files = {'datasets/ch4rDat.mat'};
-for i1 = 1:length(files)
-   load(files{i1});
-   train = 1:10;
-   test = 11:20;
-   envs1 = [6     7     8    13    16    24];
-   envs2 = [5    10    14    17    20    25];
-   for i = train
-      mtrain{end+1} = Model3(LL{i,1},LL{i,1},LL{i,1});
-      mtrain{end}.solveHF;
-      HLtrain{end+1} = HL{i,1};
-      envsTrain{1,end+1} = envs1;
-   end
-   for i = test
-      mtest{end+1} = Model3(LL{i,1},LL{i,1},LL{i,2});
-      mtest{end}.solveHF;
-      HLtest{end+1} = HL{i,1};
-      envsTest{end+1} = envs2;
-   end
-end
-[x2 ftest] = Context.makeFitme(mtrain,envsTrain,HLtrain, ...
-   mtest,envsTest,HLtest,includeAdhoc);
-x2.silent = 1;
-x2.parallel = 1;
+load('C:\matdl\yaron\10-17-12\contextPCA\ch4r\all-3.mat');
+x2 = f1; % shoudl be identical to x1
+% includeAdhoc = 1;
+% mtrain = cell(0,0);
+% HLtrain = cell(0,0);
+% envsTrain = cell(0,0);
+% mtest = cell(0,0);
+% HLtest = cell(0,0);
+% envsTest = cell(0,0);
+% files = {'datasets/ch4rDat.mat'};
+% for i1 = 1:length(files)
+%    load(files{i1});
+%    train = 1:10;
+%    test = 11:20;
+%    envs1 = [6     7     8    13    16    24];
+%    envs2 = [5    10    14    17    20    25];
+%    for i = train
+%       mtrain{end+1} = Model3(LL{i,1},LL{i,1},LL{i,1});
+%       mtrain{end}.solveHF;
+%       HLtrain{end+1} = HL{i,1};
+%       envsTrain{1,end+1} = envs1;
+%    end
+%    for i = test
+%       mtest{end+1} = Model3(LL{i,1},LL{i,1},LL{i,2});
+%       mtest{end}.solveHF;
+%       HLtest{end+1} = HL{i,1};
+%       envsTest{end+1} = envs2;
+%    end
+% end
+% [x2 ftest] = Context.makeFitme(mtrain,envsTrain,HLtrain, ...
+%    mtest,envsTest,HLtest,includeAdhoc);
+% x2.silent = 1;
+% x2.parallel = 1;
 %%
 diff1 = [];
 for imod = 1:x1.nmodels

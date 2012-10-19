@@ -99,6 +99,7 @@ for itype =1:length(atypes)
 end
 
 minfo.mixer = Mixer([1 0],4,'e2.HH',2);
+minfo.mixer.fixed = [0 1];
 minfo.type = 'E2bond';
 minfo.atype1 = 1;
 minfo.atype2 = 1;

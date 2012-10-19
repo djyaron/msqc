@@ -1,12 +1,13 @@
 clear classes;
 close all;
-topDir = 'C:/matdl/yaron/10-18-12/contextPCAh/';
+topDir = 'C:/matdl/yaron/10-18-12/contextPCA-rapid/';
 
 fitmeParallel = 1;
 psc = 0; % does not use optimization toolbox
 includeMethane = 1;
-includeEthane = 0;
+includeEthane = 1;
 includeAdhoc = 1;
+
 mtrain = cell(0,0);
 HLtrain = cell(0,0);
 envsTrain = cell(0,0);
@@ -24,7 +25,7 @@ if (includeEthane)
    fileprefix = [fileprefix 'ethaner'];
 end
 for i1 = 1:length(files)
-   load(files{i});
+   load(files{i1});
    train = 1:10;
    test = 11:20;
    envs1 = [6     7     8    13    16    24];
@@ -102,7 +103,7 @@ for iter = 1:12
             end
          end
       end
-      if (iter >2)
+      if ((iter == 3) || (iter == 12))
       [currentTrainErr,currentPar,currentErr] = contextFit2(f1,ftest,0,0,0,500,psc);
       save(allName);
       end
