@@ -31,6 +31,7 @@ for itype =1:length(atypes)
       ncontexts = atomContexts{itype}.ndim + extraContexts;
       parIn = [1 zeros(1,ncontexts) 0];
       mixType = 11; % diagonal context mixer
+      
       desc = ['KE atype ',num2str(atype),' pca '];
       functype = 3; % scale with constant
       fixed = [0 ones(1,ncontexts) 0]; % fix all contexts
@@ -70,6 +71,7 @@ for itype =1:length(atypes)
             fixed = [0 ones(1,ncontexts)]; % fix all contexts
             m1 = Mixer(parIn, mixType, desc, functype);
             m1.fixed = fixed;
+            m1.hybrid = 1;
             minfo.mixer = m1;
             minfo.type = 'KEbond';
             minfo.atype1 = atype;
@@ -79,6 +81,7 @@ for itype =1:length(atypes)
             desc = ['EN atypes ',num2str(atype),' ',num2str(atype2),' pca '];
             m1 = Mixer(parIn, mixType, desc, functype);
             m1.fixed = fixed;
+            m1.hybrid = 1;
             minfo.mixer = m1;
             minfo.type = 'ENbond';
             mixInfo{end+1} = minfo;
@@ -115,7 +118,8 @@ for imix = 1:length(mixInfo)
       types1 = [1 2];
    end
    if (isfield(minfo,'atype2'))
-      z2 = Context.atypeToZtype(minfo.atype1);
+      atype2 = minfo.atype2;
+      z2 = Context.atypeToZtype(atype2);
       if (z2 == 1)
          hasSP2 = 0;
          types2 = [1];
@@ -128,11 +132,15 @@ for imix = 1:length(mixInfo)
       mod = allModels{imod};
       switch minfo.type
          case 'KEdiag'
-            mod.addKEmodDiag(atype1,types1,minfo.mixer);
+            for itype = types1
+               mod.addKEmodDiag(atype1,itype,minfo.mixer);
+            end
          case 'ENdiag'
-            mod.addENmodDiag(atype1,types1,minfo.mixer);
+            for itype = types1
+               mod.addENmodDiag(atype1,itype,minfo.mixer);
+            end
          case 'E2diag'
-            mod.addH2modDiag(atype1,minfo.mixer);
+               mod.addH2modDiag(atype1,minfo.mixer);
          case 'KEbond'
             mod.addKEmodBondedh(atype1,atype2,minfo.mixer);
          case 'ENbond'
