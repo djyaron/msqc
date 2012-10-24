@@ -8,7 +8,7 @@ function p2hf = density2p(obj,env)
 % For Restricted Hartree Fock theory, the 2-particle density is derivable 
 % from the 1-particle density, as follows:
 
-p1hf = obj.density(env);
+p1hf = obj.density(env)/2.0;
 nb = obj.nbasis;
 p2hf = zeros(nb, nb, nb, nb);
 for a=1:nb
