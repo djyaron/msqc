@@ -11,7 +11,7 @@ for i = 1:n
       res(i) = 0.0;
    else
       res(i)  = sum(sum( obj.density(ienv).*obj.H1Env(:,:,ienv) ) );
-      res(i) = res(i) + obj.HnucEnv(ienv);
+      res(i) = res(i) + obj.HnucEnv(ienv) - obj.Hnuc;
    end
 end
 
