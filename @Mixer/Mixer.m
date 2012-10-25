@@ -92,6 +92,9 @@ classdef Mixer < handle
          elseif (obj.funcType == 4)
             res = ((1.0-x)/2.0) * v1 + ((1.0+x)/2.0) * v2 ...
                + obj.par(end) * eye(size(v0));
+         else
+            error(['Mixer: mixFunctionNormal: unknown functype ',...
+               num2str(obj.funcType)]);
          end
       end
       function res = mix(obj, v0, v1, v2, model, ii, jj, ienv)
@@ -206,6 +209,31 @@ classdef Mixer < handle
                x = obj.par(1) + sum(obj.par(2:(1+nx)).*xcontext');
             end
             res = obj.mixFunction(x,v0,v1,v2,model, ii, jj);
+         elseif (obj.mixType == 32)
+            % Molecular mechanics stretch function
+            if (length(ii) ~= length(jj))
+               error('error in MM mixer: non-square v0');
+            end
+            iatom = model.basisAtom(ii(1));
+            jatom = model.basisAtom(jj(1));
+            Zs = zeros(1,2);
+            Zs(1) = model.Z(iatom);
+            Zs(2) = model.Z(jatom);
+            Zs = sort(Zs);
+            bl = norm(model.rcart(:,iatom)-model.rcart(:,jatom));
+            if (Zs(1) == 1 && Zs(2) == 1)
+               bl = bl - 0.74;
+            elseif (Zs(1) == 1 && Zs(2) == 6)
+               bl = bl - 1.1;
+            else
+               bl = bl - 1.5;
+            end
+            x0 = obj.par(1);
+            x1 = obj.par(2);
+            x2 = obj.par(3);
+            x = x0 + x1*bl + x2 * bl^2;
+            %res = ((1.0-x)/2.0) * v1 + ((1.0+x)/2.0) * v2;
+            res = v0 + x * eye(size(v0));
          else
             error(['unknown mix type in Mixer: ',num2str(obj.mixType)]);
          end
@@ -215,6 +243,7 @@ classdef Mixer < handle
          types{22 + 1} = 'ch-dep-quad';
          types{11 + 1} = 'context-atom';
          types{12 + 1} = 'context-bond';
+         types{32 + 1} = 'MM stretch';
          ftypes = {' ','mult','mult-c','mix-c'};
          res = [obj.desc,' ',types{obj.mixType+1},' ',...
             ftypes{obj.funcType}];

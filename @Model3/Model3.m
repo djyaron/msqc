@@ -282,6 +282,40 @@ classdef Model3 < handle
             mixUsed = [];
          end
       end
+      function mixUsed = addMMStretch(obj,oper,Z1,Z2, mix)
+         if (nargin < 5)
+            mix = Mixer();
+            mix.type = 2;
+            mix.par = [0 0 0];
+            mix.fixed = [0 0 0];
+            mix.desc = ['MM ',oper,' Z [',num2str(Z1), ...
+               '] with Z [',num2str(Z2),']'];
+         end
+         mixerAdded = 0;
+         for iatom = 1:obj.natom
+            for jatom = (iatom + 1):obj.natom
+               bondExists = obj.isBonded(iatom,jatom);
+               if (bondExists)
+                  mixerAdded = 1;
+                  mod.ilist = (1:obj.nbasis)';
+                  mod.jlist = (1:obj.nbasis)';
+                  mod.mixer = mix;
+                  switch oper
+                     case 'KE'
+                        obj.KEmods{1,end+1} = mod;
+                     otherwise
+                        error('Model3.addMMStretch: unknown oper type');
+                  end
+               end
+            end
+         end
+         if (mixerAdded)
+            obj.addMixer(mix);
+            mixUsed = mix;
+         else
+            mixUsed = [];
+         end
+      end
       function mixUsed = addKEmodBondedh(obj,Z1,Z2,mix)
          mixerAdded = 0;
          for iatom = 1:obj.natom

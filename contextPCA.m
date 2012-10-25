@@ -1,11 +1,11 @@
 clear classes;
 close all;
-topDir = 'C:/matdl/yaron/10-18-12/contextPCA-rapid/';
+topDir = 'C:/matdl/yaron/10-18-12/contextPCA-rapidMM/';
 
 fitmeParallel = 1;
 psc = 0; % does not use optimization toolbox
 includeMethane = 1;
-includeEthane = 1;
+includeEthane = 0;
 includeAdhoc = 1;
 
 mtrain = cell(0,0);
@@ -103,10 +103,10 @@ for iter = 1:12
             end
          end
       end
-      if ((iter == 3) || (iter == 12))
+      % if ((iter == 3) || (iter == 12))
       [currentTrainErr,currentPar,currentErr] = contextFit2(f1,ftest,0,0,0,500,psc);
       save(allName);
-      end
+      %end
       str2 = 'context error %12.5f test %12.5f \n';
       fprintf(1,str2,currentTrainErr,currentErr);
       fprintf(summaryFile,str2,currentTrainErr,currentErr);
