@@ -1,6 +1,6 @@
 clear classes;
 close all;
-topDir = 'C:/matdl/yaron/10-18-12/contextPCA-rapidMM/';
+topDir = 'C:/matdl/yaron/10-25-12/contextPCA1s/';
 
 fitmeParallel = 1;
 psc = 0; % does not use optimization toolbox
@@ -16,6 +16,7 @@ HLtest = cell(0,0);
 envsTest = cell(0,0);
 files = cell(0,0);
 fileprefix = '';
+
 if (includeMethane)
    files{end+1} = 'datasets\ch4rDat.mat';
    fileprefix = [fileprefix 'ch4r'];

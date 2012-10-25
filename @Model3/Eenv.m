@@ -11,7 +11,7 @@ for i = 1:n
       res(i) = 0.0;
    else
       res(i)  = sum(sum( obj.density(ienv).*obj.frag.H1Env(:,:,ienv) ) );
-      res(i) = res(i) + obj.frag.HnucEnv(ienv);
+      res(i) = res(i) + obj.frag.HnucEnv(ienv) - obj.frag.Hnuc;
    end
 end
 

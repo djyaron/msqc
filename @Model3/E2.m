@@ -18,6 +18,6 @@ for iatom = 2:obj.natom
    EelecNuc = EelecNuc + obj.Een(iatom,envs);
 end
 
-res = Ehf - obj.EKE(envs) - EelecNuc - obj.Eenv(envs);
+res = Ehf - obj.EKE(envs) - EelecNuc - obj.Eenv(envs) - obj.frag.Hnuc;
 
 end

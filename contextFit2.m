@@ -57,17 +57,19 @@ for imix = 1:length(f1.mixers)
    end
 end
 start = f1.getPars;
-if (~psc)
+if (psc == 0)
    options = optimset('DiffMinChange',1.0e-4,'TolFun',1.0e-3, ...
       'TolX',3.0e-3,'MaxFunEvals',maxIter);
    [pt,resnorm,residual,exitflag,output,lambda,jacobian] = ...
       lsqnonlin(@f1.err, start,lowLimits,highLimits,options);
    err = sqrt(residual*residual'/length(residual))*627.509;
-else
+elseif (psc == 1)
    options = {'Display',0,'FunTol',1.0e-3,'XTol',1.0e-3,'Lambda',1.0e-6};
    [pt,ssq, CNT, Res, XY] = LMFnlsq(@f1.err,start',options{:});
    pt = pt';
    err = sqrt(ssq/f1.ndata)*627.509;
+else
+   ista(@f1.err,start);
 end
 testres = ftest.err(pt);
 testErr = sqrt(testres*testres'/length(testres))*627.509;

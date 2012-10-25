@@ -29,33 +29,60 @@ for itype =1:length(atypes)
    if (~isempty(atomContexts{itype}))
       %Mixer(parIn,mixType,desc,funcType)
       ncontexts = atomContexts{itype}.ndim + extraContexts;
-      parIn = [1 zeros(1,ncontexts) 0];
-      mixType = 11; % diagonal context mixer
       
       desc = ['KE atype ',num2str(atype),' pca '];
       if (atype == 6)
          functype = 3; % scale with constant
+         parIn = [1 zeros(1,ncontexts) 0];
          fixed = [0 ones(1,ncontexts) 0]; % fix all contexts
       else
          functype = 2; % scale without constant
+         parIn = [1 zeros(1,ncontexts) 0];
          fixed = [0 ones(1,ncontexts)]; % fix all contexts
       end
+      mixType = 11; % atom context mixer
       m1 = Mixer(parIn, mixType, desc, functype);
-      m1.fixed = fixed;
+      m1.fixed = [0 ones(1,ncontexts) 0]; % fix all contexts
       minfo.mixer = m1;
       minfo.type = 'KEdiag';
       minfo.atype1 = atype;
       mixInfo{end+1} = minfo;
+
+      desc = ['KE 1s1s ',num2str(atype),' pca '];
+      mixType = 11; % atom context mixer
+      functype = 2; % scale without constant
+      parIn = [1 zeros(1,ncontexts)];
+      m1 = Mixer(parIn, mixType, desc, functype);
+      m1.fixed = [0 ones(1,ncontexts)]; % fix all contexts
+      minfo.mixer = m1;
+      minfo.type = 'KE1s1s';
+      minfo.atype1 = atype;
+      mixInfo{end+1} = minfo;
+
+      desc = ['KE 1s2s ',num2str(atype),' pca '];
+      mixType = 11; % atom context mixer
+      functype = 2; % scale without constant
+      parIn = [1 zeros(1,ncontexts)];
+      m1 = Mixer(parIn, mixType, desc, functype);
+      m1.fixed = [0 ones(1,ncontexts)]; % fix all contexts
+      minfo.mixer = m1;
+      minfo.type = 'KE1s2s';
+      minfo.atype1 = atype;
+      mixInfo{end+1} = minfo;      
       
       desc = ['EN atype ',num2str(atype),' pca '];
+      mixType = 11; % atom context mixer
+      functype = 3; % scale with constant
+      parIn = [1 zeros(1,ncontexts) 0];
       m1 = Mixer(parIn, mixType, desc, functype);
-      m1.fixed = fixed;
+      m1.fixed = [0 ones(1,ncontexts) 0];
       minfo.mixer = m1;
       minfo.type = 'ENdiag';
       minfo.atype1 = atype;
       mixInfo{end+1} = minfo;
       
       desc = ['E2 atype ',num2str(atype),' pca '];
+      mixType = 11; %
       functype = 2; % scale without constant
       parIn = [1 zeros(1,ncontexts)];
       fixed = [0 ones(1,ncontexts)]; % fix all contexts
@@ -98,17 +125,17 @@ for itype =1:length(atypes)
             minfo.type = 'E2bond';
             mixInfo{end+1} = minfo;
 
-            parIn = [0 0 0];
-            mixType = 32; % MM stretch mixer
-            desc = ['KE MM atypes ',num2str(atype),' ',num2str(atype2),' pca '];
-            functype = 0; % scale without const
-            m1 = Mixer(parIn, mixType, desc, functype);
-            m1.fixed = [0 0 0];
-            minfo.mixer = m1;
-            minfo.type = 'KEMM';
-            minfo.atype1 = atype;
-            minfo.atype2 = atype2;
-            mixInfo{end+1} = minfo;
+%             parIn = [0 0 0];
+%             mixType = 32; % MM stretch mixer
+%             desc = ['KE MM atypes ',num2str(atype),' ',num2str(atype2),' pca '];
+%             functype = 0; % scale without const
+%             m1 = Mixer(parIn, mixType, desc, functype);
+%             m1.fixed = [0 0 0];
+%             minfo.mixer = m1;
+%             minfo.type = 'KEMM';
+%             minfo.atype1 = atype;
+%             minfo.atype2 = atype2;
+%             mixInfo{end+1} = minfo;
             
          end
       end
@@ -153,6 +180,12 @@ for imix = 1:length(mixInfo)
             for itype = types1
                mod.addKEmodDiag(atype1,itype,minfo.mixer);
             end
+         case 'KE1s1s'
+            diag = 1;
+            mod.addKEcore(diag,atype1,minfo.mixer);
+         case 'KE1s2s'
+            diag = 0;
+            mod.addKEcore(diag,atype1,minfo.mixer);
          case 'ENdiag'
             for itype = types1
                mod.addENmodDiag(atype1,itype,minfo.mixer);
@@ -166,8 +199,8 @@ for imix = 1:length(mixInfo)
             if (atype1 ~= atype2)
                mod.addENmodBonded1h(atype2,atype1,minfo.mixer);
             end
-         case 'KEMM'
-            mod.addMMStretch('KE',atype1,atype2, minfo.mixer);
+%          case 'KEMM'
+%             mod.addMMStretch('KE',atype1,atype2, minfo.mixer);
          case 'E2bond'
             mod.addH2modOffDiag(atype1,atype2,minfo.mixer);
          otherwise
