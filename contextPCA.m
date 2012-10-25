@@ -1,6 +1,6 @@
 clear classes;
 close all;
-topDir = 'C:/matdl/yaron/10-18-12/contextPCAh/';
+topDir = 'C:/matdl/yaron/10-25-12/contextPCA1s/';
 
 fitmeParallel = 1;
 psc = 0; % does not use optimization toolbox
@@ -15,6 +15,7 @@ HLtest = cell(0,0);
 envsTest = cell(0,0);
 files = cell(0,0);
 fileprefix = '';
+
 if (includeMethane)
    files{end+1} = 'datasets\ch4rDat.mat';
    fileprefix = [fileprefix 'ch4r'];
@@ -24,7 +25,7 @@ if (includeEthane)
    fileprefix = [fileprefix 'ethaner'];
 end
 for i1 = 1:length(files)
-   load(files{i});
+   load(files{i1});
    train = 1:10;
    test = 11:20;
    envs1 = [6     7     8    13    16    24];

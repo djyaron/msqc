@@ -225,6 +225,44 @@ classdef Model3 < handle
             mixUsed = [];
          end
       end
+      function mixUsed = addKEcore(obj,diag,Zs,mix)
+         % diag = 1: ss diag = 0 sp
+         if (nargin < 3)
+            mix = Mixer;
+            % create a mix object for these blocks
+            mix.desc = ['KE Core SS [',num2str(Zs),']'];
+         end
+         mixerAdded = 0;
+         for iZ = Zs % loop over all desired elements
+            for iatom = find(obj.Z == iZ) % loop over atoms of this element
+               if (length(obj.onAtom{iatom} ~= 5))
+                  error('Model3:addKEcore not called on atom with 5 basis functions');
+               end
+               if (diag)
+                  mod.ilist = 1;
+                  mod.jlist = 1;
+                  mod.mixer = mix;
+                  obj.KEmods{1,end+1} = mod;
+                  mixerAdded = 1;
+               else
+                  mod.ilist = 1;
+                  mod.jlist = 2;
+                  mod.mixer = mix;
+                  obj.KEmods{1,end+1} = mod;
+                  mod.ilist = 2;
+                  mod.jlist = 1;
+                  obj.KEmods{1,end+1} = mod;
+                  mixerAdded = 1;
+               end
+            end
+         end
+         if (mixerAdded)
+            obj.addMixer(mix);
+            mixUsed = mix;
+         else
+            mixUsed = [];
+         end
+      end
       function mixUsed = addKEmodBonded(obj,Z1,Z2,types1,types2, mix)
          if (nargin < 4)
             types1 = [1 2];
