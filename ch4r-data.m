@@ -14,8 +14,8 @@ if (~exist(dataroot,'dir'))
    copyfile('datasets/env3.mat',[dataroot,'/env3.mat']);
 end
 
-load([dataroot,'/env3.mat']);
-nenv = 25;
+load(['datasets/env6.mat']);
+nenv =length(env);
 
 r1  = 1.12 - 0.15;
 r2 = 1.12 + 0.15;
@@ -25,7 +25,7 @@ p1 = 113.0;
 p2 = 127.0;
 
 pars = cell(0,0);
-maxpars = 1000;
+%maxpars =25;
 HLbasis = {'6-31G'};% '6-31G*' '6-31G**'};
 HL = cell(0,0);
 LL = cell(0,0);
@@ -44,7 +44,7 @@ if (loadResults)
    end
 end
 maxpars = length(parsIn);
-maxpars = 35;
+%maxpars = 35;
 %%
 if (0) %(exist('dataz/ch4r/ch4rDat.mat','file'))
    disp('loading existing data');
