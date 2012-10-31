@@ -32,50 +32,69 @@ for itype =1:length(atypes)
       
       desc = ['KE atype ',num2str(atype),' pca '];
       if (atype == 6)
+         functype = 2; % scale without constant
+         parIn = [1 zeros(1,ncontexts)];
+         fixed = [0 ones(1,ncontexts)]; % fix all contexts
+         mixType = 11; % atom context mixer
+         m1 = Mixer(parIn, mixType, desc, functype);
+         m1.fixed = fixed; % fix all contexts
+         minfo.mixer = m1;
+         minfo.type = 'KEdiags';
+         minfo.atype1 = atype;
+         mixInfo{end+1} = minfo;
+         minfo.type = 'KEdiagp';
+         minfo.mixer = m1.deepCopy;
+         mixInfo{end+1} = minfo;
+      else
+         functype = 2; % scale without constant
+         parIn = [1 zeros(1,ncontexts)];
+         fixed = [0 ones(1,ncontexts)]; % fix all contexts
+         mixType = 11; % atom context mixer
+         m1 = Mixer(parIn, mixType, desc, functype);
+         m1.fixed = fixed; % fix all contexts
+         minfo.mixer = m1;
+         minfo.type = 'KEdiag';
+         minfo.atype1 = atype;
+         mixInfo{end+1} = minfo;
+      end
+
+      if (atype == 6)
+         desc = ['KE 1s1s ',num2str(atype),' pca '];
+         mixType = 11; % atom context mixer
+         functype = 2; % scale without constant
+         parIn = [1 zeros(1,ncontexts)];
+         m1 = Mixer(parIn, mixType, desc, functype);
+         m1.fixed = [0 ones(1,ncontexts)]; % fix all contexts
+         minfo.mixer = m1;
+         minfo.type = 'KE1s1s';
+         minfo.atype1 = atype;
+         mixInfo{end+1} = minfo;
+         
+         desc = ['KE 1s2s ',num2str(atype),' pca '];
+         mixType = 11; % atom context mixer
+         functype = 2; % scale without constant
+         parIn = [1 zeros(1,ncontexts)];
+         m1 = Mixer(parIn, mixType, desc, functype);
+         m1.fixed = [0 ones(1,ncontexts)]; % fix all contexts
+         minfo.mixer = m1;
+         minfo.type = 'KE1s2s';
+         minfo.atype1 = atype;
+         mixInfo{end+1} = minfo;
+      end
+      
+      desc = ['EN atype ',num2str(atype),' pca '];
+      if (atype == 6)
          functype = 3; % scale with constant
          parIn = [1 zeros(1,ncontexts) 0];
          fixed = [0 ones(1,ncontexts) 0]; % fix all contexts
       else
          functype = 2; % scale without constant
-         parIn = [1 zeros(1,ncontexts) 0];
+         parIn = [1 zeros(1,ncontexts)];
          fixed = [0 ones(1,ncontexts)]; % fix all contexts
       end
       mixType = 11; % atom context mixer
       m1 = Mixer(parIn, mixType, desc, functype);
-      m1.fixed = [0 ones(1,ncontexts) 0]; % fix all contexts
-      minfo.mixer = m1;
-      minfo.type = 'KEdiag';
-      minfo.atype1 = atype;
-      mixInfo{end+1} = minfo;
-
-      desc = ['KE 1s1s ',num2str(atype),' pca '];
-      mixType = 11; % atom context mixer
-      functype = 2; % scale without constant
-      parIn = [1 zeros(1,ncontexts)];
-      m1 = Mixer(parIn, mixType, desc, functype);
-      m1.fixed = [0 ones(1,ncontexts)]; % fix all contexts
-      minfo.mixer = m1;
-      minfo.type = 'KE1s1s';
-      minfo.atype1 = atype;
-      mixInfo{end+1} = minfo;
-
-      desc = ['KE 1s2s ',num2str(atype),' pca '];
-      mixType = 11; % atom context mixer
-      functype = 2; % scale without constant
-      parIn = [1 zeros(1,ncontexts)];
-      m1 = Mixer(parIn, mixType, desc, functype);
-      m1.fixed = [0 ones(1,ncontexts)]; % fix all contexts
-      minfo.mixer = m1;
-      minfo.type = 'KE1s2s';
-      minfo.atype1 = atype;
-      mixInfo{end+1} = minfo;      
-      
-      desc = ['EN atype ',num2str(atype),' pca '];
-      mixType = 11; % atom context mixer
-      functype = 3; % scale with constant
-      parIn = [1 zeros(1,ncontexts) 0];
-      m1 = Mixer(parIn, mixType, desc, functype);
-      m1.fixed = [0 ones(1,ncontexts) 0];
+      m1.fixed = fixed;
       minfo.mixer = m1;
       minfo.type = 'ENdiag';
       minfo.atype1 = atype;
@@ -179,6 +198,14 @@ for imix = 1:length(mixInfo)
          case 'KEdiag'
             for itype = types1
                mod.addKEmodDiag(atype1,itype,minfo.mixer);
+            end
+         case 'KEdiags'
+            for itype = types1
+               mod.addKEmodDiag(atype1,1,minfo.mixer);
+            end
+         case 'KEdiagp'
+            for itype = types1
+               mod.addKEmodDiag(atype1,2,minfo.mixer);
             end
          case 'KE1s1s'
             diag = 1;

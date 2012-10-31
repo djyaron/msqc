@@ -235,7 +235,7 @@ classdef Model3 < handle
          mixerAdded = 0;
          for iZ = Zs % loop over all desired elements
             for iatom = find(obj.Z == iZ) % loop over atoms of this element
-               if (length(obj.onAtom{iatom} ~= 5))
+               if (length(obj.onAtom{iatom}) ~= 5)
                   error('Model3:addKEcore not called on atom with 5 basis functions');
                end
                if (diag)

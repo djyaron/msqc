@@ -1,7 +1,6 @@
 clear classes;
 close all;
-topDir = 'C:/matdl/yaron/10-25-12/contextPCA1s/';
-
+topDir = 'C:/matdl/yaron/10-26-12/contextPCA1sSP/';
 fitmeParallel = 1;
 psc = 0; % does not use optimization toolbox
 includeMethane = 1;
@@ -84,6 +83,9 @@ end
 str1 = 'initial error %12.5f test %12.5f \n';
 fprintf(1,str1,currentTrainErr,currentErr);
 fprintf(summaryFile,str1,currentTrainErr,currentErr);
+f1.printEDetails(summaryFile);
+ftest.printEDetails(summaryFile);
+
 ticID = tic;
 for iter = 1:12
    allName = [topDir,filePre,'/all-',num2str(iter),'.mat'];
@@ -108,11 +110,13 @@ for iter = 1:12
       [currentTrainErr,currentPar,currentErr] = contextFit2(f1,ftest,0,0,0,500,psc);
       save(allName);
       %end
-      str2 = 'context error %12.5f test %12.5f \n';
-      fprintf(1,str2,currentTrainErr,currentErr);
-      fprintf(summaryFile,str2,currentTrainErr,currentErr);
-
    end
+   str2 = 'context error %12.5f test %12.5f \n';
+   fprintf(1,str2,currentTrainErr,currentErr);
+   fprintf(summaryFile,str2,currentTrainErr,currentErr);
+   f1.printEDetails(summaryFile);
+   ftest.printEDetails(summaryFile);
+
 end
 runTime = toc(ticID)
 diary off;

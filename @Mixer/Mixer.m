@@ -37,6 +37,7 @@ classdef Mixer < handle
          res = Mixer(obj.par,obj.mixType,obj.desc,obj.funcType);
          res.fixed = obj.fixed;
          res.hybrid = obj.hybrid;
+         res.index = obj.index;
       end
       function res = constructionData(obj)
          % data needed to reconstruct this mixer
