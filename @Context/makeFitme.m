@@ -1,5 +1,5 @@
 function [ftrain ftest] = makeFitme(mtrain,envsTrain,HLTrain,mtest, ...
-   envsTest,HLTest,includeAdhoc)
+   envsTest,HLTest,includeAdhoc,separateSP,include1s)
 % Input
 %    mtrain      {ntrain} models for training
 %    envsTrain   {ntrain}(1:nenv)  envs for each train model
@@ -8,6 +8,12 @@ function [ftrain ftest] = makeFitme(mtrain,envsTrain,HLTrain,mtest, ...
 
 if (nargin < 7)
    includeAdhoc = 0;
+end
+if (nargin < 8)
+   separateSP = 0;
+end
+if (nargin < 9)
+   include1s = 0;
 end
 
 % get all the necessary contexts for this set of molecules
@@ -31,20 +37,33 @@ for itype =1:length(atypes)
       ncontexts = atomContexts{itype}.ndim + extraContexts;
       
       desc = ['KE atype ',num2str(atype),' pca '];
-      if (atype == 6)
-         functype = 2; % scale without constant
-         parIn = [1 zeros(1,ncontexts)];
-         fixed = [0 ones(1,ncontexts)]; % fix all contexts
-         mixType = 11; % atom context mixer
-         m1 = Mixer(parIn, mixType, desc, functype);
-         m1.fixed = fixed; % fix all contexts
-         minfo.mixer = m1;
-         minfo.type = 'KEdiags';
-         minfo.atype1 = atype;
-         mixInfo{end+1} = minfo;
-         minfo.type = 'KEdiagp';
-         minfo.mixer = m1.deepCopy;
-         mixInfo{end+1} = minfo;
+      if (Context.atypeToZtype(atype) == 6)
+         if (separateSP)
+            functype = 2; % scale without constant
+            parIn = [1 zeros(1,ncontexts)];
+            fixed = [0 ones(1,ncontexts)]; % fix all contexts
+            mixType = 11; % atom context mixer
+            m1 = Mixer(parIn, mixType, desc, functype);
+            m1.fixed = fixed; % fix all contexts
+            minfo.mixer = m1;
+            minfo.type = 'KEdiags';
+            minfo.atype1 = atype;
+            mixInfo{end+1} = minfo;
+            minfo.type = 'KEdiagp';
+            minfo.mixer = m1.deepCopy;
+            mixInfo{end+1} = minfo;
+         else
+            functype = 3; % scale with constant
+            parIn = [1 zeros(1,ncontexts) 0];
+            fixed = [0 ones(1,ncontexts) 0]; % fix all contexts
+            mixType = 11; % atom context mixer
+            m1 = Mixer(parIn, mixType, desc, functype);
+            m1.fixed = fixed; % fix all contexts
+            minfo.mixer = m1;
+            minfo.type = 'KEdiag';
+            minfo.atype1 = atype;
+            mixInfo{end+1} = minfo;
+         end
       else
          functype = 2; % scale without constant
          parIn = [1 zeros(1,ncontexts)];
@@ -58,7 +77,7 @@ for itype =1:length(atypes)
          mixInfo{end+1} = minfo;
       end
 
-      if (atype == 6)
+      if (include1s && (Context.atypeToZtype(atype) == 6))
          desc = ['KE 1s1s ',num2str(atype),' pca '];
          mixType = 11; % atom context mixer
          functype = 2; % scale without constant
@@ -83,7 +102,7 @@ for itype =1:length(atypes)
       end
       
       desc = ['EN atype ',num2str(atype),' pca '];
-      if (atype == 6)
+      if (Context.atypeToZtype(atype) == 6)
          functype = 3; % scale with constant
          parIn = [1 zeros(1,ncontexts) 0];
          fixed = [0 ones(1,ncontexts) 0]; % fix all contexts

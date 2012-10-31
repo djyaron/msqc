@@ -6,6 +6,12 @@ psc = 0; % does not use optimization toolbox
 includeMethane = 1;
 includeEthane = 0;
 includeAdhoc = 1;
+separateSP = 0;
+include1s = 0;
+datasetExt = ''; %  '-orig'   :   8 charges, 
+                 %  ''        :   rand charge + dipoles,
+                 %  '-linrho' :   1 linear charge + dipoles,
+                 %  '-diponly' :   only dipoles
 
 mtrain = cell(0,0);
 HLtrain = cell(0,0);
@@ -17,8 +23,10 @@ files = cell(0,0);
 fileprefix = '';
 
 if (includeMethane)
-   files{end+1} = 'datasets\ch4rDat.mat';
-   fileprefix = [fileprefix 'ch4r'];
+   switch envType
+      
+   files{end+1} = ['datasets\ch4rDat',datasetExt,'.mat'];
+   fileprefix = [fileprefix 'ch4r',datasetExt];
 end
 if (includeEthane)
    files{end+1} = 'datasets\ethanerDat.mat';
@@ -62,7 +70,7 @@ diary on;
 
 % Create fitme object
 [f1 ftest] = Context.makeFitme(mtrain,envsTrain,HLtrain, ...
-   mtest,envsTest,HLtest,includeAdhoc);
+   mtest,envsTest,HLtest,includeAdhoc,separateSP,include1s);
 f1.silent = 0;
 ftest.silent = 0;
 f1.parallel = fitmeParallel;
