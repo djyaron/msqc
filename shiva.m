@@ -8,8 +8,8 @@ fitmeParallel = 1; % true = take advantage of matlabpool
 showPlots = 0;  % true = plots comparisons of HL and LL Model on each
                 %        call to fitme.err
 separateSP = 0; % true = treat s and p orbitals differently
-optRoutine = 0; % 0 = nlsqmin   1 = alternative (see below)
-iprocess = 1;   % 1 = h2 (fast) 2 = ch4 (medium) 3 = ethane (slow)
+optRoutine = 1; % 0 = nlsqmin   1 = alternative (see below)
+iprocess = 2;   % 1 = h2 (fast) 2 = ch4 (medium) 3 = ethane (slow)
                 % 4 = ch4 and ethane (very slow)
 maxIter = 500;  % for optRoutine = 0
 
