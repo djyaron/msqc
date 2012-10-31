@@ -59,5 +59,10 @@ end
 
 cd(origdir);
 % cleanup files
-rmdir(tempDir,'s');
+status = rmdir(tempDir,'s');
+while status ~= 1
+    disp('  rmdir failed. Retrying...');
+    pause(0.1);
+    status = rmdir(tempDir,'s');
+end
 
