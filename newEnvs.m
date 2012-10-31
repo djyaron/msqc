@@ -202,7 +202,6 @@ end
 save('datasets/env4.mat','env');
 %% Generate a new set of environments
 clear all;
-nenv = 25;
 edge = 5;
 env = cell(25,1);
 for ienv = 1:25
