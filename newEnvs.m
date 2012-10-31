@@ -169,7 +169,7 @@ for i = 1:length(envs);
 %    plot(x,qLL(3),'b+');
 %    plot(x,qHL(3),'r+');
 end
-%%
+%% Generate a new set of environments
 clear all;
 nenv = 25;
 edge = 5;
@@ -184,3 +184,111 @@ for ienv = 1:25
    env{ienv} = t1;
 end
 save('datasets/env3.mat','env');
+%% Generate a new set of environments
+clear all;
+nenv = 25;
+edge = 5;
+rhos = -5:0.5:5;
+env = cell(length(rhos),1);
+ienv = 0;
+for rho=rhos
+   ienv = ienv+1;
+   t1 = Environment.dipCube(edge,0.1,25);
+   r = -1 + (2 *rand(3,1));  % each element will go from -1 to +1 
+   orien = [0 0 5];
+   t1.addCharge(orien,rho);
+   env{ienv} = t1;
+end
+save('datasets/env4.mat','env');
+%% Generate a new set of environments
+clear all;
+nenv = 25;
+edge = 5;
+env = cell(25,1);
+for ienv = 1:25
+   env{ienv} = Environment.dipCube(edge,0.1,25);
+end
+save('datasets/env6.mat','env');
+%% Look at this data
+clear;
+load('datasets/env3.mat','env');
+load('datasets/ch4rDat.mat');
+%%
+rho = [];
+for ienv = 1:length(env)
+   rho(ienv) = env{ienv}.rho(end);
+end
+[rs,is] = sort(rho);
+%%
+close all;
+for ienv = 1:length(env)
+   hold on;
+   env{ienv}.plotFig(1);
+   junk = input('hit next');
+end
+%%
+qs = cell(6,2);  % {Z, LL or HL}
+ch3sum = cell(2,1);
+close all;
+col = {'b','r'};
+lev = {'LL','HL'};
+egs = cell(2,1);
+qc = [];
+for ilevel = 1:2
+   for imod = 1:size(LL,1);
+      switch ilevel
+         case 1
+            m1 = LL{imod,1};
+         case 2
+            m1 = HL{imod,1};
+      end
+      for ienv = 1:m1.nenv
+         t1 = m1.mcharge(ienv)-m1.mcharge(0);
+         egs{ilevel}(end+1) = m1.EhfEnv(ienv) - m1.Ehf;
+         %ch3sum{ilevel}(end+1) = sum(t1([1 3 4 5]));
+         %ch3sum{ilevel}(end+1) = sum(t1([2 6 7 8]));
+         qc(imod,ienv,ilevel) = t1(1);
+         for iatom = 1:length(t1)
+            qs{m1.Z(iatom),ilevel}(end+1) = t1(iatom);
+         end
+      end
+   end
+   figure(101)
+   hold on;
+   subplot(2,2,2*(ilevel-1) +1);
+   hist(qs{1,ilevel},10);
+   title(['H  ',lev{ilevel}]);
+   hold on;
+   subplot(2,2,2*(ilevel-1) + 2);
+   hist(qs{6,ilevel},10);
+   title(['C  ',lev{ilevel}]);
+end
+% figure(300)
+% hist(ch3sum{1},20)
+% figure(301)
+% hist(ch3sum{2},20)
+%%
+close all;
+for imod = 1:size(LL,1)
+   t1 = qc(imod,:,1);
+   t2 = qc(imod,:,2);
+   figure(600)
+   hold on;
+   plot(t1,t2,'r.');
+   figure(601)
+   hold on;
+   plot(rho,abs(t2-t1),'b.');
+   figure(602)
+   hold on;
+   figure(603)
+   hold on;
+   plot(rho,t1,'b.');
+   plot(rho,t2,'r.');
+end
+%%
+disp(['mean of C charges from LL and HL ', num2str(mean(qs{6,1})), ' ', num2str(mean(qs{6,2}))]);
+disp(['mean of H charges from LL and HL ', num2str(mean(qs{1,1})), ' ', num2str(mean(qs{1,2}))]);
+disp(['std of C charges from LL and HL  ', num2str(std(qs{6,1})), ' ', num2str(std(qs{6,2}))]);
+disp(['std of H charges from LL and HL  ', num2str(std(qs{1,1})), ' ', num2str(std(qs{1,2}))]);
+%disp(['std of CH3 charges from LL and HL  ', num2str(std(ch3sum{1})), ' ', num2str(std(ch3sum{2}))]);
+ 
