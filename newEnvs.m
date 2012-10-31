@@ -169,4 +169,18 @@ for i = 1:length(envs);
 %    plot(x,qLL(3),'b+');
 %    plot(x,qHL(3),'r+');
 end
-
+%%
+clear all;
+nenv = 25;
+edge = 5;
+env = cell(25,1);
+for ienv = 1:25
+   t1 = Environment.dipCube(edge,0.1,25);
+   r = -1 + (2 *rand(3,1));  % each element will go from -1 to +1 
+   orien = r/norm(r);
+   orien = 5 * orien;
+   rho = 5 * (-1 + 2 * rand(1,1));
+   t1.addCharge(orien,rho);
+   env{ienv} = t1;
+end
+save('datasets/env3.mat','env');

@@ -19,7 +19,7 @@ close all;
 % plot(ikeep2,Ehf(ikeep2),'go');
 % %save('ch4keep.mat','ikeep');
 %
-topDir = 'C:/matdl/yaron/10-16-12/context-rapid/';
+topDir = 'C:/matdl/yaron/10-31-12/context-rapid/';
 %topDir = '/brashear/yaron/matdl/9-2-12/context-psc-batchqueue/';
 ftype = 3;
 fitmeParallel = 1;
@@ -27,7 +27,7 @@ showPlots = 0;
 separateSP = 0;
 psc = 0; % does not use optimization toolbox
 
-for iprocess = 1; % [3 8 6];
+for iprocess = 11; % [3 8 6];
 
 if (iprocess == 1)
    trainC{1} = {'h2',[2 3 4],'envs',1:5};
@@ -81,6 +81,12 @@ elseif (iprocess == 8)
    ikeep2 = [5    10    14    17    20    25];
    testC{1} = {'ethaner',11:20,'envs',ikeep2};
    filePrefix{1} = 'ethaner';
+elseif (iprocess == 11)
+   %   load('ch4keep.mat');
+   trainC{1} = {'ch4r',1:10,'envs',1:10};
+   ikeep2 = [5    10    14    17    20    25];
+   testC{1} = {'ch4r',11:20,'envs',11:20};
+   filePrefix{1} = 'ch4-env1';
 end
 filePre = filePrefix{1};
 dataDir = [topDir,filePre];
