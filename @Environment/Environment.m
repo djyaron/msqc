@@ -20,10 +20,30 @@ classdef Environment < handle
       res = newBox( obj, frag, cubeExtension, mag, ncharge )
       goodEnv = testEnv( obf, frag, cubeExtension, mag, ncharge, ntrial )
       res = dipoleEnvironment( frag, cubeExtension, mag, ndipole )
+      res = dipCube(size, sep, mag)
       
    end % static methods
    
    methods
+      function res = Environment()
+         res.ncharge = 0;
+         res.rho = [];
+         res.r = [];
+         res.nfield = 0;
+         res.fieldType = [];
+         res.fieldMag = [];
+      end
+      function obj = addCharge(obj,r,rho)
+         if (obj.ncharge == 0)
+            obj.ncharge = 1;
+            obj.rho = rho;
+            obj.r = r(:);
+         else
+            obj.ncharge = obj.ncharge + 1;
+            obj.rho(obj.ncharge) = rho;
+            obj.r(:,obj.ncharge) = r(:);
+         end
+      end
       function plotFig(obj,nfig)
          figure(nfig);
          for ic = 1:obj.ncharge
