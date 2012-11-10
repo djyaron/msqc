@@ -85,7 +85,9 @@ else
       obj.models{imod}.densitySave{ienv+1} = calcRes{icalc}.density;
    end
 end
-   
+% to allow control-C to stop the job
+pause(0.1);
+
 doPlots = obj.plot && (dpar > 1.0e-4);
 
 if (doPlots)
