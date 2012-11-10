@@ -209,6 +209,23 @@ for ienv = 1:25
    env{ienv} = Environment.dipCube(edge,0.1,25);
 end
 save('datasets/env6.mat','env');
+%% Generate a new set of environments for ethane
+clear all;
+nenv = 25;
+ccBond = 1.54; % bond length
+edge = [5, 5, 5+(ccBond/2)];
+env = cell(nenv,1);
+for ienv = 1:nenv
+   t1 = Environment.dipCube(edge,0.1,25);
+   r = -1 + (2 *rand(3,1));  % each element will go from -1 to +1 
+   orien = [0 0 (5+(ccBond/2))];
+   rho = 5 * (-1 + 2 * rand(1,1));
+   t1.addCharge(orien,rho);
+   env{ienv} = t1;
+end
+save('datasets/ethane-env.mat','env');
+
+
 %% Look at this data
 clear;
 load('datasets/env3.mat','env');
