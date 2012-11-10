@@ -23,9 +23,11 @@ end
 
 % need to expand # context variables by 3 if including adhoc
 if (includeAdhoc)
-   extraContexts = 3;
+   extraContextsAtom = 3;
+   extraContextsBond = 3;
 else
-   extraContexts = 0;
+   extraContextsAtom = 0;
+   extraContextsBond = 0;
 end
 
 ic = 0;
@@ -34,7 +36,7 @@ for itype =1:length(atypes)
    atype = atypes(itype);
    if (~isempty(atomContexts{itype}))
       %Mixer(parIn,mixType,desc,funcType)
-      ncontexts = atomContexts{itype}.ndim + extraContexts;
+      ncontexts = atomContexts{itype}.ndim + extraContextsAtom;
       
       desc = ['KE atype ',num2str(atype),' pca '];
       if (Context.atypeToZtype(atype) == 6)
@@ -133,7 +135,7 @@ for itype =1:length(atypes)
       for jtype = itype:length(atypes)
          atype2 = atypes(jtype);
          if (~isempty(bondContexts{itype,jtype}))
-            ncontexts = bondContexts{itype,jtype}.ndim + extraContexts;
+            ncontexts = bondContexts{itype,jtype}.ndim + extraContextsBond;
             parIn = [1 zeros(1,ncontexts)];
             mixType = 12; % off-diagonal context mixer
             desc = ['KE atypes ',num2str(atype),' ',num2str(atype2),' pca '];

@@ -1,6 +1,6 @@
 clear classes;
 close all;
-topDir = 'C:/matdl/yaron/10-26-12/contextPCA1sSP/';
+topDir = 'C:/matdl/yaron/11-8-12/contextPCA-field/';
 fitmeParallel = 1;
 psc = 0; % does not use optimization toolbox
 includeMethane = 1;
@@ -8,7 +8,9 @@ includeEthane = 0;
 includeAdhoc = 1;
 separateSP = 0;
 include1s = 0;
-datasetExt = ''; %  '-orig'   :   8 charges, 
+extType = {'','-diponly','-orig','-linrho'};
+for itype = 1:4
+datasetExt = extType{itype}; %''; %  '-orig'   :   8 charges, 
                  %  ''        :   rand charge + dipoles,
                  %  '-linrho' :   1 linear charge + dipoles,
                  %  '-diponly' :   only dipoles
@@ -23,8 +25,6 @@ files = cell(0,0);
 fileprefix = '';
 
 if (includeMethane)
-   switch envType
-      
    files{end+1} = ['datasets\ch4rDat',datasetExt,'.mat'];
    fileprefix = [fileprefix 'ch4r',datasetExt];
 end
@@ -36,8 +36,10 @@ for i1 = 1:length(files)
    load(files{i1});
    train = 1:10;
    test = 11:20;
-   envs1 = [6     7     8    13    16    24];
-   envs2 = [5    10    14    17    20    25];
+   %envs1 = [6     7     8    13    16    24];
+   %envs2 = [5    10    14    17    20    25];
+   envs1 = 1:2:20;
+   envs2 = 2:2:20;
    for i = train
       mtrain{end+1} = Model3(LL{i,1},LL{i,1},LL{i,1});
       mtrain{end}.solveHF;
@@ -71,10 +73,14 @@ diary on;
 % Create fitme object
 [f1 ftest] = Context.makeFitme(mtrain,envsTrain,HLtrain, ...
    mtest,envsTest,HLtest,includeAdhoc,separateSP,include1s);
+%
 f1.silent = 0;
 ftest.silent = 0;
 f1.parallel = fitmeParallel;
 ftest.parallel = fitmeParallel;
+fprintf(ofile,'train and test starting error \n');
+f1.printEDetails(summaryName);
+ftest.printEDetails(summaryName);
 
 %
 startName = [topDir,filePre,'/start.mat'];
@@ -95,7 +101,7 @@ f1.printEDetails(summaryFile);
 ftest.printEDetails(summaryFile);
 
 ticID = tic;
-for iter = 1:12
+for iter = 1:5
    allName = [topDir,filePre,'/all-',num2str(iter),'.mat'];
    if (exist(allName,'file'))
       fprintf(1,'LOADING ITERATION %i \n',iter);
@@ -138,3 +144,4 @@ fclose(summaryFile);
 %          num2str(etemp)]);
 %       disp(['pars ',num2str(pars{i})]);
 %    end
+end
