@@ -1,62 +1,47 @@
 %% Fitting multiple molecules, using makeFitme
-%clear classes;
-topDir = 'C:\matdl\yaron\7-13-12\scalehybrid\parallel2\fixedE2\';
-%topDir = 'scalehybridparallel/';
+clear classes;
+topDir = 'tmp/';
 runParallel = 1;
-% if (Aprocess == 1)
-%    ics = [1 6];
-% elseif (Aprocess == 2)
-%    ics = [2 7];
-% else
-%    ics = [3 9];
-% end
-ics = [1 2 3 6 7 9];
-%Aprocess = 1;
-%ics = [1 2 3 6 7];
-% if (Aprocess == 1)
-%    runParallel = 1;
-%    topDir = 'scalehybridparallel/fixedE2/';
-% else
-%    runParallel = 0;
-%    topDir = 'scalehybridparics/tight10/';
-% end
-%trainC{1}  = {'h2',2:7,'envs',1:10};
-%testC{1} = {'h2',2:7,'envs',20:30};
+ics = [6];
+
+train = 1:20;
+test  = [21:30 41:50];
+
 ftype = 2;
-trainC{1}  = {'h2',[],'ch4',1:17,'envs',1:10};
-testC{1} = {'h2',[],'ch4',1:17,'envs',20:30};
+trainC{1}  = {'h2',[],'ch4',1:16,'envs',train};
+testC{1} = {'h2',[],'ch4',1:16,'envs',test};
 filePrefix{1} = 'ch4';
 
-trainC{2}  = {'h2',[],'ethane',1:7,'envs',1:10};
-testC{2} = {'h2',[],'ethane',1:7,'envs',20:30};
+trainC{2}  = {'h2',[],'ethane',1:7,'envs',train};
+testC{2} = {'h2',[],'ethane',1:7,'envs',test};
 filePrefix{2} = 'c2h6';
 
-trainC{3}  = {'h2',[],'ethylene',1:7,'envs',1:10};
-testC{3} = {'h2',[],'ethylene',1:7,'envs',20:30};
+trainC{3}  = {'h2',[],'ethylene',1:7,'envs',train};
+testC{3} = {'h2',[],'ethylene',1:7,'envs',test};
 filePrefix{3} = 'c2h4z2';
 
-trainC{4}  = {'h2',[],'ch4',1:7,'ethane',1:7,'envs',1:10};
-testC{4} = {'h2',[],'ch4',1:7,'ethane',1:7,'envs',20:30};
+trainC{4}  = {'h2',[],'ch4',1:7,'ethane',1:7,'envs',train};
+testC{4} = {'h2',[],'ch4',1:7,'ethane',1:7,'envs',test};
 filePrefix{4} = 'ch4-c2h6';
 
-trainC{5}  = {'h2',[],'ch4',1:7,'ethane',1:7,'ethylene',1:7,'envs',1:10};
-testC{5} = {'h2',[],'ch4',1:7,'ethane',1:7,'ethylene',1:7,'envs',20:30};
+trainC{5}  = {'h2',[],'ch4',1:7,'ethane',1:7,'ethylene',1:7,'envs',train};
+testC{5} = {'h2',[],'ch4',1:7,'ethane',1:7,'ethylene',1:7,'envs',test};
 filePrefix{5} = 'ch4-c2h6-c2h4';
 
-trainC{6}  = {'h2',[],'ch4',1:19,'ethane',1:7,'envs',1:10};
-testC{6} = {'h2',[],'ch4',1:19,'ethane',1:7,'envs',20:30};
+trainC{6}  = {'h2',[],'ch4',1:16,'ethane',1:7,'envs',train};
+testC{6} = {'h2',[],'ch4',1:16,'ethane',1:7,'envs',test};
 filePrefix{6} = 'ch4f-c2h6';
 
-trainC{7}  = {'h2',[],'ch4',1:19,'ethane',1:7,'ethylene',1:7,'envs',1:10};
-testC{7} = {'h2',[],'ch4',1:19,'ethane',1:7,'ethylene',1:7,'envs',20:30};
+trainC{7}  = {'h2',[],'ch4',1:19,'ethane',1:7,'ethylene',1:7,'envs',train};
+testC{7} = {'h2',[],'ch4',1:19,'ethane',1:7,'ethylene',1:7,'envs',test};
 filePrefix{7} = 'ch4f-c2h6-c2h4';
 
-trainC{8}  = {'h2',[],'propane',1:7,'envs',1:10};
-testC{8} = {'h2',[],'propane',1:7,'envs',20:30};
+trainC{8}  = {'h2',[],'propane',1:7,'envs',train};
+testC{8} = {'h2',[],'propane',1:7,'envs',test};
 filePrefix{8} = 'c3h8';
 
-trainC{9}  = {'h2',[],'ch4',1:19,'ethane',1:7,'propane',1:7,'envs',1:10};
-testC{9} = {'h2',[],'ch4',1:19,'ethane',1:7,'propane',1:7,'envs',20:30};
+trainC{9}  = {'h2',[],'ch4',1:19,'ethane',1:7,'propane',1:7,'envs',train};
+testC{9} = {'h2',[],'ch4',1:19,'ethane',1:7,'propane',1:7,'envs',test};
 filePrefix{9} = 'ch4f-c2h6-c3h8';
 
 commonIn = {};
@@ -220,11 +205,11 @@ for iC = ics% [1 2 3 4 6 7]
          %f1.parallel = 1;
          [pt,resnorm,residual,exitflag,output,lambda,jacobian] = ...
             lsqnonlin(@f1.err, start,lowLimits,highLimits,options);
-         %       options = LMFnlsq;
-         %      options.Display =1;
-         %    options.FunTol = 1.0e-6;
-         %    options.XTol = 1.0e-5;
-         %    [pt,resnorm, CNT, Res, XY] = LMFnlsq(@f1.err,start',options);
+         %options = LMFnlsq;
+         %options.Display =1;
+         %options.FunTol = 1.0e-6;
+         %options.XTol = 1.0e-5;
+         %[pt,resnorm, CNT, Res, XY] = LMFnlsq(@f1.err,start',options);
          clockTime = toc
          pt
          resnorm
