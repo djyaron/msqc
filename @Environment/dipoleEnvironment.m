@@ -12,9 +12,7 @@ function res = dipoleEnvironment( frag, cubeExtension, mag, ndipole )
 % Data to be used in determining minimum safe distance for charges.
 load( [ '@Environment', filesep, 'atomicRadii.mat' ] );
 
-% rcart given in Bohr radii. Approx conversion factor.
-% Should really be changed in readfchk
-rcartAng = frag.rcart / 1.889726124565062;
+rcartAng = frag.rcart; 
 
 res = Environment;
 icharge = 1;

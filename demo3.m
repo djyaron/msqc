@@ -2,7 +2,7 @@
 clear classes;
 
 %% H2 fit
-f1 = makeFitme;
+f1 = makeFitme('h2',2:7);
 disp('Starting fit for h2');
 start = zeros(1,f1.npar);
 %limits = [4 20 4 20 4 20 4 4 4 20 4 20 4 20 4 4 4 4];
@@ -10,7 +10,9 @@ limits = [];
 options = optimset('DiffMinChange',1.0e-5);
 diary('tmp/h2.diary');
 diary on;
-pt = lsqnonlin(@f1.err, start,-limits,limits,options);
+llimit = zeros(1,f1.npar);
+ulimit = 8 * ones(1,f1.npar);
+pt = lsqnonlin(@f1.err, start,llimit,ulimit,options);
 pt
 diary off;
 % Should give pt = -0.5127    3.7062    7.6738   -0.2253    4.1360    4.3110

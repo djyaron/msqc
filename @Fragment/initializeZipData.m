@@ -128,6 +128,11 @@ zip(zipFileName,toZip);
 
 cd(origdir);
 % cleanup files
-[status message messageid] = rmdir(tempDir,'s');
-
+%[status message messageid] = rmdir(tempDir,'s');
+status = rmdir(tempDir,'s');
+while status ~= 1
+    disp('  rmdir failed. Retrying...');
+    pause(0.1);
+    status = rmdir(tempDir,'s');
+end
 

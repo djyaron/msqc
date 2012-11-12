@@ -7,6 +7,7 @@ fdif = LL{1,3};
 fhl = HL{1,1};
 
 save('temp.mat','frag','fnar','fdif','fhl');
+obj = Model3(frag,fnar,fdif);
 
 %%
 clear classes;

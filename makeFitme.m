@@ -12,16 +12,20 @@ function fitme = makeFitme(varargin)
 %  h2       2:7              range of h2 geometries to include (1..7)
 %  ch4      []               range of ch4 geometries to include (1..19)
 %  ethane   []               range of ethane geometries to include (1..7)
+%  ethaner   []              range of random ethane geometries to include (1..50)
 %  ethylene []               range of ethylene geometries to include (1..7)
 %  kemods   1                include mixers to modify kinetic energy
 %  enmods   1                include mixers to modify elec-nuc interaction
-%  deltarho 1                based charge dependence on charges induced
+%  deltarho 1                base charge dependence on charges induced
 %                            by field
 %  enstruct  []              structure with enmods
 %  enstruct1 []              structure with enmods (1 oper only)
+%  enstructh []              structure with enmods hybrid
 %  kestruct  []              structure with kemods
+%  kestructh  []             structure with kemods hybrid
 %  e2struct  []              structure with e2mods
 %  testFitme []              Fitme object with test data
+%  silent    0               suppress fitme displayed output
 
 % To test parsing of input, use:
 %makeFitme('datadir','./mydata','nhl',2,'plot',0,'envs',1:3,'h2',1:3, ...
@@ -38,7 +42,9 @@ doPlot = checkForInput(varargin,'plot',1);
 envs = checkForInput(varargin,'envs',0:20); 
 geomsH2 = checkForInput(varargin,'h2',[]); % allowed range is 1:7
 geomsCH4 = checkForInput(varargin,'ch4',[]); % allowed range is 1:19
+geomsCH4r = checkForInput(varargin,'ch4r',[]); % allowed range is 1:25
 geomsEthane = checkForInput(varargin,'ethane',[]); % allowed range is 1:7
+geomsEthaner = checkForInput(varargin,'ethaner',[]); % allowed range is 1:7
 geomsEthylene = checkForInput(varargin,'ethylene',[]); % allowed range is 1:7
 geomsPropane = checkForInput(varargin,'propane',[]); % allowed range is 1:7
 geomsPropene = checkForInput(varargin,'propene',[]); % allowed range is 1:9
@@ -54,7 +60,7 @@ kestruct = checkForInput(varargin,'kestruct',[]);
 kestructh = checkForInput(varargin,'kestructh',[]);
 e2struct = checkForInput(varargin,'e2struct',[]);
 testFitme = checkForInput(varargin,'testFitme',[]);
-separatePars = checkForInput(varargin, 'separatePars', 0);
+silent = checkForInput(varargin,'silent',0);
 
 if (~isempty(enstruct) && ~isempty(enstruct1))
    error('Do not set both enstruct and enstruct1');
@@ -68,6 +74,17 @@ plotNumber = [];
 if (~isempty(geomsCH4))
    load([dataDir,'/ch4Dat.mat']);
    for i = geomsCH4
+      ic = ic+1;
+      plotNumber(1,ic) = 801 + 10 * (doPlot-1);
+      for j = 1:size(LL,2)
+         LL1{ic,j} = LL{i,j};
+      end
+      HL1{ic,1} = HL{i,nhl};
+   end
+end
+if (~isempty(geomsCH4r))
+   load([dataDir,'/ch4rDat.mat']);
+   for i = geomsCH4r
       ic = ic+1;
       plotNumber(1,ic) = 801 + 10 * (doPlot-1);
       for j = 1:size(LL,2)
@@ -90,6 +107,17 @@ end
 if (~isempty(geomsEthane))
    for i = geomsEthane
       load([dataDir,'/ethaneDat.mat']);
+      ic = ic+1;
+      plotNumber(1,ic) = 802 + 10 * (doPlot-1);
+      for j = 1:size(LL,2)
+         LL1{ic,j} = LL{i,j};
+      end
+      HL1{ic,1} = HL{i,nhl};
+   end
+end
+if (~isempty(geomsEthaner))
+   for i = geomsEthaner
+      load([dataDir,'/ethanerDat.mat']);
       ic = ic+1;
       plotNumber(1,ic) = 802 + 10 * (doPlot-1);
       for j = 1:size(LL,2)
@@ -139,9 +167,7 @@ HL = HL1;
 %disp('building models');
 m = cell(1,size(params,2));
 for ipar = params
-    mod = Model3(LL{ipar,1},LL{ipar,2},LL{ipar,3});
-    mod.X = inv(sqrtm(mod.frag.S));
-    m{ipar} = mod;
+   m{ipar} = Model3(LL{ipar,1},LL{ipar,2},LL{ipar,3});
 end
 if (includeKEmods)
    if (isempty(kestruct) && isempty(kestructh))
@@ -252,6 +278,8 @@ if (~isempty(e2struct) > 0)
    end
 end
 
+
+
 if (useDeltaCharges)
    for ipar = params
       for ienv = 1:m{ipar}.nenv
@@ -261,40 +289,27 @@ if (useDeltaCharges)
    end
 end
 
-if separatePars == 1
-    fitme = Fitme2;
-    i = 1;
-    for ipar = params
-       new = Fitme;
-       new.addFrag(m{ipar},HL{ipar,1},plotNumber(ipar));
-       new.includeKE = includeKEmods;
-       new.includeEN = includeENmods * ones(1,6);
-       new.setEnvs(envs);
-       new.plot = 0;
-       new.testFitme = testFitme;
-       
-       fitme.parFitme = [fitme.parFitme new];
-       i = i + 1;
-    end
-else
-    fitme = Fitme;
-    for ipar = params
-        fitme.addFrag(m{ipar},HL{ipar,1},plotNumber(ipar));
-    end
-    fitme.includeKE = includeKEmods;
-    fitme.includeEN = includeENmods * ones(1,6);
-    if (~isempty(e2struct))
-        fitme.includeE2 = 1;
-    end
-    fitme.setEnvs(envs);
-    fitme.HLs = [];
-    if (doPlot > 0)
-        fitme.plot = 1;
-    else
-        fitme.plot = 0;
-    end
-    fitme.testFitme = testFitme;
+fitme = Fitme;
+for ipar = params
+   fitme.addFrag(m{ipar},HL{ipar,1},plotNumber(ipar));
 end
+fitme.includeKE = includeKEmods;
+fitme.includeEN = includeENmods * ones(1,6);
+if (~isempty(e2struct))
+   fitme.includeE2 = 1;
+end
+fitme.silent = silent;
+fitme.setEnvs(envs);
+% setEnvs calculates the HL values of everything we are fitting to, so the
+% HLs are no longer needed. By removing these from fitme, we make the fitme
+% object quite a bit smaller.
+fitme.HLs = [];
+if (doPlot > 0)
+   fitme.plot = 1;
+else
+   fitme.plot = 0;
+end
+fitme.testFitme = testFitme;
 
 end
 

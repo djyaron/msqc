@@ -347,9 +347,24 @@ while 1 %                   ********************
         SSP = rd'*rd;
         dS  = SS-SSP;
         fin = 1;
-        if all((abs(dx)-epsx)<=0) || res>=maxit || abs(dS)<=epsf
-            break                   %   The END
+        % DY EDIT 8/24/12 FROM:
+        %if all((abs(dx)-epsx)<=0) || res>=maxit || abs(dS)<=epsf
+        %    break                   %   The END
+        %end
+        % TO: 
+        if all((abs(dx)-epsx)<=0)
+           disp('Stopping due to parameter convergence');
+           break;
         end
+        if (res>=maxit)
+           disp('Stopping due to exceeding maxit');
+           break;
+        end
+        if (abs(dS)<=epsf)
+           disp('Stopping due to ssq convergence');
+           break;
+        end
+        % DY EDIT END
         fin=0;
         if dS>=Rlo*dq, break, end
         A = U;

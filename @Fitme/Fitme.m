@@ -14,6 +14,9 @@ classdef Fitme < handle
       
       parHF   % Last parameters for which HF was solved
       epsDensity % re-evaluate density matrix if par change > eps
+      epsDensity2 % re-set density matrices if par change > eps
+                  % this is because odd parameters can lead to odd
+                  % densities, that should be reset.
       
       plot       % Plot results on every call to err()
       LLKE       % {1,nmodels}(1,nenv) used only for plots
@@ -29,10 +32,16 @@ classdef Fitme < handle
       errTest    % error in test set
       
       arms       % (npar,narms): for bandit algorithm
-      parallel   % true to run updateDensity in parallel
+      parallel   % true to run err in parallel
       restartFile % place to save intermediate results
+      silent     % suppress all displayed output
       
       hftime
+   end
+   methods (Static)
+      [ke, en, e2, newDensity] = ...
+            modelCalcParallel(imod,ienv,updateDensity,...
+            includeKE,includeEN,includeE2);
    end
    methods
       function res = Fitme
@@ -41,6 +50,7 @@ classdef Fitme < handle
          res.HLKE   = cell(0,0);
          res.HLEN   = cell(0,0);
          res.epsDensity = 0.0;
+         res.epsDensity2 = 0.01;
          res.includeKE = 1;
          res.includeEN = zeros(1,6);
          res.includeE2 = 0;
@@ -53,6 +63,7 @@ classdef Fitme < handle
          res.errCalls = 0;
          res.itcount = 0;
          res.parallel = 0;
+         res.silent = 0;
       end
       function addMixer(obj, mix)
          add = 1;
@@ -83,9 +94,13 @@ classdef Fitme < handle
       end
       function setEnvs(obj,envsIn)
          % currently assumes same environments for every frag/model
-         obj.envs = cell(1,obj.nmodels);
-         for i=1:obj.nmodels
-            obj.envs{1,i} = envsIn;
+         if (~iscell(envsIn))
+            obj.envs = cell(1,obj.nmodels);
+            for i=1:obj.nmodels
+               obj.envs{1,i} = envsIn;
+            end
+         else
+            obj.envs = envsIn;
          end
          obj.HLKE = cell(0,0);
          obj.HLEN = cell(0,0);
@@ -94,7 +109,7 @@ classdef Fitme < handle
          obj.LLEN = cell(0,0);
          obj.LLE2 = cell(0,0);
          for imod = 1:obj.nmodels
-            envs1 = obj.envs{1,i};
+            envs1 = obj.envs{1,imod};
             HL = obj.HLs{imod};
             % will plot against the STO-3G result
             LL = obj.models{imod}.frag;
@@ -159,14 +174,24 @@ classdef Fitme < handle
          else
             dpar = max(abs(obj.parHF-par));
          end
+         if (dpar > obj.epsDensity2)
+            for imod = 1:obj.nmodels
+               obj.models{imod}.densitySave = ...
+                  cell(1,obj.models{imod}.nenv+1);
+            end
+         end
          if (dpar > obj.epsDensity)
             if (~obj.parallel)
-               disp(['solving for density matrices']);
+               if (~obj.silent)
+                  disp(['solving for density matrices']);
+               end
                for imod = 1:obj.nmodels
                   obj.models{imod}.solveHF(obj.envs{1,imod});
                end
             else
-               disp(['parallel solving for density matrices']);
+               if (~obj.silent)
+                  disp(['parallel solving for density matrices']);
+               end
                obj.solveHFparallel;
             end
             obj.parHF = par;
@@ -188,171 +213,6 @@ classdef Fitme < handle
             end
          end
          res = ic;
-      end
-      function [res plotnum etype] = err(obj,par)
-         flip = 0; % to handle fit routines that pass row or column
-         if (size(par,1)>size(par,2))
-            par = par';
-            flip = 1;
-         end
-         disp(['Fitme.err called with par = ',num2str(par)]);
-         obj.setPars(par);
-         dpar = obj.updateDensity();
-         
-         doPlots = obj.plot && (dpar > 1.0e-4);
-         
-         
-         if (doPlots)
-            for i=unique([obj.plotNumber])
-               figure(i);
-               clf;
-            end
-         end
-         
-         ic = 1;
-         ndat = obj.ndata;
-         res = zeros(1,ndat);
-         plotnum = zeros(1,ndat);
-         etype = zeros(1,ndat);
-         for imod = 1:obj.nmodels
-            if (obj.includeKE == 1)
-               hlevel = obj.HLKE{1,imod};
-               modpred = obj.models{imod}.EKE(obj.envs{1,imod});
-               t1 = hlevel - modpred;
-               n = size(t1,2);
-               res(1,ic:(ic+n-1))= t1;
-               plotnum(1,ic:(ic+n-1))= obj.plotNumber(imod);
-               etype(1,ic:(ic+n-1))= 1;
-               ic = ic + n;
-               if (doPlots)
-                  figure(obj.plotNumber(imod));
-                  subplot(4,2,1);
-                  hold on;
-                  llevel = obj.LLKE{1,imod};
-                  plot(llevel,llevel,'k.'); %#ok<*CPROP,*PROP>
-                  plot(llevel,hlevel,'r.');
-                  plot(llevel,modpred,'b.');
-                  %title('Kinetic E: LL(black) HL(red) model(blue)');
-                  %xlabel('LL')
-                  subplot(4,2,2);
-                  hold on;
-                  x1 = min(hlevel);
-                  x2 = max(hlevel);
-                  plot(hlevel,modpred,'g.');
-                  plot([x1 x2],[x1 x2],'k-');
-                  %title('Kinetic E: HL(black) model(red)');
-                  %xlabel('HL')
-               end
-            end
-            for iatom = 1:obj.models{imod}.natom
-               if (obj.includeEN( obj.models{imod}.Z(iatom) ))
-                  hlevel = obj.HLEN{imod}(iatom,:);
-                  modpred = obj.models{imod}.Een(iatom,obj.envs{1,imod});
-                  t1 = hlevel - modpred;
-                  n = size(t1,2);
-                  res(1,ic:(ic+n-1)) = t1;
-                  plotnum(1,ic:(ic+n-1))= obj.plotNumber(imod);
-                  etype(1,ic:(ic+n-1))= 10 + obj.models{imod}.Z(iatom);
-                  ic = ic + n;
-                  if (doPlots)
-                     if (obj.models{imod}.Z(iatom) == 1)
-                        frame1 = 3;
-                        frame2 = 4;
-                        element = 'H';
-                     else
-                        frame1 = 5;
-                        frame2 = 6;
-                        element = 'C';
-                     end
-                     subplot(4,2,frame1);
-                     hold on;
-                     llevel = obj.LLEN{1,imod}(iatom,:);
-                     plot(llevel,llevel,'k.');
-                     plot(llevel,hlevel,'r.');
-                     plot(llevel,modpred,'b.');
-                     %title(['EN for ',element]);
-                     %xlabel('LL');
-                     subplot(4,2,frame2);
-                     hold on;
-                     x1 = min(hlevel);
-                     x2 = max(hlevel);
-                     plot(hlevel,modpred,'g.');
-                     plot([x1 x2],[x1 x2],'k-');
-                     %title(['EN for ',element]);
-                     %xlabel('HL');
-                  end
-               end
-            end
-            if (obj.includeE2)
-               hlevel = obj.HLE2{1,imod};
-               modpred = obj.models{imod}.E2(obj.envs{1,imod});
-               t1 = hlevel - modpred;
-               n = size(t1,2);
-               res(1,ic:(ic+n-1))= t1;
-               plotnum(1,ic:(ic+n-1))= obj.plotNumber(imod);
-               etype(1,ic:(ic+n-1))= 2;
-               ic = ic + n;
-               if (doPlots)
-                  figure(obj.plotNumber(imod));
-                  subplot(4,2,7);
-                  hold on;
-                  llevel = obj.LLE2{1,imod};
-                  plot(llevel,llevel,'k.');
-                  plot(llevel,hlevel,'r.');
-                  plot(llevel,modpred,'b.');
-                  %title('E2: LL(black) HL(red) model(blue)');
-                  %xlabel('LL')
-                  subplot(4,2,8);
-                  hold on;
-                  x1 = min(hlevel);
-                  x2 = max(hlevel);
-                  plot(hlevel,modpred,'g.');
-                  plot([x1 x2],[x1 x2],'k-');
-                  %title('E2: HL(black) model(red)');
-                  %xlabel('HL')
-               end
-            end
-         end
-         disp(['RMS err/ndata = ',num2str(sqrt(res*res')/ndat), ...
-            ' kcal/mol err = ',num2str(sqrt(res*res'/ndat)*627.509)]);
-         obj.itcount = obj.itcount + 1;
-         obj.errTrain(obj.itcount) = norm(res);
-         if (size(obj.testFitme,1) > 0)
-            err1 = obj.testFitme.err(par);
-            obj.errTest(obj.itcount) = norm(err1);
-         end
-
-         if (doPlots)
-            figure(obj.plotNumErr);
-            if (obj.errCalls == 0)
-               hold off;
-               title('log10(error) for test (red+) and train (blue o)');
-            else
-               hold on;
-            end
-            plot(obj.errCalls+1, log10(norm(res)/length(res)),'bo');
-            if (size(obj.testFitme,1) > 0)
-               hold on;
-               plot(obj.errCalls+1, log10(norm(err1)/length(err1)),'r+');
-            end
-         end
-         if (flip == 1)
-            res = res';
-         end
-         obj.errCalls = obj.errCalls + 1;
-         
-         if (dpar > 1.0e-4)
-            if (~isempty(obj.restartFile))
-               disp('saving restart file');
-               ptSave = par;
-               itSave = obj.itcount;
-               errTrainSave = obj.errTrain;
-               errTestSave = obj.errTest;
-               save(obj.restartFile,'ptSave','itSave', ...
-                  'errTrainSave','errTestSave');
-            end
-         end
-         
       end
       function generateArms(obj,narms,plow,phigh)
          rr = rand(obj.npar,narms);

@@ -121,8 +121,13 @@ system(['copy ', tempDir,filesep,'full.gjf ', tempDir,filesep,'debug.gjf']);
 %system(['copy ', tempDir,filesep,'full.out ', tempDir,filesep,'debug.out']);
 
 % cleanup files
-rmdir(tempDir,'s');
-
+%rmdir(tempDir,'s');
+status = rmdir(tempDir,'s');
+while status ~= 1
+    disp('  rmdir failed. Retrying...');
+    pause(0.1);
+    status = rmdir(tempDir,'s');
+end
 %delete([tempDir,filesep,'fort.32'], [tempDir,filesep,'full.gjf'], ...
 %   [tempDir,filesep,'full.out'], [tempDir,filesep,'temp.chk'], ...
 %   [tempDir,filesep,'temp.fch']);
@@ -230,8 +235,13 @@ for iatom = 1:natom
    obj.H1en(:,:,iatom) = H1atom - KE;
    
 % cleanup files
-rmdir(tempDir,'s');
-   
+%rmdir(tempDir,'s');
+status = rmdir(tempDir,'s');
+while status ~= 1
+    disp('  rmdir failed. Retrying...');
+    pause(0.1);
+    status = rmdir(tempDir,'s');
+end   
    %delete([tempDir,filesep,'fort.32'], [tempDir,filesep,jobname,'.gjf'], ...
    %   [tempDir,filesep,jobname,'.out'], [tempDir,filesep,'temp.chk']);
    

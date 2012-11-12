@@ -20,6 +20,7 @@ classdef Model3 < handle
       natom   % number of atoms in fragment
       nelec   % number of electrons in the fragment
       Z       % (1,natom) atomic numbers of the molecules
+      aType   % (1,natom) atom type (initialized to Z)
       rcart   % (3,natom) cartesian coordinates of the atoms
       nenv
       X       % Transformation matrix used in hartreeFock
@@ -52,6 +53,11 @@ classdef Model3 < handle
    %properties (Transient)
       densitySave   % cell array {1:nenv+1} of most recent density matrices
       % used to start HF iterations
+      % cached contexts (see atomContext and bondContext)
+      atomContextXSaved % {iatom,ienv}
+      atomContextNSaved % {iatom}
+      bondContextXSaved % {iatom,jatom,ienv}
+      bondContextNSaved % {iatom,jatom}
    end
    methods
       function res = Model3(frag_,fnar_, fdif_)
@@ -62,6 +68,7 @@ classdef Model3 < handle
          res.natom = frag_.natom;
          res.nelec = frag_.nelec;
          res.Z     = frag_.Z;
+         res.aType = res.Z;
          res.rcart = frag_.rcart;
          res.nenv  = frag_.nenv;
          res.nbasis = frag_.nbasis;
@@ -118,6 +125,10 @@ classdef Model3 < handle
          res.EhfEnv  = zeros(1,res.nenv);
          res.EorbEnv = zeros(res.nbasis,res.nenv);
          res.orbEnv  = zeros(res.nbasis,res.nbasis,res.nenv);
+         res.atomContextXSaved = {};
+         res.atomContextNSaved = {};
+         res.bondContextXSaved = {};
+         res.bondContextNSaved = {};
          end
       end
       function res = npar(obj)
@@ -215,6 +226,44 @@ classdef Model3 < handle
             mixUsed = [];
          end
       end
+      function mixUsed = addKEcore(obj,diag,Zs,mix)
+         % diag = 1: ss diag = 0 sp
+         if (nargin < 3)
+            mix = Mixer;
+            % create a mix object for these blocks
+            mix.desc = ['KE Core SS [',num2str(Zs),']'];
+         end
+         mixerAdded = 0;
+         for iZ = Zs % loop over all desired elements
+            for iatom = find(obj.Z == iZ) % loop over atoms of this element
+               if (length(obj.onAtom{iatom}) ~= 5)
+                  error('Model3:addKEcore not called on atom with 5 basis functions');
+               end
+               if (diag)
+                  mod.ilist = 1;
+                  mod.jlist = 1;
+                  mod.mixer = mix;
+                  obj.KEmods{1,end+1} = mod;
+                  mixerAdded = 1;
+               else
+                  mod.ilist = 1;
+                  mod.jlist = 2;
+                  mod.mixer = mix;
+                  obj.KEmods{1,end+1} = mod;
+                  mod.ilist = 2;
+                  mod.jlist = 1;
+                  obj.KEmods{1,end+1} = mod;
+                  mixerAdded = 1;
+               end
+            end
+         end
+         if (mixerAdded)
+            obj.addMixer(mix);
+            mixUsed = mix;
+         else
+            mixUsed = [];
+         end
+      end
       function mixUsed = addKEmodBonded(obj,Z1,Z2,types1,types2, mix)
          if (nargin < 4)
             types1 = [1 2];
@@ -261,6 +310,40 @@ classdef Model3 < handle
                            obj.KEmods{1,end+1} = mod;
                         end
                      end
+                  end
+               end
+            end
+         end
+         if (mixerAdded)
+            obj.addMixer(mix);
+            mixUsed = mix;
+         else
+            mixUsed = [];
+         end
+      end
+      function mixUsed = addMMStretch(obj,oper,Z1,Z2, mix)
+         if (nargin < 5)
+            mix = Mixer();
+            mix.type = 2;
+            mix.par = [0 0 0];
+            mix.fixed = [0 0 0];
+            mix.desc = ['MM ',oper,' Z [',num2str(Z1), ...
+               '] with Z [',num2str(Z2),']'];
+         end
+         mixerAdded = 0;
+         for iatom = 1:obj.natom
+            for jatom = (iatom + 1):obj.natom
+               bondExists = obj.isBonded(iatom,jatom);
+               if (bondExists)
+                  mixerAdded = 1;
+                  mod.ilist = (1:obj.nbasis)';
+                  mod.jlist = (1:obj.nbasis)';
+                  mod.mixer = mix;
+                  switch oper
+                     case 'KE'
+                        obj.KEmods{1,end+1} = mod;
+                     otherwise
+                        error('Model3.addMMStretch: unknown oper type');
                   end
                end
             end
@@ -598,7 +681,7 @@ classdef Model3 < handle
             res(i,j,k,l) = res(i,j,k,l) - obj.frag.H2(i,j,k,l) ...
                + mod.mixer.mix(obj.frag.H2(i,j,k,l), ...
                obj.fnar.H2(i,j,k,l), ...
-               obj.fdif.H2(i,j,k,l), obj, i, j, ienv);
+               obj.fdif.H2(i,j,k,l), obj, i, k, ienv);
          end
       end
       function res = S(obj)

@@ -6,7 +6,8 @@ classdef Mixer < handle
       desc    % string description
       fixed   % (1,npar) 0 if parameter should be fit, 1 if fixed
       hybrid  % 0 = no hybridization, 1 = sigma mods, 2 = pi mods
-      funcType
+      funcType % 1 = interp 2 = scale 3 = scale with const 
+               % 4 = iterp with const
       index   % field that can be used to store an external unique ID
               % index is not used internally in this class
    end
@@ -36,6 +37,7 @@ classdef Mixer < handle
          res = Mixer(obj.par,obj.mixType,obj.desc,obj.funcType);
          res.fixed = obj.fixed;
          res.hybrid = obj.hybrid;
+         res.index = obj.index;
       end
       function res = constructionData(obj)
          % data needed to reconstruct this mixer
@@ -66,7 +68,7 @@ classdef Mixer < handle
       end
       function res = getPars(obj)
          ic = find(obj.fixed == 0);
-         if (size(ic,2) > 0)
+         if (length(ic) > 0)
             res = obj.par(ic);
          else
             res = [];
@@ -74,6 +76,8 @@ classdef Mixer < handle
       end
       function res = mixFunction(obj,x,v0,v1,v2, model, ii, jj)
          if (obj.hybrid)
+            % mixFunctionHybrid rotates to hybrid orbitals
+            % and then call mixFunctionNormal on these rotated orbitals
             res = obj.mixFunctionHybrid(x,v0,v1,v2, model, ii, jj);
          else
             res = obj.mixFunctionNormal(x,v0,v1,v2);
@@ -89,6 +93,9 @@ classdef Mixer < handle
          elseif (obj.funcType == 4)
             res = ((1.0-x)/2.0) * v1 + ((1.0+x)/2.0) * v2 ...
                + obj.par(end) * eye(size(v0));
+         else
+            error(['Mixer: mixFunctionNormal: unknown functype ',...
+               num2str(obj.funcType)]);
          end
       end
       function res = mix(obj, v0, v1, v2, model, ii, jj, ienv)
@@ -116,6 +123,15 @@ classdef Mixer < handle
             xslope = obj.par(2);
             x = x0 + xslope*ch;
             %res = ((1.0-x)/2.0) * v1 + ((1.0+x)/2.0) * v2;
+            res = obj.mixFunction(x,v0,v1,v2,model, ii, jj);
+         elseif (obj.mixType == 22)
+            % charge dependent mixing quadratic
+            iatom = model.basisAtom(ii(1));
+            ch = model.charges(iatom,ienv+1);
+            x0 = obj.par(1);
+            xslope = obj.par(2);
+            xquad = obj.par(3);
+            x = x0 + xslope*ch + xquad*ch*ch;
             res = obj.mixFunction(x,v0,v1,v2,model, ii, jj);
          elseif (obj.mixType == 3)
             % bond order dependent mixing
@@ -171,17 +187,72 @@ classdef Mixer < handle
             x = x0 + xslopebo*(bo-1) + xslopebl*bl;
             %res = ((1.0-x)/2.0) * v1 + ((1.0+x)/2.0) * v2;
             res = obj.mixFunction(x,v0,v1,v2,model, ii, jj);
+         elseif (obj.mixType == 11)
+            % context dependent, diagonal
+            iatom = model.basisAtom(ii(1));
+            xcontext = model.atomContext(iatom,ienv);
+            nx = length(xcontext);
+            x = obj.par(1) + sum(obj.par(2:(1+nx)).*xcontext');
+            res = obj.mixFunction(x,v0,v1,v2,model, ii, jj);
+         elseif (obj.mixType == 12)
+            % context dependent, off-diagonal
+            iatom = model.basisAtom(ii(1));
+            jatom = model.basisAtom(jj(1));
+%             disp(['iatom ',num2str(iatom),' jatom ',num2str(jatom), ...
+%                ' ienv ',num2str(ienv)]);
+            xcontext = model.bondContext(iatom,jatom,ienv);
+            nx = length(xcontext);
+%             disp(['In mix 12 ',obj.desc,' nx ',num2str(nx),' pars ',num2str(obj.par)]);
+            % if no bond, then we don't do context sensitive scaling
+            if (nx == 0) 
+               x = obj.par(1);
+            else
+               x = obj.par(1) + sum(obj.par(2:(1+nx)).*xcontext');
+            end
+            res = obj.mixFunction(x,v0,v1,v2,model, ii, jj);
+         elseif (obj.mixType == 32)
+            % Molecular mechanics stretch function
+            if (length(ii) ~= length(jj))
+               error('error in MM mixer: non-square v0');
+            end
+            iatom = model.basisAtom(ii(1));
+            jatom = model.basisAtom(jj(1));
+            Zs = zeros(1,2);
+            Zs(1) = model.Z(iatom);
+            Zs(2) = model.Z(jatom);
+            Zs = sort(Zs);
+            bl = norm(model.rcart(:,iatom)-model.rcart(:,jatom));
+            if (Zs(1) == 1 && Zs(2) == 1)
+               bl = bl - 0.74;
+            elseif (Zs(1) == 1 && Zs(2) == 6)
+               bl = bl - 1.1;
+            else
+               bl = bl - 1.5;
+            end
+            x0 = obj.par(1);
+            x1 = obj.par(2);
+            x2 = obj.par(3);
+            x = x0 + x1*bl + x2 * bl^2;
+            %res = ((1.0-x)/2.0) * v1 + ((1.0+x)/2.0) * v2;
+            res = v0 + x * eye(size(v0));
          else
             error(['unknown mix type in Mixer: ',num2str(obj.mixType)]);
          end
       end
       function res = print(obj)
          types = {'sigmoid','linear','ch-dep','bo-dep','bl-dep','bo-bl-dep'};
+         types{22 + 1} = 'ch-dep-quad';
+         types{11 + 1} = 'context-atom';
+         types{12 + 1} = 'context-bond';
+         types{32 + 1} = 'MM stretch';
          ftypes = {' ','mult','mult-c','mix-c'};
          res = [obj.desc,' ',types{obj.mixType+1},' ',...
             ftypes{obj.funcType}];
          for i = 1:size(obj.par,2)
             res = [res,' ',num2str(obj.par(i))];
+            if (obj.fixed(i))
+               res = [res,'*'];
+            end
          end
          disp(res);
       end
