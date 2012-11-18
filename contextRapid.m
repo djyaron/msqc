@@ -19,7 +19,7 @@ close all;
 % plot(ikeep2,Ehf(ikeep2),'go');
 % %save('ch4keep.mat','ikeep');
 %
-topDir = 'C:/matdl/yaron/10-31-12/context-rapid/';
+topDir = 'C:/matdl/yaron/junk/';
 %topDir = '/brashear/yaron/matdl/9-2-12/context-psc-batchqueue/';
 ftype = 3;
 fitmeParallel = 1;
@@ -27,7 +27,7 @@ showPlots = 0;
 separateSP = 0;
 psc = 0; % does not use optimization toolbox
 
-for iprocess = 11; % [3 8 6];
+for iprocess = 3; % [3 8 6];
 
 if (iprocess == 1)
    trainC{1} = {'h2',[2 3 4],'envs',1:5};
