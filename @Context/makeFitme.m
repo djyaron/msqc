@@ -23,9 +23,11 @@ end
 
 % need to expand # context variables by 3 if including adhoc
 if (includeAdhoc)
-   extraContexts = 3;
+   extraContextsAtom = 3;
+   extraContextsBond = 3;
 else
-   extraContexts = 0;
+   extraContextsAtom = 0;
+   extraContextsBond = 0;
 end
 
 ic = 0;
@@ -34,10 +36,10 @@ for itype =1:length(atypes)
    atype = atypes(itype);
    if (~isempty(atomContexts{itype}))
       %Mixer(parIn,mixType,desc,funcType)
-      ncontexts = atomContexts{itype}.ndim + extraContexts;
+      ncontexts = atomContexts{itype}.ndim + extraContextsAtom;
       
       desc = ['KE atype ',num2str(atype),' pca '];
-      if (Context.atypeToZtype(atype) == 6)
+      if (Context.atypeToZtype(atype) ~= 1)
          if (separateSP)
             functype = 2; % scale without constant
             parIn = [1 zeros(1,ncontexts)];
@@ -77,7 +79,7 @@ for itype =1:length(atypes)
          mixInfo{end+1} = minfo;
       end
 
-      if (include1s && (Context.atypeToZtype(atype) == 6))
+      if (include1s && (Context.atypeToZtype(atype) ~= 1))
          desc = ['KE 1s1s ',num2str(atype),' pca '];
          mixType = 11; % atom context mixer
          functype = 2; % scale without constant
@@ -102,7 +104,7 @@ for itype =1:length(atypes)
       end
       
       desc = ['EN atype ',num2str(atype),' pca '];
-      if (Context.atypeToZtype(atype) == 6)
+      if (Context.atypeToZtype(atype) ~= 1)
          functype = 3; % scale with constant
          parIn = [1 zeros(1,ncontexts) 0];
          fixed = [0 ones(1,ncontexts) 0]; % fix all contexts
@@ -133,7 +135,7 @@ for itype =1:length(atypes)
       for jtype = itype:length(atypes)
          atype2 = atypes(jtype);
          if (~isempty(bondContexts{itype,jtype}))
-            ncontexts = bondContexts{itype,jtype}.ndim + extraContexts;
+            ncontexts = bondContexts{itype,jtype}.ndim + extraContextsBond;
             parIn = [1 zeros(1,ncontexts)];
             mixType = 12; % off-diagonal context mixer
             desc = ['KE atypes ',num2str(atype),' ',num2str(atype2),' pca '];
@@ -268,7 +270,7 @@ for imod = 1:length(mtrain);
    ftrain.addFrag(mtrain{imod},HLTrain{imod},plotnumber);
 end
 ftrain.includeKE = 1;
-ftrain.includeEN = ones(1,6);
+ftrain.includeEN = ones(1,20);
 ftrain.includeE2 = 1;
 ftrain.silent = 1;
 ftrain.setEnvs(envsTrain);
@@ -288,7 +290,7 @@ for imod = 1:length(mtest);
    ftest.addFrag(mtest{imod},HLTest{imod},plotnumber);
 end
 ftest.includeKE = 1;
-ftest.includeEN = ones(1,6);
+ftest.includeEN = ones(1,20);
 ftest.includeE2 = 1;
 ftest.silent = 1;
 ftest.setEnvs(envsTest);

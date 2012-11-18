@@ -75,7 +75,7 @@ for iatom = 1:natom
    tt1 = obj.templateText;
    tt2 = strfind(tt1,['ATOM',num2str(iatom)]);
    atomSym = tt1(tt2-1);
-   if (strcmp(atomSym,'H')) % should be made general, for any odd Z 
+   if (strcmp(atomSym,'H') || strcmp(atomSym,'F')) % should be made general, for any odd Z 
       tempCharge = charge -1;
    else
       tempCharge = charge;
@@ -128,6 +128,11 @@ zip(zipFileName,toZip);
 
 cd(origdir);
 % cleanup files
-[status message messageid] = rmdir(tempDir,'s');
-
+%[status message messageid] = rmdir(tempDir,'s');
+status = rmdir(tempDir,'s');
+while status ~= 1
+    disp('  rmdir failed. Retrying...');
+    pause(0.1);
+    status = rmdir(tempDir,'s');
+end
 

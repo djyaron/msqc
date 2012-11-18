@@ -28,10 +28,11 @@ classdef Context < handle
       % This function fills in all the necessary atom and bond contexts
       % into the models
       [atypes, atomContexts, bondContexts] = ...
-         fillInContexts(modsTrain,envsTrain,modsTest,envsTest,includeAdhoc)
+         fillInContexts(modsTrain,envsTrain,modsTest,envsTest,...
+         includeAdhoc)
       % This function returns a Fitme object for the fits
       [ftrain ftest] = makeFitme(modsTrain,envsTrain,HLTrain, ...
-         modsTest,envsTest,HLTest,includeAdhoc)
+         modsTest,envsTest,HLTest,includeAdhoc,separateSP,include1s)
       % returns a rho(1,1) rho(1,2) rho(2,2) for the bond
       res = analyzeBond(mod,ienv,atom1,atom2)
       % Convert atom type to Z (used to determine ndim)
@@ -45,9 +46,9 @@ classdef Context < handle
          if (nargin < 3) % atom context
             obj.isBondContext = 0;
             switch ztype1
-               case 1
+               case {1,9}
                   obj.ndim = 3;
-               case 6
+               otherwise
                   obj.ndim = 12;
             end
          else % bond context
@@ -55,9 +56,9 @@ classdef Context < handle
             switch ztype1+ztype2
                case 2 % H2
                   obj.ndim = 3;
-               case 7 % CH
+               case {7,15} % CH, CF
                   obj.ndim = 12;
-               case 12 % CC
+               otherwise % CC
                   obj.ndim = 7 * 3;
             end
          end

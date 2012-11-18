@@ -65,7 +65,9 @@ else
    elseif (coord == 2)
       rot = (1.0/sqrt(2.0)) * [1; r12];
    else
-      error('Mixer: hybrid with coord = 1 for a non-hydrogen atom');
+      % for terminal heavy atom, assume sp3 hybrid
+      rot = [0.5; (sqrt(3)/2.0) * r12];
+%      error('Mixer: hybrid with coord = 1 for a non-hydrogen atom');
    end
 end
 end

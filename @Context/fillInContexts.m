@@ -144,6 +144,8 @@ if (includeAdhoc)
    bondAdhoc = cell(length(allMods),1);
    for imod = 1:length(allMods)
       mod = allMods{imod};
+      mod.atomContextXSaved = []; % delete any stored contexts
+      mod.bondContextXSaved = [];
       mod.atomContext(1,1); % will fill in all atom contexts
       mod.bondContext(1,2,1); % will fill in all bond contexts
       atomAdhoc{imod} = mod.atomContextXSaved;
@@ -158,7 +160,7 @@ for imod = 1:length(allMods)
    for iatom = 1:mod.natom
       itype = find(atypes == mod.aType(iatom));
       c1 = atomContexts{itype};
-      for ienv = allEnvs{imod}
+      for ienv = 0:mod.nenv % allEnvs{imod}
          pcaContext = c1.project(mod,ienv,iatom);
          if (~includeAdhoc)
             mod.atomContextXSaved{iatom,ienv+1} = pcaContext;
@@ -176,7 +178,7 @@ for imod = 1:length(allMods)
          itype = find(atypes == mod.aType(iatom));
          jtype = find(atypes == mod.aType(jatom));
          c1 = bondContexts{itype,jtype};
-         for ienv = allEnvs{imod}
+         for ienv = 0:mod.nenv % allEnvs{imod}
             pcaContext = c1.project(mod,ienv,iatom,jatom);
             if (~includeAdhoc)
                mod.bondContextXSaved{iatom,jatom,ienv+1} = ...
