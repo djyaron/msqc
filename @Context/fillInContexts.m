@@ -92,14 +92,12 @@ for type1 = 1:length(atypes)
       % add all the data
       for imod = 1:ntrain
          for ienv = envsTrain{imod}
-            for iatom = find(mtrain{imod}.aType == atype)
-               atoms1 = find(mtrain{imod}.aType == atype1);
-               atoms2 = find(mtrain{imod}.aType == atype2);
-               for atom1 = atoms1
-                  for atom2 = atoms2
-                     if mtrain{imod}.isBonded(atom1,atom2)
-                        c1.addModel(mtrain{imod},ienv,atom1,atom2);
-                     end
+            atoms1 = find(mtrain{imod}.aType == atype1);
+            atoms2 = find(mtrain{imod}.aType == atype2);
+            for atom1 = atoms1
+               for atom2 = atoms2
+                  if mtrain{imod}.isBonded(atom1,atom2)
+                     c1.addModel(mtrain{imod},ienv,atom1,atom2);
                   end
                end
             end
@@ -119,20 +117,18 @@ end
 ic = 0;
 for imod = 1:ntrain
    for ienv = envsTrain{imod}
-      for iatom = find(mtrain{imod}.aType == atype)
-         atoms1 = find(mtrain{imod}.aType == atype1);
-         atoms2 = find(mtrain{imod}.aType == atype2);
-         for atom1 = atoms1
-            for atom2 = atoms2
-               if (mtrain{imod}.isBonded(atom1,atom2))
-                  ic = ic + 1;
-                  itype = find(atypes == mtrain{imod}.aType(atom1));
-                  jtype = find(atypes == mtrain{imod}.aType(atom2));
-                  c1 = bondContexts{itype,jtype};
-                  proj = c1.project(mtrain{imod},ienv,atom1,atom2);
-                  sc1 = c1.score(ic,:)';
-                  bondDiff(ic) = max(abs(proj - sc1));
-               end
+      atoms1 = find(mtrain{imod}.aType == atype1);
+      atoms2 = find(mtrain{imod}.aType == atype2);
+      for atom1 = atoms1
+         for atom2 = atoms2
+            if (mtrain{imod}.isBonded(atom1,atom2))
+               ic = ic + 1;
+               itype = find(atypes == mtrain{imod}.aType(atom1));
+               jtype = find(atypes == mtrain{imod}.aType(atom2));
+               c1 = bondContexts{itype,jtype};
+               proj = c1.project(mtrain{imod},ienv,atom1,atom2);
+               sc1 = c1.score(ic,:)';
+               bondDiff(ic) = max(abs(proj - sc1));
             end
          end
       end
