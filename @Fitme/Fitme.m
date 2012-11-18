@@ -11,6 +11,7 @@ classdef Fitme < handle
       includeKE % include kinetic energy in fit
       includeEN % {1,Z} include elec-nuc operators for element Z
       includeE2 % include two-elec energy in fit
+      includeEtot % include total energy fit
       
       parHF   % Last parameters for which HF was solved
       epsDensity % re-evaluate density matrix if par change > eps
@@ -54,6 +55,7 @@ classdef Fitme < handle
          res.includeKE = 1;
          res.includeEN = zeros(1,6);
          res.includeE2 = 0;
+         res.includeEtot = 0;
          res.parHF = [];
          res.plot = 1;
          res.plotNumber = [];
@@ -210,6 +212,9 @@ classdef Fitme < handle
             end
             if (obj.includeE2 == 1)
                ic = ic + size(obj.HLE2{1,imod},2);
+            end
+            if (obj.includeEtot == 1)
+               ic = ic + size(obj.HLKE{1,imod},2);
             end
          end
          res = ic;

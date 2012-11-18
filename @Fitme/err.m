@@ -62,9 +62,16 @@ else
    % Do the calcs and save results
    ncalc = length(calcs);
    calcRes = cell(ncalc,1);
-   includeKE = obj.includeKE;
-   includeEN = obj.includeEN;
-   includeE2 = obj.includeE2;
+   % if Etot is fit, need all operators
+   if (~obj.includeEtot)
+      includeKE = obj.includeKE;
+      includeEN = obj.includeEN;
+      includeE2 = obj.includeE2;
+   else
+      includeKE = 1;
+      includeEN = ones(1,20);
+      includeE2 = 1;
+   end
    % disp('starting parfor loop');
    parfor icalc = 1:ncalc
       imod = calcs{icalc}.imod;
@@ -102,8 +109,25 @@ ndat = obj.ndata;
 res = zeros(1,ndat);
 plotnum = zeros(1,ndat);
 etype = zeros(1,ndat);
+if (obj.includeEtot)
+   calcKE = 1;
+   calcEN = ones(1,20);
+   calcE2 = 1;
+   % hold pointer to start of this model in resTot
+   rangeMod = cell(1,obj.nmodels);
+   ntot = 0;
+   for imod = 1:obj.nmodels
+      rangeMod{imod} = (ntot+1):(ntot+length(obj.envs{1,imod}));
+      ntot = ntot + length(obj.envs{1,imod});
+   end
+   resTot = zeros(1,ntot);
+else
+   calcKE = obj.includeKE;
+   calcEN = obj.includeEN;
+   calcE2 = obj.includeE2;
+end
 for imod = 1:obj.nmodels
-   if (obj.includeKE == 1)
+   if (calcKE)
       hlevel = obj.HLKE{1,imod};
       if (~obj.parallel)
          modpred = obj.models{imod}.EKE(obj.envs{1,imod});
@@ -117,12 +141,17 @@ for imod = 1:obj.nmodels
       end
       t1 = hlevel - modpred;
       n = size(t1,2);
-      res(1,ic:(ic+n-1))= t1;
-      plotnum(1,ic:(ic+n-1))= obj.plotNumber(imod);
-      modelnum(1,ic:(ic+n-1)) = imod;
-      envnum(1,ic:(ic+n-1)) = obj.envs{1,imod};
-      etype(1,ic:(ic+n-1))= 1;
-      ic = ic + n;
+      if (obj.includeKE)
+         res(1,ic:(ic+n-1))= t1;
+         plotnum(1,ic:(ic+n-1))= obj.plotNumber(imod);
+         modelnum(1,ic:(ic+n-1)) = imod;
+         envnum(1,ic:(ic+n-1)) = obj.envs{1,imod};
+         etype(1,ic:(ic+n-1))= 1;
+         ic = ic + n;
+      end
+      if (obj.includeEtot)
+         resTot(rangeMod{imod}) = t1;
+      end
       if (doPlots)
          figure(obj.plotNumber(imod));
          subplot(4,2,1);
@@ -144,7 +173,7 @@ for imod = 1:obj.nmodels
       end
    end
    for iatom = 1:obj.models{imod}.natom
-      if (obj.includeEN( obj.models{imod}.Z(iatom) ))
+      if (calcEN( obj.models{imod}.Z(iatom) ))
          hlevel = obj.HLEN{imod}(iatom,:);
          if (~obj.parallel)
             modpred = obj.models{imod}.Een(iatom,obj.envs{1,imod});
@@ -157,13 +186,18 @@ for imod = 1:obj.nmodels
             end
          end
          t1 = hlevel - modpred;
-         n = size(t1,2);
-         res(1,ic:(ic+n-1)) = t1;
-         plotnum(1,ic:(ic+n-1))= obj.plotNumber(imod);
-         modelnum(1,ic:(ic+n-1)) = imod;
-         envnum(1,ic:(ic+n-1)) = obj.envs{1,imod};
-         etype(1,ic:(ic+n-1))= 10 + obj.models{imod}.Z(iatom);
-         ic = ic + n;
+         if (obj.includeEN(obj.models{imod}.Z(iatom) ))
+            n = size(t1,2);
+            res(1,ic:(ic+n-1)) = t1;
+            plotnum(1,ic:(ic+n-1))= obj.plotNumber(imod);
+            modelnum(1,ic:(ic+n-1)) = imod;
+            envnum(1,ic:(ic+n-1)) = obj.envs{1,imod};
+            etype(1,ic:(ic+n-1))= 10 + obj.models{imod}.Z(iatom);
+            ic = ic + n;
+         end
+         if (obj.includeEtot)
+            resTot(rangeMod{imod}) = resTot(rangeMod{imod}) + t1;
+         end
          if (doPlots)
             if (obj.models{imod}.Z(iatom) == 1)
                frame1 = 3;
@@ -193,7 +227,7 @@ for imod = 1:obj.nmodels
          end
       end
    end
-   if (obj.includeE2)
+   if (calcE2)
       hlevel = obj.HLE2{1,imod};
       if (~obj.parallel)
          modpred = obj.models{imod}.E2(obj.envs{1,imod});
@@ -206,13 +240,18 @@ for imod = 1:obj.nmodels
          end
       end
       t1 = hlevel - modpred;
-      n = size(t1,2);
-      res(1,ic:(ic+n-1))= t1;
-      plotnum(1,ic:(ic+n-1))= obj.plotNumber(imod);
-      modelnum(1,ic:(ic+n-1)) = imod;
-      envnum(1,ic:(ic+n-1)) = obj.envs{1,imod};
-      etype(1,ic:(ic+n-1))= 2;
-      ic = ic + n;
+      if (obj.includeE2)
+         n = size(t1,2);
+         res(1,ic:(ic+n-1))= t1;
+         plotnum(1,ic:(ic+n-1))= obj.plotNumber(imod);
+         modelnum(1,ic:(ic+n-1)) = imod;
+         envnum(1,ic:(ic+n-1)) = obj.envs{1,imod};
+         etype(1,ic:(ic+n-1))= 2;
+         ic = ic + n;
+      end
+      if (obj.includeEtot)
+         resTot(rangeMod{imod}) = resTot(rangeMod{imod}) + t1;
+      end
       if (doPlots)
          figure(obj.plotNumber(imod));
          subplot(4,2,7);
@@ -232,6 +271,18 @@ for imod = 1:obj.nmodels
          %title('E2: HL(black) model(red)');
          %xlabel('HL')
       end
+   end
+end
+if (obj.includeEtot)
+   for imod = 1:obj.nmodels
+      t1 = resTot(rangeMod{imod});
+      n = size(t1,2);
+      res(1,ic:(ic+n-1))= t1;
+      plotnum(1,ic:(ic+n-1))= obj.plotNumber(imod);
+      modelnum(1,ic:(ic+n-1)) = imod;
+      envnum(1,ic:(ic+n-1)) = obj.envs{1,imod};
+      etype(1,ic:(ic+n-1))= 3;
+      ic = ic + n;
    end
 end
 if (~obj.silent)
