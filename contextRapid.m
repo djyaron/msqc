@@ -27,7 +27,7 @@ showPlots = 0;
 separateSP = 0;
 psc = 0; % does not use optimization toolbox
 
-for iprocess = 11; % [3 8 6];
+for iprocess = 12 %11; % [3 8 6];
 
 if (iprocess == 1)
    trainC{1} = {'h2',[2 3 4],'envs',1:5};
@@ -87,6 +87,13 @@ elseif (iprocess == 11)
    ikeep2 = [5    10    14    17    20    25];
    testC{1} = {'ch4r',11:20,'envs',11:20};
    filePrefix{1} = 'ch4-env1';
+elseif (iprocess == 12)
+   %   load('ch4keep.mat');
+   ikeep = [6     7     8    13    16    24];
+   trainC{1} = {'ch4r',1:10,'envs',ikeep};
+   ikeep2 = [5    10    14    17    20    25];
+   testC{1} = {'ch4r',11:20,'envs',ikeep2};
+   filePrefix{1} = 'ch4r-alone';
 end
 filePre = filePrefix{1};
 dataDir = [topDir,filePre];
@@ -175,7 +182,6 @@ ftest.parallel = fitmeParallel;
 %   'kestructh',ke);
 
 
-
 % Fix all context sensitive parameters
 for imix = 1:length(f1.mixers)
    mix = f1.mixers{imix};
@@ -189,6 +195,9 @@ for imix = 1:length(f1.mixers)
       mix.fixed = [0 1];
    end
 end
+
+ftest.printEDetails;
+input('ok?');
 
 startName = [topDir,filePre,'/start.mat'];
 toSave = {'f1','ftest','currentTrainErr','currentPar','currentErr'};
