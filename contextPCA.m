@@ -4,15 +4,15 @@ topDir = 'C:/matdl/yaron/11-19-12/contextPCA-nohybrid/';
 fitmeParallel = 1;
 fitmeEtotOnly = 1;
 psc = 0; % does not use optimization toolbox
-includeMethane = 0;
+includeMethane = 1;
 includeEthane = 0;
 includeCF4 = 0;
 includeAdhoc = 1;
 separateSP = 0;
 include1s = 0;
-hybrid = 0;
+hybrid = 1;
 extType = {'','-diponly','-1c','-linrho'};
-for imols = 4
+for imols = 1
    switch imols
       case 1
          includeMethane = 1; includeEthane = 0;
@@ -64,8 +64,8 @@ for i1 = 1:length(files)
    envs2 = [5    10    14    17    20    25];
    envs1 = 1:2:20;
    envs2 = 2:2:20;
-   envs1 = 1:6;
-   envs2 = 7:12;
+   %envs1 = 1:6;
+   %envs2 = 7:12;
    for i = train
       mtrain{end+1} = Model3(LL{i,1},LL{i,1},LL{i,1});
       mtrain{end}.solveHF;
@@ -105,6 +105,7 @@ ftest.silent = 0;
 f1.parallel = fitmeParallel;
 ftest.parallel = fitmeParallel;
 
+
 if(fitmeEtotOnly)
    f1.includeKE = 1;
    f1.includeEN = ones(1,20);
@@ -112,6 +113,7 @@ if(fitmeEtotOnly)
    f1.includeEtot = 1;
    ftest.includeEtot = 1;
 end
+input('junk');
 
 fprintf(summaryFile,'train and test starting error \n');
 f1.printEDetails(summaryFile);

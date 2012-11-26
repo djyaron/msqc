@@ -8,6 +8,7 @@ classdef MixerC < handle
       isDiag  % true if modifies diagonal elements (used for context)
       context % string specifying contexts
       cset    % pointer to object with method context(imodel,imixer)
+      index   % used and managed externally
    end
 
    methods

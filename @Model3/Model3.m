@@ -57,6 +57,7 @@ classdef Model3 < handle
       atomContextNSaved % {iatom}
       bondContextXSaved % {iatom,jatom,ienv}
       bondContextNSaved % {iatom,jatom}
+      index % used and managed externally
    end
    methods
       function res = Model3(frag_,fnar_, fdif_)

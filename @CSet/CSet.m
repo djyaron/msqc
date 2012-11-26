@@ -47,10 +47,19 @@ classdef CSet < handle
          added = 1;
          res = length(obj.mixers);
       end
+      function saveIndices(obj)
+         for imod = 1:length(obj.models)
+            obj.models{imod}.index = imod;
+         end
+         for imix = 1:length(obj.mixers)
+            obj.mixers{imix}.index = imix;
+         end
+      end
       function res = getContext(obj,model,mixer,iatom,jatom,ienv)
-         imod = obj.modelIndex(model);
-         imix = obj.mixerIndex(mixer);
-         t1 = obj.context{imod,imix};
+         %imod = obj.modelIndex(model);
+         %imix = obj.mixerIndex(mixer);
+         %t1 = obj.context{imod,imix};
+         t1 = obj.context{model.index,mixer.index};
          if (iatom == jatom)
             res = t1(:,iatom,ienv+1);
          else

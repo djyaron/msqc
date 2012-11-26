@@ -33,16 +33,18 @@ m1.printMixInfo;
 
 [f1,c1] = m1.makeFitme(ms);
 
+%%
 e1 = f1.err(f1.getPars);
 f1.printEDetails;
-
+%%
+f1.silent = 0;
 lowLimits = zeros(f1.npar,1);
 highLimits = lowLimits;
 i1 = 1;
 for imix = 1:length(f1.mixers)
    mix = f1.mixers{imix};
    if (strcmp(mix.funcType,'scale'))
-      lowLimits(i1) = 0.0;
+      lowLimits(i1) = -1.0;
       highLimits(i1) = 10.0;
       i1 = i1+1;
       for i2 = 2:mix.npar

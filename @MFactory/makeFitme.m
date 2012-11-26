@@ -60,7 +60,7 @@ cset = CSet;
 for imod = 1:length(model)
    cset.addModel(model{imod});
 end
-
+cset.saveIndices;
 % Create the fitme object
 fitme = Fitme;
 for imod = 1:length(ms.models)
@@ -70,8 +70,9 @@ fitme.includeKE = 1;
 fitme.includeEN = ones(1,20);
 fitme.includeE2 = 1;
 fitme.includeEtot = 1;
-fitme.silent = 1;
+fitme.silent = 0;
 fitme.plot = 0;
+fitme.parallel = 1;
 fitme.setEnvs(ms.envs);
 % setEnvs calculates the HL values of everything we are fitting to, so the
 % HLs are no longer needed. By removing these from fitme, we make the fitme
