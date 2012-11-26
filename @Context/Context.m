@@ -32,7 +32,7 @@ classdef Context < handle
          includeAdhoc)
       % This function returns a Fitme object for the fits
       [ftrain ftest] = makeFitme(modsTrain,envsTrain,HLTrain, ...
-         modsTest,envsTest,HLTest,includeAdhoc,separateSP,include1s)
+         modsTest,envsTest,HLTest,includeAdhoc,separateSP,include1s,hybrid)
       % returns a rho(1,1) rho(1,2) rho(2,2) for the bond
       res = analyzeBond(mod,ienv,atom1,atom2)
       % Convert atom type to Z (used to determine ndim)

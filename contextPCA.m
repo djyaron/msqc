@@ -1,6 +1,6 @@
 clear classes;
 close all;
-topDir = 'C:/matdl/yaron/11-14-12/contextPCA-Etot1/';
+topDir = 'C:/matdl/yaron/11-19-12/contextPCA-nohybrid/';
 fitmeParallel = 1;
 fitmeEtotOnly = 1;
 psc = 0; % does not use optimization toolbox
@@ -10,19 +10,23 @@ includeCF4 = 0;
 includeAdhoc = 1;
 separateSP = 0;
 include1s = 0;
+hybrid = 0;
 extType = {'','-diponly','-1c','-linrho'};
-for imols = 1:3
+for imols = 4
    switch imols
-   case 1
-      includeMethane = 1; includeEthane = 0; 
-      types = 1:4;
-   case 2
-      includeMethane = 0; includeEthane = 1;
-      types = 1;
-   case 3
-      includeMethane = 1; includeEthane = 1;
-      types = 1;
-end
+      case 1
+         includeMethane = 1; includeEthane = 0;
+         types = 1:4;
+      case 2
+         includeMethane = 0; includeEthane = 1;
+         types = 1;
+      case 3
+         includeMethane = 1; includeEthane = 1;
+         types = 1;
+      case 4
+         includeMethane = 0; includeEthane = 0; includeCF4 = 1;
+         types = 1;
+   end
 for itype = types
 datasetExt = extType{itype}; %''; %  '-orig'   :   8 charges, 
                  %  ''        :   rand charge + dipoles,
@@ -60,8 +64,8 @@ for i1 = 1:length(files)
    envs2 = [5    10    14    17    20    25];
    envs1 = 1:2:20;
    envs2 = 2:2:20;
-   %envs1 = 1:6;
-   %envs2 = 7:12;
+   envs1 = 1:6;
+   envs2 = 7:12;
    for i = train
       mtrain{end+1} = Model3(LL{i,1},LL{i,1},LL{i,1});
       mtrain{end}.solveHF;
@@ -94,7 +98,7 @@ diary on;
 
 % Create fitme object
 [f1 ftest] = Context.makeFitme(mtrain,envsTrain,HLtrain, ...
-   mtest,envsTest,HLtest,includeAdhoc,separateSP,include1s);
+   mtest,envsTest,HLtest,includeAdhoc,separateSP,include1s,hybrid);
 %
 f1.silent = 0;
 ftest.silent = 0;
