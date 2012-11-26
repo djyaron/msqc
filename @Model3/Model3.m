@@ -130,6 +130,15 @@ classdef Model3 < handle
          res.bondContextNSaved = {};
          end
       end
+      function clearModifiers(obj)
+         obj.KEmods = cell(0,0);
+         obj.ENmods = cell(1,obj.natom);
+         for i=1:obj.natom
+            obj.ENmods{1,i} = cell(0,0);
+         end
+         obj.H2mods = cell(0,0);
+         obj.mixers = cell(0,0);
+      end
       function res = npar(obj)
          res = 0;
          for i=1:size(obj.mixers,2)
