@@ -27,6 +27,16 @@ classdef MSet < handle
             obj.pnum(end+1,1) = pnum;
          end
       end
+      function res = deepCopy(obj)
+         res = MSet;
+         for i = 1:length(obj.models)
+            m1 = obj.models{i};
+            res.models{end+1} = Model3(m1.frag_,m1.fnar_,m1.fdif_);
+            res.HLfrag{end+1} = obj.HLfrag{i};
+            res.envs{end+1} = obj.envs{i};
+            res.pnum(end+1,1) = obj.pnum(i);
+         end
+      end
       function res = atomTypes(obj)
          allTypes = [];
          for i=1:length(obj.models)
