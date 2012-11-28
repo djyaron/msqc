@@ -1,14 +1,15 @@
-function context2psc(topDir)
-if (nargin < 1)
-   topDir = 'C:/matdl/yaron/11-26-12/psc1/';
-   %topDir = '/brashear/yaron/matdl/9-19-12/context-psc/';
-end   
-
+function context2psc %(topDir)
+%if (nargin < 1)
+%   topDir = 'C:/matdl/yaron/11-26-12/psc6/';
+   topDir = '/brashear/yaron/matdl/11-26-12/psc18/';
+%end   
+disp('got to 1');
 iprocess = 1;
+disp('got to 2');
 
 runParallel = 1;
 showPlots = 0;
-psc = 0; % does not use optimization toolbox
+psc = 0; % true if you do not want to use optimization toolbox
 
 ics = 1;
 
@@ -51,14 +52,18 @@ elseif (iprocess == 6)
    testC{1} = {'ch4r',11:20,'ethaner',11:20,'envs',ikeep2};
    filePrefix{1} = 'ch4r-ethaner';
 end
+disp('got to 3');
+
 filePre = filePrefix{1};
 dataDir = [topDir,filePre];
 if (exist(dataDir,'dir') ~= 7)
    [status, message] = mkdir(dataDir);
+   if (~status)
+       error(['failed to create ',dataDir, ' with error ', message]);
+   end
 end
-if (~status)
-    error(['failed to create ',dataDir, ' with error ', message]); 
-end
+disp('got to 4');
+
 summaryName = [topDir,filePre,'/summary.txt'];
 % if (exist(summaryName,'file'))
 %    delete(summaryName);
@@ -132,6 +137,7 @@ ftest.silent = 1;
 ftest.parallel = 0;
 %f1 = makeFitme(trainIn{:},commonIn{:},'enmods',0, ...
 %   'kestructh',ke);
+disp('got to 5');
 
 % Fix all context sensitive parameters
 for imix = 1:length(f1.mixers)
@@ -146,6 +152,7 @@ for imix = 1:length(f1.mixers)
       mix.fixed = [0 1];
    end
 end
+disp('got to 6');
 
 startName = [topDir,filePre,'/start.mat'];
 toSave = {'f1','ftest','currentTrainErr','currentPar','currentErr'};
@@ -177,7 +184,7 @@ for iter = 1:1
       % set up loop over imix and ipar, so we can do one big parfor loop
       ic = 0;
       mixes = {};
-      for imix = 1:2 % length(f1.mixers)
+      for imix = 1:length(f1.mixers)
          mix = f1.mixers{imix};
          for ipar = 1:length(mix.par)
             if (mix.fixed(ipar) == 1)
@@ -201,6 +208,8 @@ for iter = 1:1
       errors = zeros(nSave,1);
       pars = cell(nSave,1);
       ticInput = tic
+      disp('got to 7');
+
       parfor ic = 1:nSave
          imix = mixes{ic}.imix;
          ipar = mixes{ic}.ipar;
@@ -269,5 +278,4 @@ fclose(summaryFile);
 %       disp(['pars ',num2str(pars{i})]);
 %    end
 %runTime = toc(ticID)
-
 end

@@ -38,11 +38,12 @@ classdef Fitme < handle
       silent     % suppress all displayed output
       
       hftime
+      scratchDir % used to hold scratch files
    end
    methods (Static)
       [ke, en, e2, newDensity] = ...
             modelCalcParallel(imod,ienv,updateDensity,...
-            includeKE,includeEN,includeE2);
+            includeKE,includeEN,includeE2,scratchDir);
    end
    methods
       function res = Fitme
@@ -66,6 +67,7 @@ classdef Fitme < handle
          res.itcount = 0;
          res.parallel = 0;
          res.silent = 0;
+         res.scratchDir = '';
       end
       function addMixer(obj, mix)
          add = 1;

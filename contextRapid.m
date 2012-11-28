@@ -1,7 +1,7 @@
-%function context1(iprocess)
+function contextRapid()
 % Playing around with ways to ramp up context
-clear classes;
-close all;
+%clear classes;
+%close all;
 % choose representative environments
 % load('datasets/ch4rDat.mat');
 % m1 = LL{1,1};
@@ -19,15 +19,20 @@ close all;
 % plot(ikeep2,Ehf(ikeep2),'go');
 % %save('ch4keep.mat','ikeep');
 %
-topDir = 'C:/matdl/yaron/10-31-12/context-rapid/';
-%topDir = '/brashear/yaron/matdl/9-2-12/context-psc-batchqueue/';
+psc = 1;
+if (psc)
+    topDir = '/brashear/yaron/matdl/11-27-12/psctiming/psc15-rd/';
+    scratchDir = '$SCRATCH_RAMDISK\';
+else
+    topDir = 'C:/matdl/yaron/11-27-12/psctiming/laptop2/';
+    scratchDir = 'c:/tmp/';
+end
 ftype = 3;
 fitmeParallel = 1;
 showPlots = 0;
 separateSP = 0;
-psc = 0; % does not use optimization toolbox
 
-for iprocess = 12 %11; % [3 8 6];
+for iprocess = 1 %11; % [3 8 6];
 
 if (iprocess == 1)
    trainC{1} = {'h2',[2 3 4],'envs',1:5};
@@ -175,9 +180,11 @@ e2.CH = Mixer(iP2,12,'e2.CH',2);
 f1 = makeFitme(trainIn{:},commonIn{:},'enstructh',en, ...
    'kestructh',ke,'e2struct',e2);
 f1.parallel = fitmeParallel;
+f1.scratchDir = scratchDir;
 ftest = makeFitme(testIn{:},commonIn{:},'enstructh',en, ...
    'kestructh',ke,'e2struct',e2);
 ftest.parallel = fitmeParallel;
+ftest.scratchDir = scratchDir;
 %f1 = makeFitme(trainIn{:},commonIn{:},'enmods',0, ...
 %   'kestructh',ke);
 
@@ -197,7 +204,6 @@ for imix = 1:length(f1.mixers)
 end
 
 ftest.printEDetails;
-input('ok?');
 
 startName = [topDir,filePre,'/start.mat'];
 toSave = {'f1','ftest','currentTrainErr','currentPar','currentErr'};
@@ -206,15 +212,17 @@ if (exist(startName,'file'))
    fprintf(summaryFile,'LOADING START \n');
    load(startName,toSave{:});
 else
-   [currentTrainErr,currentPar,currentErr] = contextFit2(f1,ftest,0,0,0,500,psc);
-   save(startName);
+   startTic = tic;
+   [currentTrainErr,currentPar,currentErr] = contextFit2(f1,ftest,0,0,0,500,0);
+   disp(['time for starting fit ',num2str(toc(startTic))]);
+   %save(startName);
 end
 
 str1 = 'initial error %12.5f test %12.5f \n';
 fprintf(1,str1,currentTrainErr,currentErr);
 fprintf(summaryFile,str1,currentTrainErr,currentErr);
 ticID = tic;
-for iter = 1:5
+for iter = []; %1:5
    allName = [topDir,filePre,'/all-',num2str(iter),'.mat'];
    if (exist(allName,'file'))
       fprintf(1,'LOADING ITERATION %i \n',iter);

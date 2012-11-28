@@ -248,6 +248,12 @@ classdef Mixer < handle
          ftypes = {' ','mult','mult-c','mix-c'};
          res = [obj.desc,' ',types{obj.mixType+1},' ',...
             ftypes{obj.funcType}];
+         if (obj.hybrid == 1)
+            res = [res,' sig'];
+         end
+         if (obj.hybrid == 2)
+            res = [res,' pi'];
+         end
          for i = 1:size(obj.par,2)
             res = [res,' ',num2str(obj.par(i))];
             if (obj.fixed(i))
