@@ -6,6 +6,12 @@ classdef MSet < handle
       HLfrag  % cell array of high level frags corresponding to model
    end
    methods (Static)
+      function res = fromFitme(f1)
+         res = MSet;
+         res.models = f1.models;
+         res.envs = f1.envs;
+         res.pnum = f1.plotNumber;
+      end
    end
    methods
       function obj = MSet
