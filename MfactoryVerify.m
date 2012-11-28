@@ -1,15 +1,15 @@
 %% Create original style 
 clear classes
-%load('datasets/ch4rDat.mat');
-load('datasets/ethanerDat.mat');
+load('datasets/ch4rDat.mat');
+%load('datasets/ethanerDat.mat');
 mtrain = cell(0,0);
 HLtrain = cell(0,0);
 envsTrain = cell(0,0);
-for i = 1:2
+for i = 1:10
    mtrain{end+1} = Model3(LL{i,1},LL{i,1},LL{i,1});
    mtrain{end}.solveHF;
    HLtrain{end+1} = HL{i,1};
-   envsTrain{1,end+1} = 1:4;
+   envsTrain{1,end+1} = 1:2:20;
 end
 mtest = cell(0,0);
 HLtest = cell(0,0);
@@ -32,8 +32,10 @@ save('debug1.mat','forig');
 clear classes;
 load('debug1.mat');
 ms = MSet;
-%ms.addData('datasets/ch4rDat.mat',1:2,1:4,1,791);
-ms.addData('datasets/ethanerDat.mat',1:2,1:4,1,791);
+ms.addData('datasets/ch4rDat.mat',1:10,1:2:20,1,791);
+ms2 = MSet;
+ms2.addData('datasets/ch4rDat.mat',11:20,2:2:20,1,791);
+%ms.addData('datasets/ethanerDat.mat',1:2,1:4,1,791);
 disp(['atom types ',num2str(ms.atomTypes)]);
 
 m1 = MFactory;
@@ -68,7 +70,8 @@ m1.makeMixInfo(ms.atomTypes);
 m1.printMixInfo;
 
 [f1,c1] = m1.makeFitme(ms);
-
+[f2,c2] = m1.makeFitme(ms2);
+c1.saveIndices;
 %%
 for i = 1:length(f1.mixers)
    if (length(f1.mixers{i}.fixed) > 1)
