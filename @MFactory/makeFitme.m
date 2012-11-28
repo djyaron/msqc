@@ -1,4 +1,10 @@
-function [fitme,cset] = makeFitme(obj,ms)
+function [fitme,cset] = makeFitme(obj,ms,f1)
+
+if (nargin < 3)
+   HLfromF1 = false;
+else
+   HLfromF1 = true;
+end
 
 notIn = setdiff(ms.atomTypes,obj.atomTypes);
 if (~isempty(notIn))
@@ -64,7 +70,11 @@ cset.saveIndices;
 % Create the fitme object
 fitme = Fitme;
 for imod = 1:length(ms.models)
-   fitme.addFrag(ms.models{imod},ms.HLfrag{imod},ms.pnum(imod));
+   if (HLfromF1)
+      fitme.addFrag(ms.models{imod},[],ms.pnum(imod));
+   else
+      fitme.addFrag(ms.models{imod},ms.HLfrag{imod},ms.pnum(imod));
+   end
 end
 fitme.includeKE = 1;
 fitme.includeEN = ones(1,20);
@@ -73,11 +83,22 @@ fitme.includeEtot = 1;
 fitme.silent = 0;
 fitme.plot = 0;
 fitme.parallel = 1;
-fitme.setEnvs(ms.envs);
-% setEnvs calculates the HL values of everything we are fitting to, so the
-% HLs are no longer needed. By removing these from fitme, we make the fitme
-% object quite a bit smaller.
-fitme.HLs = [];
-
+if (HLfromF1)
+   fitme.envs = f1.envs;
+   fitme.HLKE = f1.HLKE;
+   fitme.HLEN = f1.HLEN;
+   fitme.HLE2 = f1.HLE2;
+   fitme.LLKE = f1.LLKE;
+   fitme.LLEN = f1.LLEN;
+   fitme.LLE2 = f1.LLE2;
+   fitme.parHF = [];
+   fitme.HLs = [];
+else
+   fitme.setEnvs(ms.envs);
+   % setEnvs calculates the HL values of everything we are fitting to, so the
+   % HLs are no longer needed. By removing these from fitme, we make the fitme
+   % object quite a bit smaller.
+   fitme.HLs = [];
+end
 end
 

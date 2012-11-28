@@ -1,15 +1,15 @@
 clear classes;
 close all;
-topDir = 'C:/matdl/yaron/11-28-12/factory/';
+topDir = 'C:/matdl/yaron/11-29-12/factory/';
 maxIter = 500;
 
 % CREATE MODEL SETS
 dataExt = {'','-1c','-diponly','-linrho'};
-dsets = cell(4,2);
-dname = cell(4,1);
-for iext = 1:4
-   dname{iext} = ['ch4r',dataExt{iext}];
-   dfile = ['datasets/ch4rDat',dataExt{iext},'.mat'];
+dsets = cell(1,2);
+dname = cell(1,1);
+for iext = 1:1
+   dname{iext} = ['ethaner-chnonbond',dataExt{iext}];
+   dfile = ['datasets/ethanerDat',dataExt{iext},'.mat'];
    % train data
    ms = MSet;
    ms.addData(dfile, 1:10, 1:2:20 ,1,791);
@@ -46,7 +46,7 @@ policies{1} = m1.policy;
 
 for ipol = 1:length(policies)
    for idata = 1:size(dsets,1)
-      filePre=[fname{ifact},'/',pname{ipol}];
+      filePre=[pname{ipol},'/',dname{idata}];
       dataDir = [topDir,filePre];
       if (exist(dataDir,'dir') ~= 7)
          status = mkdir(dataDir);
@@ -66,12 +66,14 @@ for ipol = 1:length(policies)
       % Create fitme object
       fact  = MFactory;
       fact.policy = policies{ipol};
-      factmakeMixInfo(dsets{idata,1}.atomTypes);
+      fact.makeMixInfo(dsets{idata,1}.atomTypes);
       [f1,c1]        = fact.makeFitme(dsets{idata,1});
       [ftest,ctest]  = fact.makeFitme(dsets{idata,2});
       
       fprintf(summaryFile,'train and test starting error \n');
+      c1.saveIndices;
       f1.printEDetails(summaryFile);
+      ctest.saveIndices;
       ftest.printEDetails(summaryFile);
       
       %
@@ -91,7 +93,9 @@ for ipol = 1:length(policies)
       str1 = 'initial error %12.5f test %12.5f \n';
       fprintf(1,str1,currentTrainErr,currentErr);
       fprintf(summaryFile,str1,currentTrainErr,currentErr);
+      c1.saveIndices;
       f1.printEDetails(summaryFile);
+      ctest.saveIndices;
       ftest.printEDetails(summaryFile);
       
       ticID = tic;
@@ -121,7 +125,9 @@ for ipol = 1:length(policies)
          str2 = 'context error %12.5f test %12.5f \n';
          fprintf(1,str2,currentTrainErr,currentErr);
          fprintf(summaryFile,str2,currentTrainErr,currentErr);
+         c1.saveIndices;
          f1.printEDetails(summaryFile);
+         ctest.saveIndices;
          ftest.printEDetails(summaryFile);
          
       end
