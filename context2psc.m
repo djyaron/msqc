@@ -1,6 +1,6 @@
 function context2psc(topDir)
 if (nargin < 1)
-   topDir = 'C:/matdl/yaron/11-26-12/psc3/';
+   topDir = 'C:/matdl/yaron/11-26-12/psc1/';
    %topDir = '/brashear/yaron/matdl/9-19-12/context-psc/';
 end   
 
