@@ -1,7 +1,7 @@
 function context2psc %(topDir)
 %if (nargin < 1)
-%   topDir = 'C:/matdl/yaron/11-26-12/psc6/';
-   topDir = '/brashear/yaron/matdl/11-26-12/psc18/';
+   topDir = 'C:/matdl/yaron/11-26-12/timing/hootie4/';
+%   topDir = '/brashear/yaron/matdl/timing/hootie1/';
 %end   
 disp('got to 1');
 iprocess = 1;
@@ -184,7 +184,7 @@ for iter = 1:1
       % set up loop over imix and ipar, so we can do one big parfor loop
       ic = 0;
       mixes = {};
-      for imix = 1:length(f1.mixers)
+      for imix = 1:2 %length(f1.mixers)
          mix = f1.mixers{imix};
          for ipar = 1:length(mix.par)
             if (mix.fixed(ipar) == 1)
