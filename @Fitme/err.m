@@ -7,6 +7,11 @@ end
 if (~obj.silent)
    disp(['Fitme.err called with par = ',num2str(par)]);
 end
+
+if (~isempty(obj.cset))
+   obj.cset.saveIndices;
+end
+
 obj.setPars(par);
 if (~obj.parallel)
    dpar = obj.updateDensity();

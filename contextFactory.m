@@ -1,23 +1,23 @@
 clear classes;
 close all;
-topDir = 'C:/matdl/yaron/11-28-12/factory/';
+topDir = 'C:/matdl/yaron/11-29-12/factory2/';
 maxIter = 500;
 
 % CREATE MODEL SETS
-dataExt = {'','-1c','-diponly','-linrho'};
-dsets = cell(4,2);
-dname = cell(4,1);
-for iext = 1:4
-   dname{iext} = ['ch4r',dataExt{iext}];
-   dfile = ['datasets/ch4rDat',dataExt{iext},'.mat'];
+dataf = {'ch4rDat','ch4rDat-1c','ch4rDat-diponly','ch4rDat-linrho','ethanerDat'};
+dsets = cell(1,2);
+dname = cell(1,1);
+for idata = 1:length(dataf);
+   dname{idata} = dataf{idata};
+   dfile = ['datasets/',dataf{idata},'.mat'];
    % train data
    ms = MSet;
    ms.addData(dfile, 1:10, 1:2:20 ,1,791);
-   dsets{iext,1} = ms;
+   dsets{idata,1} = ms;
    % test data
    ms = MSet;
    ms.addData(dfile, 11:20, 2:2:20 ,1,791);
-   dsets{iext,2} = ms;
+   dsets{idata,2} = ms;
 end
 
 % CREATE POLICIES
@@ -41,12 +41,12 @@ m1.addPolicy('o','EN', 'f','const', 'i',6, 'sp','combine');
 m1.addPolicy('o','E2', 'f','scale', 'sp','combine', 'i',6, 'c','q r bo');
 
 m1.addPolicy('o','E2', 'f','scale', 'sp','sonly', 'i',1, 'j',1, ...
-   'c','r');
+   'c','r','nb',1);
 policies{1} = m1.policy;
 
 for ipol = 1:length(policies)
    for idata = 1:size(dsets,1)
-      filePre=[fname{ifact},'/',pname{ipol}];
+      filePre=[pname{ipol},'/',dname{idata}];
       dataDir = [topDir,filePre];
       if (exist(dataDir,'dir') ~= 7)
          status = mkdir(dataDir);
@@ -66,9 +66,9 @@ for ipol = 1:length(policies)
       % Create fitme object
       fact  = MFactory;
       fact.policy = policies{ipol};
-      factmakeMixInfo(dsets{idata,1}.atomTypes);
-      [f1,c1]        = fact.makeFitme(dsets{idata,1});
-      [ftest,ctest]  = fact.makeFitme(dsets{idata,2});
+      fact.makeMixInfo(dsets{idata,1}.atomTypes);
+      f1    = fact.makeFitme(dsets{idata,1});
+      ftest = fact.makeFitme(dsets{idata,2});
       
       fprintf(summaryFile,'train and test starting error \n');
       f1.printEDetails(summaryFile);
@@ -76,7 +76,7 @@ for ipol = 1:length(policies)
       
       %
       startName = [topDir,filePre,'/start.mat'];
-      toSave = {'fact','f1','c1','ftest','ctest','currentTrainErr', ...
+      toSave = {'fact','f1','ftest','currentTrainErr', ...
          'currentPar','currentErr'};
       if (exist(startName,'file'))
          fprintf(1,'LOADING START \n');
@@ -84,7 +84,7 @@ for ipol = 1:length(policies)
          load(startName,toSave{:});
       else
          [currentTrainErr,currentPar,currentErr] = ...
-            contextFit3(f1,c1,ftest,ctest,maxIter);
+            contextFit3(f1,ftest,maxIter);
          save(startName,toSave{:});
       end
       
@@ -115,7 +115,7 @@ for ipol = 1:length(policies)
                end
             end
             [currentTrainErr,currentPar,currentErr] = ...
-               contextFit3(f1,c1,ftest,ctest,maxIter);
+               contextFit3(f1,ftest,maxIter);
             save(allName,toSave{:});
          end
          str2 = 'context error %12.5f test %12.5f \n';

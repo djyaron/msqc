@@ -4,8 +4,9 @@ classdef MixerC < handle
       desc    % string description
       fixed   % (1,npar) 0 if parameter should be fit, 1 if fixed
       hybrid  % 0 = no hybridization, 1 = sigma mods, 2 = pi mods
+      isDiag  % 1 if diagonal
       funcType % scale const interp
-      isDiag  % true if modifies diagonal elements (used for context)
+      bonded  % true = bonded only  false = nonbonded only
       context % string specifying contexts
       cset    % pointer to object with method context(imodel,imixer)
       index   % used and managed externally
@@ -26,6 +27,7 @@ classdef MixerC < handle
          obj.desc = '';
          obj.fixed = ones(size(par));
          obj.hybrid = hybrid;
+         obj.bonded = true;
          obj.funcType = validatestring(funcType,{'scale','const','interp'});
          obj.context = [];
       end
@@ -70,11 +72,16 @@ classdef MixerC < handle
          end
       end
       function res = mix(obj, v0, v1, v2, model, ii, jj, ienv)
+         iatom = model.basisAtom(ii(1));
+         jatom = model.basisAtom(jj(1));
+         bond = model.isBonded(iatom,jatom);
+         if ((iatom ~= jatom) && (obj.bonded ~= bond))
+            res = v0;
+            return
+         end
          if (isempty(obj.context))
             x = obj.par(1);
          else
-            iatom = model.basisAtom(ii(1));
-            jatom = model.basisAtom(jj(1));
             contextVars = ...
                obj.cset.getContext(model,obj,iatom,jatom,ienv);
             contextPars = obj.par(2:end);

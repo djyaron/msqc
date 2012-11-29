@@ -53,11 +53,15 @@ classdef CSet < handle
          end
          for imix = 1:length(obj.mixers)
             obj.mixers{imix}.index = imix;
+            obj.mixers{imix}.cset = obj;
          end
       end
       function res = getContext(obj,model,mixer,iatom,jatom,ienv)
          %imod = obj.modelIndex(model);
          %imix = obj.mixerIndex(mixer);
+         %if ((imix > size(obj.context,2)) || (imod>size(obj.context,1)))
+         %   disp('what?');
+         %end
          %t1 = obj.context{imod,imix};
          t1 = obj.context{model.index,mixer.index};
          if (iatom == jatom)
