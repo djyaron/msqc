@@ -1,4 +1,4 @@
-function [fitme,cset] = makeFitme(obj,ms,f1)
+function fitme = makeFitme(obj,ms,f1)
 
 if (nargin < 3)
    HLfromF1 = false;
@@ -69,6 +69,7 @@ end
 cset.saveIndices;
 % Create the fitme object
 fitme = Fitme;
+fitme.cset = cset;
 for imod = 1:length(ms.models)
    if (HLfromF1)
       fitme.addFrag(ms.models{imod},[],ms.pnum(imod));

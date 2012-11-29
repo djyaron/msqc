@@ -16,7 +16,7 @@ classdef MFactory < handle
       end
       function res = addPolicy(obj,varargin)
          validParameters = {{'oper','o'},{'func','f'},{'iatom','i'},...
-            {'jatom','j'},'sp',{'context','contexts','c'}};
+            {'jatom','j'},'sp',{'context','contexts','c'},{'nonbond','nb'}};
          t1 = validateInput(varargin,validParameters);
          t2.oper = validatestring(t1.oper,{'KE','EN','E2'});
          t2.func = validatestring(t1.func,{'const','scale','interp'});
@@ -25,6 +25,11 @@ classdef MFactory < handle
          t2.iatom = t1.iatom;
          if (isfield(t1,'jatom'))
             t2.jatom = t1.jatom;
+            if (isfield(t1,'nonbond'))
+               t2.nonbond = true;
+            else
+               t2.nonbond = false;
+            end
          end
 %          % parse out the contexts
 %          str = t1.contexts;

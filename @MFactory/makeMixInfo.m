@@ -59,6 +59,7 @@ res.fixed = 0;
 res.desc = desc;
 if (isfield(pol,'jatom'))
    res.isDiag = 0;
+   res.bonded = ~pol.nonbond;
 else
    res.isDiag = 1;
 end
