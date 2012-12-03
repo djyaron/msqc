@@ -53,7 +53,7 @@ classdef MFactory < handle
          validParameters = {{'oper','o'},{'func','f'},{'iatom','i'},...
             {'jatom','j'},'sp',{'context','contexts','c'},{'nonbond','nb'}};
          t1 = validateInput(varargin,validParameters);
-         t2.oper = validatestring(t1.oper,{'KE','EN','E2'});
+         t2.oper = validatestring(t1.oper,{'KE','EN','E2','*'});
          t2.func = validatestring(t1.func,{'const','scale','interp'});
          t2.sp   = validatestring(t1.sp, ...
             {'sonly','ponly','hybrid','combine','separate'});
