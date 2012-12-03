@@ -3,11 +3,12 @@ close all;
 topDir = 'C:/matdl/yaron/dec12a/';
 maxIter = 500;
 
-combinations = 0;
+combinations = 1;
 
 % CREATE MODEL SETS
 % dataf = {'ch4rDat','ch4rDat-1c','ch4rDat-diponly','ch4rDat-linrho','ethanerDat','ethylenerDat'};
 dataf = {'ch4rDat','ethanerDat','ethylenerDat'};
+pnn = [791,792,793];
 dsets = cell(1,2);
 dname = cell(1,1);
 for idata = 1:length(dataf)
@@ -15,11 +16,11 @@ for idata = 1:length(dataf)
    dfile = ['datasets/',dataf{idata},'.mat'];
    % train data
    ms = MSet;
-   ms.addData(dfile, 1:10, 1:2:20 ,1,791);
+   ms.addData(dfile, 1:10, 1:2:20 ,1,pnn(idata));
    dsets{idata,1} = ms;
    % test data
    ms = MSet;
-   ms.addData(dfile, 11:20, 2:2:20 ,1,791);
+   ms.addData(dfile, 11:20, 2:2:20 ,1,pnn(idata));
    dsets{idata,2} = ms;
 end
 
