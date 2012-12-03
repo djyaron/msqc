@@ -1,10 +1,10 @@
 clear classes;
 close all;
-topDir = 'C:/matdl/yaron/11-29-12/factory2/';
+topDir = 'C:/matdl/yaron/11-29-12/factory3/';
 maxIter = 500;
 
 % CREATE MODEL SETS
-dataf = {'ch4rDat','ch4rDat-1c','ch4rDat-diponly','ch4rDat-linrho','ethanerDat'};
+dataf = {'ch4rDat'};%,'ch4rDat-1c','ch4rDat-diponly','ch4rDat-linrho','ethanerDat'};
 dsets = cell(1,2);
 dname = cell(1,1);
 for idata = 1:length(dataf);
@@ -23,25 +23,47 @@ end
 % CREATE POLICIES
 pname{1} = 'hybrid1';
 m1 = MFactory;
-m1.addPolicy('o','KE', 'f','scale', 'sp','sonly', 'i',1, 'c','q r bo');
-m1.addPolicy('o','EN', 'f','scale', 'sp','sonly', 'i',1, 'c','q r bo');
-m1.addPolicy('o','E2', 'f','scale', 'sp','sonly', 'i',1, 'c','q r bo');
-
-m1.addPolicy('o','KE', 'f','scale', 'sp','hybrid', 'i',6, 'j',1, ...
-   'c','r bo q');
-m1.addPolicy('o','EN', 'f','scale', 'sp','hybrid', 'i',6, 'j',1, ...
-   'c','r bo q');
-m1.addPolicy('o','E2', 'f','scale', 'sp','hybrid', 'i',6, 'j',1, ...
-   'c','r bo q');
-
-m1.addPolicy('o','KE', 'f','scale', 'sp','combine', 'i',6, 'c','q r bo');
-m1.addPolicy('o','KE', 'f','const', 'i',6, 'sp','combine');
-m1.addPolicy('o','EN', 'f','scale', 'sp','combine', 'i',6, 'c','q r bo');
-m1.addPolicy('o','EN', 'f','const', 'i',6, 'sp','combine');
-m1.addPolicy('o','E2', 'f','scale', 'sp','combine', 'i',6, 'c','q r bo');
-
-m1.addPolicy('o','E2', 'f','scale', 'sp','sonly', 'i',1, 'j',1, ...
-   'c','r','nb',1);
+fullSpecification = false;
+if (fullSpecification)
+    m1.addPolicy('o','KE', 'f','scale', 'sp','sonly', 'i',1, 'c','q r bo');
+    m1.addPolicy('o','EN', 'f','scale', 'sp','sonly', 'i',1, 'c','q r bo');
+    m1.addPolicy('o','E2', 'f','scale', 'sp','sonly', 'i',1, 'c','q r bo');
+    
+    m1.addPolicy('o','KE', 'f','scale', 'sp','hybrid', 'i',6, 'j',1, ...
+        'c','r bo q');
+    m1.addPolicy('o','EN', 'f','scale', 'sp','hybrid', 'i',6, 'j',1, ...
+        'c','r bo q');
+    m1.addPolicy('o','E2', 'f','scale', 'sp','hybrid', 'i',6, 'j',1, ...
+        'c','r bo q');
+    
+    m1.addPolicy('o','KE', 'f','scale', 'sp','combine', 'i',6, 'c','q r bo');
+    m1.addPolicy('o','KE', 'f','const', 'i',6, 'sp','combine');
+    m1.addPolicy('o','EN', 'f','scale', 'sp','combine', 'i',6, 'c','q r bo');
+    m1.addPolicy('o','EN', 'f','const', 'i',6, 'sp','combine');
+    m1.addPolicy('o','E2', 'f','scale', 'sp','combine', 'i',6, 'c','q r bo');
+    
+    m1.addPolicy('o','KE', 'f','scale', 'sp','hybrid', 'i',6, 'j',6, ...
+        'c','r bo q');
+    m1.addPolicy('o','EN', 'f','scale', 'sp','hybrid', 'i',6, 'j',6, ...
+        'c','r bo q');
+    m1.addPolicy('o','E2', 'f','scale', 'sp','hybrid', 'i',6, 'j',6, ...
+        'c','r bo q');
+    
+    m1.addPolicy('o','E2', 'f','scale', 'sp','sonly', 'i',1, 'j',1, ...
+        'c','r','nb',1);
+else
+    % diagonal terms same for all operators and atom types
+    m1.addPolicy('o','*', 'f','scale', 'sp','combine', 'i','*', 'c','q r bo');
+    % put constants on KE and EN for C only
+    m1.addPolicy('o','KE', 'f','const', 'i',6, 'sp','combine');
+    m1.addPolicy('o','EN', 'f','const', 'i',6, 'sp','combine');
+    % bonding terms
+    m1.addPolicy('o','*', 'f','scale', 'sp','hybrid', 'i','*', 'j','*', ...
+        'c','r bo q');
+    % non-bond interactions between hydrogens
+    m1.addPolicy('o','E2', 'f','scale', 'sp','sonly', 'i',1, 'j',1, ...
+        'c','r','nb',1);    
+end
 policies{1} = m1.policy;
 
 for ipol = 1:length(policies)
