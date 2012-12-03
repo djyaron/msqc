@@ -39,6 +39,7 @@ classdef Fitme < handle
       
       hftime
       scratchDir % used to hold scratch files
+      cset       % CSet holding context variables
    end
    methods (Static)
       [ke, en, e2, newDensity] = ...
@@ -68,6 +69,7 @@ classdef Fitme < handle
          res.parallel = 0;
          res.silent = 0;
          res.scratchDir = '';
+         res.cset = [];
       end
       function addMixer(obj, mix)
          add = 1;

@@ -72,6 +72,7 @@ end
 cset.saveIndices;
 % Create the fitme object
 fitme = Fitme;
+fitme.cset = cset;
 for imod = 1:length(ms.models)
    if (HLfromF1)
       fitme.addFrag(ms.models{imod},[],ms.pnum(imod));

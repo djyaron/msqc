@@ -1,4 +1,4 @@
-function [err,pt, testErr] = contextFit3(f1,c1,ftest,ctest,maxIter)
+function [err,pt, testErr] = contextFit3(f1,ftest,maxIter)
 
 if (nargin < 5)
    maxIter = 500;
@@ -27,7 +27,6 @@ for imix = 1:length(f1.mixers)
       end
    end
 end
-c1.saveIndices;
 start = f1.getPars;
 options = optimset('DiffMinChange',1.0e-4,'TolFun',1.0e-3, ...
    'TolX',3.0e-3,'MaxFunEvals',maxIter);
@@ -35,7 +34,6 @@ options = optimset('DiffMinChange',1.0e-4,'TolFun',1.0e-3, ...
    lsqnonlin(@f1.err, start,lowLimits,highLimits,options);
 err = sqrt(residual*residual'/length(residual))*627.509;
 if (~isempty(ftest))
-   ctest.saveIndices;
    testres = ftest.err(ftest.getPars);
    testErr = sqrt(testres*testres'/length(testres))*627.509;
 end

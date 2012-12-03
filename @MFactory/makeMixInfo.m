@@ -15,6 +15,10 @@ for ip = 1:length(obj.policy)
                obj.mixInfo = [obj.mixInfo, makeENDiag(pol,atype)]; 
             case 'E2'
                obj.mixInfo = [obj.mixInfo, makeE2Diag(pol,atype)]; 
+             case '*'
+               obj.mixInfo = [obj.mixInfo, makeKEDiag(pol,atype)];
+               obj.mixInfo = [obj.mixInfo, makeENDiag(pol,atype)]; 
+               obj.mixInfo = [obj.mixInfo, makeE2Diag(pol,atype)]; 
          end
       end
    else % off diagonal modifier
@@ -25,9 +29,17 @@ for ip = 1:length(obj.policy)
             end
             switch pol.oper
                case {'KE','EN'}
-                  obj.mixInfo = [obj.mixInfo, makeH1Bond(pol,atype,btype)];
+                  obj.mixInfo = [obj.mixInfo, ...
+                      makeH1Bond(pol,pol.oper,atype,btype)];
                case 'E2'
                   obj.mixInfo = [obj.mixInfo, makeE2Bond(pol,atype,btype)];
+                case '*'
+                  obj.mixInfo = [obj.mixInfo, ...
+                      makeH1Bond(pol,'KE',atype,btype)];
+                  obj.mixInfo = [obj.mixInfo, ...
+                      makeH1Bond(pol,'EN',atype,btype)];
+                  obj.mixInfo = [obj.mixInfo, makeE2Bond(pol,atype,btype)];
+                  
             end
          end
       end
@@ -59,6 +71,7 @@ res.fixed = 0;
 res.desc = desc;
 if (isfield(pol,'jatom'))
    res.isDiag = 0;
+   res.bonded = ~pol.nonbond;
 else
    res.isDiag = 1;
 end
@@ -155,9 +168,8 @@ desc = ['E2 atype ',num2str(atype)];
 res = makeInfo(makeMixer(pol,desc),'E2diag',atype);
 end
 
-function res = makeH1Bond(pol,atype,btype)
+function res = makeH1Bond(pol,oper,atype,btype)
 res = cell(0,0);
-oper = pol.oper;
 desc = [oper,' atypes ',num2str(atype),' ',num2str(btype)];
 Za = Context.atypeToZtype(atype);
 Zb = Context.atypeToZtype(btype);
