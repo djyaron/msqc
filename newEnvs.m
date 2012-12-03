@@ -310,7 +310,7 @@ disp(['std of H charges from LL and HL  ', num2str(std(qs{1,1})), ' ', num2str(s
  
 
 %% What is our current spread in energies
-load('datasets\ethanerDat.mat');
+load('datasets\ethylenerDat.mat');
 %%
 nmol = size(LL,1);
 nenv = LL{1,1}.nenv; 
@@ -338,7 +338,7 @@ end
 Emol = Emol * 627.509;
 Eenv = Eenv * 627.509;
 Egaussian = Egaussian * 627.509;
-%%
+
 disp(['max disagreement is ', ...
    num2str(max(max(abs(Egaussian - Emol - Eenv))))]);
 figure(1);
