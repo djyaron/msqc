@@ -78,18 +78,18 @@ policies = cell(0,0);
 
 pname = cell(0,0);
 
-pname{end+1} = 'const';
-m1 = MFactory;
-m1.addPolicy('o','*', 'f','const', 'i','*', 'sp','combine','c','r q bo');
-policies{end+1} = m1.policy;
-m1 = [];
+% pname{end+1} = 'const';
+% m1 = MFactory;
+% m1.addPolicy('o','*', 'f','const', 'i','*', 'sp','combine','c','r q bo');
+% policies{end+1} = m1.policy;
+% m1 = [];
 
-pname{end+1} = 'hybrid2';
+pname{end+1} = 'hybrid3';
 m1 = MFactory;
 % diagonal terms same for all operators and atom types
 m1.addPolicy('o','*', 'f','scale', 'sp','combine', 'i','*', 'c','r q bo');
 % put diagonal constants on all operators
-m1.addPolicy('o','*', 'f','const', 'i','*', 'sp','combine');
+m1.addPolicy('o','*', 'f','const', 'i',6, 'sp','combine');
 % bonding terms
 m1.addPolicy('o','*', 'f','scale', 'sp','hybrid', 'i','*', 'j','*', ...
    'c','r bo q');
