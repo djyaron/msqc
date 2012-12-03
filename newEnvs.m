@@ -310,8 +310,8 @@ disp(['std of H charges from LL and HL  ', num2str(std(qs{1,1})), ' ', num2str(s
  
 
 %% What is our current spread in energies
-%load('datasets\ch4rDat-orig.mat');
-load('datasets\ethylenerDat.mat');
+load('datasets\ch4rDat-orig.mat');
+%load('datasets\ethylenerDat.mat');
 %%
 nmol = size(LL,1);
 nenv = LL{1,1}.nenv; 

@@ -25,11 +25,11 @@ myjob=batch('nlsqtest','Matlabpool',15,'CurrentDirectory', ...
 %% Submit a real job
 ClusterInfo.state
 ClusterInfo.clear
-ClusterInfo.setQueueName('debug')
-ClusterInfo.setWallTime('00:10:00')
+ClusterInfo.setQueueName('batch')
+ClusterInfo.setWallTime('12:00:00')
 %ClusterInfo.setUserDefinedOptions('-l licenses=MATLAB_Distrib_Comp_Engine:16')
 %j=batch(@lotsOfPauses,1,{5,16},'matlabpool',8,'CaptureDiary',true);
 % myjob=batch(@context2psc,0,{},'Matlabpool',15,'CurrentDirectory', ...
 %     '/brashear/yaron/msqc', 'CaptureDiary',true)
-myjob=batch(@contextRapid,0,{},'Matlabpool',15,'CurrentDirectory', ...
+myjob=batch(@contextFactorypsc,0,{},'Matlabpool',31,'CurrentDirectory', ...
     '/brashear/yaron/msqc', 'CaptureDiary',true)
