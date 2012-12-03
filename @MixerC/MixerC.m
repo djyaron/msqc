@@ -63,7 +63,14 @@ classdef MixerC < handle
             case 'scale'
                res = (1.0 + x) * v0;
             case 'const'
-               res = v0 + x * eye(size(v0));
+               if (length(size(v0))==4)
+                  res = v0;
+                  for i = 1:size(v0,1)
+                     res(i,i,i,i) = res(i,i,i,i) + x;
+                  end
+               else
+                  res = v0 + x * eye(size(v0));
+               end
             case 'interp'
                res = ((1.0-x)/2.0) * v1 + ((1.0+x)/2.0) * v2;
             otherwise
