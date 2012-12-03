@@ -310,6 +310,7 @@ disp(['std of H charges from LL and HL  ', num2str(std(qs{1,1})), ' ', num2str(s
  
 
 %% What is our current spread in energies
+%load('datasets\ch4rDat-orig.mat');
 load('datasets\ethylenerDat.mat');
 %%
 nmol = size(LL,1);
@@ -333,11 +334,14 @@ for i=1:nmol
    Ehf = Ehf + f1.Hnuc;
    Emol(i,:) = Ehf;
    Eenv(i,:) = f1.Eenv;
+   % The [] makes a vector with first element no env, and remainder in env
    Egaussian(i,:) = [f1.Ehf, f1.EhfEnv];
 end
 Emol = Emol * 627.509;
 Eenv = Eenv * 627.509;
 Egaussian = Egaussian * 627.509;
+
+% Emol is energy of molecule (without interaction with env) (geom,env)
 
 disp(['max disagreement is ', ...
    num2str(max(max(abs(Egaussian - Emol - Eenv))))]);
@@ -356,3 +360,6 @@ hist(Epol(:), 50);
 title('polarization effects');
 figure(8);
 boxplot(Epol);
+%%
+figure(9);
+boxplot(Epol');

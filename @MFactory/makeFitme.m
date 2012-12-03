@@ -1,4 +1,7 @@
-function fitme = makeFitme(obj,ms,f1)
+function [fitme,cset] = makeFitme(obj,ms,f1)
+% If f1 is passed, then it extracts the high level KE, EN etc from the
+% fitme object. If f1 is not passed, then it constructs these HL values
+% from the high level object in ms. 
 
 if (nargin < 3)
    HLfromF1 = false;
