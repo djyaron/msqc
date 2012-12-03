@@ -75,13 +75,9 @@ policies = cell(0,0);
 % m1.addPolicy('o','E2', 'f','scale', 'sp','sonly', 'i',1, 'j',1, ...
 %    'c','r','nb',1);
 
-pname{end+1} = 'const';
-m1 = MFactory;
-m1.addPolicy('o','*', 'f','const', 'i','*', 'sp','combine');
-policies{end+1} = m1.policy;
-m1 = [];
+pname = cell(0,0);
 
-pname{end+1} = 'molmech';
+pname{end+1} = 'const';
 m1 = MFactory;
 m1.addPolicy('o','*', 'f','const', 'i','*', 'sp','combine','c','r q bo');
 policies{end+1} = m1.policy;
