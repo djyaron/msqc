@@ -37,10 +37,18 @@ classdef MSet < handle
          res = MSet;
          for i = 1:length(obj.models)
             m1 = obj.models{i};
-            res.models{end+1} = Model3(m1.frag_,m1.fnar_,m1.fdif_);
+            res.models{end+1} = Model3(m1.frag,m1.fnar,m1.fdif);
             res.HLfrag{end+1} = obj.HLfrag{i};
             res.envs{end+1} = obj.envs{i};
             res.pnum(end+1,1) = obj.pnum(i);
+         end
+      end
+      function addSet(obj,newSet)
+         for i = 1:length(newSet.models)
+            obj.models{end+1} = newSet.models{i};
+            obj.HLfrag{end+1} = newSet.HLfrag{i};
+            obj.envs{end+1} = newSet.envs{i};
+            obj.pnum(end+1,1) = newSet.pnum(i);
          end
       end
       function res = atomTypes(obj)
