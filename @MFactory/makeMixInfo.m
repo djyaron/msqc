@@ -119,6 +119,9 @@ else
          m1 = makeInfo(mix,'KEdiags',atype);
          m2 = makeInfo(mix,'KEdiagp',atype);
          res = {m1 m2};
+      case 'core'
+         desc1 = [desc,' core']; 
+         res = makeInfo(makeMixer(pol,desc1),'KEcore',atype);
       case 'sonly'
          desc1 = [desc,' 2s']; 
          res = makeInfo(makeMixer(pol,desc1),'KEdiags',atype);
@@ -150,12 +153,15 @@ else
          m1 = makeInfo(mix,'ENdiags',atype);
          m2 = makeInfo(mix,'ENdiagp',atype);
          res = {m1 m2};
+      case 'core'
+         desc1 = [desc,' core']; 
+         res = makeInfo(makeMixer(pol,desc1),'ENcore',atype);
       case 'sonly'
          desc1 = [desc,' 2s']; 
-         res = makeInfo(makeMixer(pol,desc1),'KEdiags',atype);
+         res = makeInfo(makeMixer(pol,desc1),'ENdiags',atype);
       case 'ponly'
          desc2 = [desc,' 2p']; 
-         res = makeInfo(makeMixer(pol,desc2),'KEdiagp',atype);
+         res = makeInfo(makeMixer(pol,desc2),'ENdiagp',atype);
       otherwise
          error('sp policy not compatible with ENdiag');
    end
@@ -165,7 +171,12 @@ end
 function res = makeE2Diag(pol,atype)
 res = cell(0,0);
 desc = ['E2 atype ',num2str(atype)];
-res = makeInfo(makeMixer(pol,desc),'E2diag',atype);
+switch pol.sp
+   case 'core'
+      res = makeInfo(makeMixer(pol,desc),'E2core',atype);
+   otherwise
+      res = makeInfo(makeMixer(pol,desc),'E2diag',atype);
+end
 end
 
 function res = makeH1Bond(pol,oper,atype,btype)
@@ -188,7 +199,7 @@ else
             res{end+1} = makeInfo(mix,[oper,'bondsp'],atype,btype);
          end
          if ((Za > 1) && (Zb > 1))
-            res{end+1} = makeInfo(mix,[oper,'bondsp'],atype,btype);
+            res{end+1} = makeInfo(mix,[oper,'bondpp'],atype,btype);
          end
       case 'hybrid'
          mixSigma = makeMixer(pol,[desc,' sig'],1);
