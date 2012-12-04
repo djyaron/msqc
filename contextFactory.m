@@ -54,6 +54,7 @@ end
 
 % CREATE POLICIES
 policies = cell(0,0);
+pname = cell(0,0);
 % pname{1} = 'hybridsp';
 % m1 = MFactory;
 % m1.addPolicy('o','KE', 'f','scale', 'sp','sonly', 'i',1, 'c','q r bo');
@@ -76,7 +77,6 @@ policies = cell(0,0);
 % m1.addPolicy('o','E2', 'f','scale', 'sp','sonly', 'i',1, 'j',1, ...
 %    'c','r','nb',1);
 
-pname = cell(0,0);
 
 % pname{end+1} = 'const';
 % m1 = MFactory;
@@ -117,19 +117,24 @@ pname{end+1} = 'hybridspc';
 m1 = MFactory;
 % Diag core on C only
 m1.addPolicy('o','*', 'i',6, 'f','const',  'sp','core');
-% Diag KE
-m1.addPolicy('o','*', 'i',1, 'f','const',  'sp','sonly', 'c', 'r q bo');
-m1.addPolicy('o','*', 'i',6, 'f','const',  'sp','sonly', 'c', 'r q bo');
-m1.addPolicy('o','*', 'i',6, 'f','const',  'sp','ponly', 'c', 'r q bo');
+% Diag 
+% m1.addPolicy('o','KE', 'i',1, 'f','scale',  'sp','sonly', 'c','r q bo');
+% m1.addPolicy('o','KE', 'i',6, 'f','scale',  'sp','sonly', 'c','r q bo');
+% m1.addPolicy('o','KE', 'i',6, 'f','scale',  'sp','ponly', 'c','r q bo');
+% 
+% m1.addPolicy('o','EN', 'i',1, 'f','scale',  'sp','sonly', 'c','r q bo');
+% m1.addPolicy('o','EN', 'i',6, 'f','scale',  'sp','sonly', 'c','r q bo');
+% m1.addPolicy('o','EN', 'i',6, 'f','scale',  'sp','ponly', 'c','r q bo');
+% 
+% m1.addPolicy('o','E2', 'i',1, 'f','scale',  'sp','combine', 'c','r q bo');
+% m1.addPolicy('o','E2', 'i',6, 'f','scale',  'sp','combine', 'c','r q bo');
+m1.addPolicy('o','*', 'i','*', 'f','scale',  'sp','separate', 'c','r q bo');
 
-
-
-m1.addPolicy('o','KE', 'f','scale',  'sp','sonly', 'i',1, 'c','r q bo');
-m1.addPolicy('o','*', 'f','const', 'i',6, 'sp','combine');
-m1.addPolicy('o','*', 'f','scale', 'sp','hybrid', 'i','*', 'j','*', ...
-   'c','r bo q');
-m1.addPolicy('o','E2', 'f','scale', 'sp','sonly', 'i',1, 'j',1, ...
-   'c','bo','nb',1);
+% Bonding
+m1.addPolicy('o','*', 'i','*', 'j','*', 'f','scale',  'sp','hybrid', 'c','r bo q');
+% nonbond between hydrogen
+m1.addPolicy('o','E2', 'i',1,   'j',1,  'f','scale',  'sp','sonly',  ...
+    'c','bo','nb',1);
 policies{end+1} = m1.policy;
 m1 = [];
 
