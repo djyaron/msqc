@@ -196,12 +196,12 @@ classdef Model3 < handle
          end
       end
 %       function mixUsed = addKEmodConst(obj,mix)
-%          mod.ilist = 1:obj.nbasis;
-%          mod.jlist = 1:obj.nbasis;
-%          mod.mixer = mix;
-%          obj.KEmods{1,end+1} = mod;
-%          obj.addMixer(mix);
-%          mixUsed = mix;
+%           mod.ilist = 1:obj.nbasis;
+%           mod.jlist = 1:obj.nbasis;
+%           mod.mixer = mix;
+%           obj.KEmods{1,end+1} = mod;
+%           obj.addMixer(mix);
+%           mixUsed = mix;
 %       end
       function mixUsed = addKEmodDiag(obj,Zs,types,mix)
          if (nargin < 3)
@@ -235,36 +235,18 @@ classdef Model3 < handle
             mixUsed = [];
          end
       end
-      function mixUsed = addKEcore(obj,diag,Zs,mix)
-         % diag = 1: ss diag = 0 sp
-         if (nargin < 3)
-            mix = Mixer;
-            % create a mix object for these blocks
-            mix.desc = ['KE Core SS [',num2str(Zs),']'];
-         end
+      function mixUsed = addKEcore(obj,Z,mix)
          mixerAdded = 0;
-         for iZ = Zs % loop over all desired elements
-            for iatom = find(obj.Z == iZ) % loop over atoms of this element
-               if (length(obj.onAtom{iatom}) ~= 5)
-                  error('Model3:addKEcore not called on atom with 5 basis functions');
-               end
-               if (diag)
-                  mod.ilist = 1;
-                  mod.jlist = 1;
-                  mod.mixer = mix;
-                  obj.KEmods{1,end+1} = mod;
-                  mixerAdded = 1;
-               else
-                  mod.ilist = 1;
-                  mod.jlist = 2;
-                  mod.mixer = mix;
-                  obj.KEmods{1,end+1} = mod;
-                  mod.ilist = 2;
-                  mod.jlist = 1;
-                  obj.KEmods{1,end+1} = mod;
-                  mixerAdded = 1;
-               end
+         for iatom = find(obj.Z == Z) % loop over atoms of this element
+            if (length(obj.onAtom{iatom}) ~= 5)
+               error('Model3:addKEcore not called on atom with 5 basis functions');
             end
+            s1 = obj.onAtom{iatom}(1);
+            mod.ilist = s1;
+            mod.jlist = s1;
+            mod.mixer = mix;
+            obj.KEmods{1,end+1} = mod;
+            mixerAdded = 1;
          end
          if (mixerAdded)
             obj.addMixer(mix);
@@ -468,6 +450,26 @@ classdef Model3 < handle
             mixUsed = [];
          end
       end
+      function mixUsed = addENcore(obj,Z,mix)
+         mixerAdded = 0;
+         for iatom = find(obj.Z == Z) % loop over atoms of this element
+            if (length(obj.onAtom{iatom}) ~= 5)
+               error('Model3:addENcore not called on atom with 5 basis functions');
+            end
+            s1 = obj.onAtom{iatom}(1);
+            mod.ilist = s1;
+            mod.jlist = s1;
+            mod.mixer = mix;
+            obj.ENmods{iatom}{1,end+1} = mod;
+            mixerAdded = 1;
+         end
+         if (mixerAdded)
+            obj.addMixer(mix);
+            mixUsed = mix;
+         else
+            mixUsed = [];
+         end
+      end
       function mixUsed = addENmodBonded(obj,Z1,Z2,types1,types2, mix)
          if (nargin < 4)
             types1 = [1 2];
@@ -619,25 +621,46 @@ classdef Model3 < handle
             res = obj.frag.HnucEnv(ienv);
          end
       end
-      function mixUsed = addH2modDiag(obj,Zs,mix)
+      function mixUsed = addH2modDiag(obj,Z,mix)
          if (nargin < 3)
             mix = Mixer;
             % create a mix object for these blocks
             mix.desc = ['H2 Diag Zs [',num2str(Zs),']'];
          end
          mixerAdded = 0;
-         for iZ = Zs % loop over all desired elements
-            for iatom = find(obj.Z == iZ) % loop over atoms of this element
-               ilist = obj.onAtom{iatom}'; % orbitals on this atom
-               % Create a modifier for this block of the matrix
-               mod.ilist = ilist;
-               mod.jlist = ilist;
-               mod.klist = ilist;
-               mod.llist = ilist;
-               mod.mixer = mix;
-               obj.H2mods{1,end+1} = mod;
-               mixerAdded = 1;
+         for iatom = find(obj.Z == Z) % loop over atoms of this element
+            % ilist = obj.onAtom{iatom}'; % orbitals on this atom
+            ilist = [obj.valAtom{iatom,1}',obj.valAtom{iatom,2}'];
+            % Create a modifier for this block of the matrix
+            mod.ilist = ilist;
+            mod.jlist = ilist;
+            mod.klist = ilist;
+            mod.llist = ilist;
+            mod.mixer = mix;
+            obj.H2mods{1,end+1} = mod;
+            mixerAdded = 1;
+         end
+         if (mixerAdded)
+            obj.addMixer(mix);
+            mixUsed = mix;
+         else
+            mixUsed = [];
+         end
+      end
+      function mixUsed = addH2core(obj,Z,mix)
+         mixerAdded = 0;
+         for iatom = find(obj.Z == Z) % loop over atoms of this element
+            if (length(obj.onAtom{iatom}) ~= 5)
+               error('Model3:addKEcore not called on atom with 5 basis functions');
             end
+            s1 = obj.onAtom{iatom}(1);
+            mod.ilist = s1;
+            mod.jlist = s1;
+            mod.klist = s1;
+            mod.llist = s1;
+            mod.mixer = mix;
+            obj.H2mods{1,end+1} = mod;
+            mixerAdded = 1;
          end
          if (mixerAdded)
             obj.addMixer(mix);
@@ -659,10 +682,12 @@ classdef Model3 < handle
                   if ( ((obj.Z(iatom) == Z1) && (obj.Z(jatom) == Z2)) || ...
                         ((obj.Z(iatom) == Z2) && (obj.Z(jatom) == Z1)) )
                      mixerAdded = 1;
-                     mod.ilist = obj.onAtom{iatom}';
-                     mod.jlist = obj.onAtom{iatom}';
-                     mod.klist = obj.onAtom{jatom}';
-                     mod.llist = obj.onAtom{jatom}';
+                     ilist = [obj.valAtom{iatom,1}',obj.valAtom{iatom,2}'];
+                     jlist = [obj.valAtom{jatom,1}',obj.valAtom{jatom,2}'];
+                     mod.ilist = ilist;
+                     mod.jlist = ilist;
+                     mod.klist = jlist;
+                     mod.llist = jlist;
                      mod.mixer = mix;
                      obj.H2mods{1,end+1} = mod;
                   end
