@@ -59,6 +59,9 @@ classdef Model3 < handle
       bondContextNSaved % {iatom,jatom}
       index % used and managed externally
    end
+   methods (Static)
+      h2 = H2slater(F0, G1, F2)
+   end 
    methods
       function res = Model3(frag_,fnar_, fdif_)
          if (nargin ~= 0)
@@ -669,6 +672,28 @@ classdef Model3 < handle
             mixUsed = [];
          end
       end
+      function addH2modSlater(obj,Z,mixF0,mixG1,mixF2)
+         mixerAdded = 0;
+         for iatom = find(obj.Z == Z) % loop over atoms of this element
+            % ilist = obj.onAtom{iatom}'; % orbitals on this atom
+            ilist = [obj.valAtom{iatom,1}',obj.valAtom{iatom,2}'];
+            if (length(ilist) ~= 4)
+               error('using H2slater for element without 4 basis funcs');
+            end
+            % Create a modifier for this block of the matrix
+            mod.ilist = ilist;
+            mod.F0mixer = mixF0;
+            mod.G1mixer = mixG1;
+            mod.F2mixer = mixF2;
+            obj.H2mods{1,end+1} = mod;
+            mixerAdded = 1;
+         end
+         if (mixerAdded)
+            obj.addMixer(mixF0);
+            obj.addMixer(mixG1);
+            obj.addMixer(mixF2);
+         end
+      end
       function mixUsed = addH2modOffDiag(obj,Z1,Z2, mix)
          if (nargin < 4)
             mix = Mixer();
@@ -708,14 +733,28 @@ classdef Model3 < handle
          res = obj.frag.H2;
          for imod = 1:length(obj.H2mods)
             mod = obj.H2mods{imod};
-            i = mod.ilist;
-            j = mod.jlist;
-            k = mod.klist;
-            l = mod.llist;
-            res(i,j,k,l) = res(i,j,k,l) - obj.frag.H2(i,j,k,l) ...
-               + mod.mixer.mix(obj.frag.H2(i,j,k,l), ...
-               obj.fnar.H2(i,j,k,l), ...
-               obj.fdif.H2(i,j,k,l), obj, i, k, ienv);
+            if (isfield(mod,'j'))
+               i = mod.ilist;
+               j = mod.jlist;
+               k = mod.klist;
+               l = mod.llist;
+               res(i,j,k,l) = res(i,j,k,l) - obj.frag.H2(i,j,k,l) ...
+                  + mod.mixer.mix(obj.frag.H2(i,j,k,l), ...
+                  obj.fnar.H2(i,j,k,l), ...
+                  obj.fdif.H2(i,j,k,l), obj, i, k, ienv);
+            else
+               % F0 = h2(s,s,s,s);  F2 = h2(px,py,px,py)*25/3; 
+               % G1 = h2(s,px,s,px)*3;
+               i = mod.ilist;
+               s = i(1); px = i(2); py = i(3);
+               F0 = mod.F0mixer.mix(obj.frag.H2(s,s,s,s), ...
+                  obj.fnar.H2(s,s,s,s), obj.fdif.H2(s,s,s,s));
+               G1 = mod.G1mixer.mix(obj.frag.H2(s,px,s,px), ...
+                  obj.fnar.H2(s,px,s,px), obj.fdif.H2(s,px,s,px))*3;
+               F2 = mod.F2mixer.mix(obj.frag.H2(px,py,px,py), ...
+                  obj.fnar.H2(px,py,px,py), obj.fdif.H2(px,py,px,py))*25/3;
+               res(i,i,i,i) = obj.H2slater(F0,G1,F2);
+            end
          end
       end
       function res = S(obj)

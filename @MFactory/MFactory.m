@@ -56,7 +56,7 @@ classdef MFactory < handle
          t2.oper = validatestring(t1.oper,{'KE','EN','E2','*'});
          t2.func = validatestring(t1.func,{'const','scale','interp'});
          t2.sp   = validatestring(t1.sp, ...
-            {'core','sonly','ponly','hybrid','combine','separate'});
+            {'core','sonly','ponly','hybrid','combine','separate','slater'});
          if (isfield(t1,'jatom'))
             t2.jatom = t1.jatom;
             if (isfield(t1,'nonbond'))
