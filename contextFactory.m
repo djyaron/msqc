@@ -3,7 +3,7 @@ close all;
 topDir = 'C:/matdl/yaron/dec12a/';
 maxIter = 500;
 
-combinations = 1;
+combinations = 0;
 
 % CREATE MODEL SETS
 % dataf = {'ch4rDat','ch4rDat-1c','ch4rDat-diponly','ch4rDat-linrho','ethanerDat','ethylenerDat'};
@@ -84,35 +84,54 @@ pname = cell(0,0);
 % policies{end+1} = m1.policy;
 % m1 = [];
 
-pname{end+1} = 'hybrid3';
+% pname{end+1} = 'hybrid3';
+% m1 = MFactory;
+% % diagonal terms same for all operators and atom types
+% m1.addPolicy('o','*', 'f','scale', 'sp','combine', 'i','*', 'c','r q bo');
+% % put diagonal constants on all operators
+% m1.addPolicy('o','*', 'f','const', 'i',6, 'sp','combine');
+% % bonding terms
+% m1.addPolicy('o','*', 'f','scale', 'sp','hybrid', 'i','*', 'j','*', ...
+%    'c','r bo q');
+% % non-bond interactions between hydrogens
+% m1.addPolicy('o','E2', 'f','scale', 'sp','sonly', 'i',1, 'j',1, ...
+%    'c','bo','nb',1);
+% policies{end+1} = m1.policy;
+% m1 = [];
+% 
+% pname{end+1} = 'hybrid2sp';
+% m1 = MFactory;
+% % diagonal terms same for all operators and atom types
+% m1.addPolicy('o','*', 'f','scale', 'sp','separate', 'i','*', 'c','r q bo');
+% % no constants since s and p are separate
+% % bonding terms
+% m1.addPolicy('o','*', 'f','scale', 'sp','hybrid', 'i','*', 'j','*', ...
+%    'c','r bo q');
+% % non-bond interactions between hydrogens
+% m1.addPolicy('o','E2', 'f','scale', 'sp','sonly', 'i',1, 'j',1, ...
+%    'c','bo','nb',1);
+% policies{end+1} = m1.policy;
+% m1 = [];
+% 
+pname{end+1} = 'hybridspc';
 m1 = MFactory;
-% diagonal terms same for all operators and atom types
-m1.addPolicy('o','*', 'f','scale', 'sp','combine', 'i','*', 'c','r q bo');
-% put diagonal constants on all operators
+% Diag core on C only
+m1.addPolicy('o','*', 'i',6, 'f','const',  'sp','core');
+% Diag KE
+m1.addPolicy('o','*', 'i',1, 'f','const',  'sp','sonly', 'c', 'r q bo');
+m1.addPolicy('o','*', 'i',6, 'f','const',  'sp','sonly', 'c', 'r q bo');
+m1.addPolicy('o','*', 'i',6, 'f','const',  'sp','ponly', 'c', 'r q bo');
+
+
+
+m1.addPolicy('o','KE', 'f','scale',  'sp','sonly', 'i',1, 'c','r q bo');
 m1.addPolicy('o','*', 'f','const', 'i',6, 'sp','combine');
-% bonding terms
 m1.addPolicy('o','*', 'f','scale', 'sp','hybrid', 'i','*', 'j','*', ...
    'c','r bo q');
-% non-bond interactions between hydrogens
 m1.addPolicy('o','E2', 'f','scale', 'sp','sonly', 'i',1, 'j',1, ...
    'c','bo','nb',1);
 policies{end+1} = m1.policy;
 m1 = [];
-
-pname{end+1} = 'hybrid2sp';
-m1 = MFactory;
-% diagonal terms same for all operators and atom types
-m1.addPolicy('o','*', 'f','scale', 'sp','separate', 'i','*', 'c','r q bo');
-% no constants since s and p are separate
-% bonding terms
-m1.addPolicy('o','*', 'f','scale', 'sp','hybrid', 'i','*', 'j','*', ...
-   'c','r bo q');
-% non-bond interactions between hydrogens
-m1.addPolicy('o','E2', 'f','scale', 'sp','sonly', 'i',1, 'j',1, ...
-   'c','bo','nb',1);
-policies{end+1} = m1.policy;
-m1 = [];
-
 
 for ipol = 1:length(policies)
    for idata = 1:size(dsets,1)
