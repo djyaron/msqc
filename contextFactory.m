@@ -116,18 +116,7 @@ pname = cell(0,0);
 pname{end+1} = 'hybridspc';
 m1 = MFactory;
 % Diag core on C only
-m1.addPolicy('o','*', 'i',6, 'f','const',  'sp','core');
-% Diag 
-% m1.addPolicy('o','KE', 'i',1, 'f','scale',  'sp','sonly', 'c','r q bo');
-% m1.addPolicy('o','KE', 'i',6, 'f','scale',  'sp','sonly', 'c','r q bo');
-% m1.addPolicy('o','KE', 'i',6, 'f','scale',  'sp','ponly', 'c','r q bo');
-% 
-% m1.addPolicy('o','EN', 'i',1, 'f','scale',  'sp','sonly', 'c','r q bo');
-% m1.addPolicy('o','EN', 'i',6, 'f','scale',  'sp','sonly', 'c','r q bo');
-% m1.addPolicy('o','EN', 'i',6, 'f','scale',  'sp','ponly', 'c','r q bo');
-% 
-% m1.addPolicy('o','E2', 'i',1, 'f','scale',  'sp','combine', 'c','r q bo');
-% m1.addPolicy('o','E2', 'i',6, 'f','scale',  'sp','combine', 'c','r q bo');
+m1.addPolicy('o','*', 'i',6, 'f','scale',  'sp','core');
 m1.addPolicy('o','*', 'i','*', 'f','scale',  'sp','separate', 'c','r q bo');
 
 % Bonding
