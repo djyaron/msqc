@@ -173,6 +173,7 @@ res = cell(0,0);
 desc = ['E2 atype ',num2str(atype)];
 switch pol.sp
    case 'core'
+      desc = [desc,' core'];
       res = makeInfo(makeMixer(pol,desc),'E2core',atype);
    otherwise
       res = makeInfo(makeMixer(pol,desc),'E2diag',atype);

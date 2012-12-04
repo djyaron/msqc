@@ -39,7 +39,7 @@ for imix = 1:length(obj.mixInfo)
          case 'ENdiagp'
             mod.addENmodDiag(minfo.iatom,2,minfo.mixer);
          case 'E2core'
-            mod.addH2modCore(minfo.iatom,minfo.mixer);
+            mod.addH2core(minfo.iatom,minfo.mixer);
          case 'E2diag'
             mod.addH2modDiag(minfo.iatom,minfo.mixer);
          case 'KEbondss'

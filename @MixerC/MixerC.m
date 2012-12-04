@@ -99,6 +99,9 @@ classdef MixerC < handle
       function res = toString(obj)
          htypes = {'','hyb-sig','hyb-pi'};
          res = [obj.desc,' ',obj.funcType,' ',htypes{obj.hybrid+1}];
+         if (~obj.bonded)
+            res = [res,' nonbond'];
+         end
          res = [res,' ', obj.context];
          for i = 1:size(obj.par,2)
             res = [res,' ',num2str(obj.par(i))];

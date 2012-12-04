@@ -5,7 +5,7 @@ for i=1:length(obj.mixInfo)
    if (isfield(mi,'jatom'))
       s1 = [s1,' ',num2str(mi.jatom)];
    end
-   s1 = [s1,' mix ',mi.mixer.toString];
+   s1 = [s1,' --> mix ',mi.mixer.toString];
    disp(s1);
 end
 
