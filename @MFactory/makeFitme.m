@@ -26,16 +26,22 @@ for imix = 1:length(obj.mixInfo)
    for imod = 1:length(model)
       mod = model{imod};
       switch minfo.type
+         case 'KEcore'
+            mod.addKEcore(minfo.iatom,minfo.mixer);
          case 'KEdiags'
             mod.addKEmodDiag(minfo.iatom,1,minfo.mixer);
          case 'KEdiagp'
             mod.addKEmodDiag(minfo.iatom,2,minfo.mixer);
+         case 'ENcore'
+            mod.addENcore(minfo.iatom,minfo.mixer);
          case 'ENdiags'
             mod.addENmodDiag(minfo.iatom,1,minfo.mixer);
          case 'ENdiagp'
             mod.addENmodDiag(minfo.iatom,2,minfo.mixer);
+         case 'E2core'
+            mod.addH2modCore(minfo.iatom,minfo.mixer);
          case 'E2diag'
-               mod.addH2modDiag(minfo.iatom,minfo.mixer);
+            mod.addH2modDiag(minfo.iatom,minfo.mixer);
          case 'KEbondss'
             mod.addKEmodBonded(minfo.iatom,minfo.jatom,1,1,minfo.mixer);
          case 'KEbondsp'
