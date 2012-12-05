@@ -7,7 +7,7 @@ combinations = 0;
 
 % CREATE MODEL SETS
 % dataf = {'ch4rDat','ch4rDat-1c','ch4rDat-diponly','ch4rDat-linrho','ethanerDat','ethylenerDat'};
-dataf = {'ch4rDat'};%,'ethanerDat','ethylenerDat'};
+dataf = {'ch4rDat','ethanerDat','ethylenerDat'};
 pnn = [791,792,793];
 dsets = cell(1,2);
 dname = cell(1,1);
