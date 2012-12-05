@@ -39,8 +39,6 @@ classdef MFactory < handle
       atomTypes   % atom types used to construct mixInfo
       mixInfo     % cell array of structures specifying mixers
       mixer       % array of unique mixers
-      contextName % cell array {mixer,model} of names of context variables
-      context     % cell array {mixer,model,ienv} of context values
    end
    methods (Static)
    end
