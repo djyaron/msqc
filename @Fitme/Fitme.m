@@ -40,6 +40,10 @@ classdef Fitme < handle
       hftime
       scratchDir % used to hold scratch files
       cset       % CSet holding context variables
+      
+      mixerCost  % derivative of err for every par in mixers
+      costVector % normed derivative of err for current pars
+      cost       % parameter multipled by norm(costVector) for err function
    end
    methods (Static)
       [ke, en, e2, newDensity] = ...
@@ -70,6 +74,9 @@ classdef Fitme < handle
          res.silent = 0;
          res.scratchDir = '';
          res.cset = [];
+         res.mixerCost=[];
+         res.costVector=[]; 
+         res.cost = 0.0;
       end
       function addMixer(obj, mix)
          add = 1;
@@ -220,6 +227,9 @@ classdef Fitme < handle
             if (obj.includeEtot == 1)
                ic = ic + size(obj.HLKE{1,imod},2);
             end
+         end
+         if (obj.cost > 0)
+            ic = ic+1;
          end
          res = ic;
       end
