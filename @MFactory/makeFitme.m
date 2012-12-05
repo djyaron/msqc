@@ -42,6 +42,9 @@ for imix = 1:length(obj.mixInfo)
             mod.addH2core(minfo.iatom,minfo.mixer);
          case 'E2diag'
             mod.addH2modDiag(minfo.iatom,minfo.mixer);
+         case 'E2slater'
+            mod.addH2modSlater(minfo.iatom,minfo.mixerF0, ...
+               minfo.mixerG1,minfo.mixerF2);
          case 'KEbondss'
             mod.addKEmodBonded(minfo.iatom,minfo.jatom,1,1,minfo.mixer);
          case 'KEbondsp'

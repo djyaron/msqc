@@ -49,7 +49,14 @@ end
 % Create array of mixers
 obj.mixer = cell(0,0);
 for i = 1:length(obj.mixInfo)
-   obj.addMixer(obj.mixInfo{i}.mixer);
+   switch obj.mixInfo{i}.type
+      case 'E2slater'
+         obj.addMixer(obj.mixInfo{i}.mixerF0);
+         obj.addMixer(obj.mixInfo{i}.mixerG1);
+         obj.addMixer(obj.mixInfo{i}.mixerF2);
+      otherwise
+         obj.addMixer(obj.mixInfo{i}.mixer);
+   end
 end
 
 end
@@ -175,6 +182,17 @@ switch pol.sp
    case 'core'
       desc = [desc,' core'];
       res = makeInfo(makeMixer(pol,desc),'E2core',atype);
+   case 'slater'
+      if (Context.atypeToZtype(atype) == 1)
+         res = makeInfo(makeMixer(pol,desc),'E2diag',atype);
+      else
+         res = [];
+         res.type = 'E2slater';
+         res.iatom = atype;
+         res.mixerF0 = makeMixer(pol,[desc,' F0']);
+         res.mixerG1 = makeMixer(pol,[desc,' G1']);
+         res.mixerF2 = makeMixer(pol,[desc,' F2']);
+      end
    otherwise
       res = makeInfo(makeMixer(pol,desc),'E2diag',atype);
 end

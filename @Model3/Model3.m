@@ -733,7 +733,7 @@ classdef Model3 < handle
          res = obj.frag.H2;
          for imod = 1:length(obj.H2mods)
             mod = obj.H2mods{imod};
-            if (isfield(mod,'j'))
+            if (isfield(mod,'jlist'))
                i = mod.ilist;
                j = mod.jlist;
                k = mod.klist;
@@ -748,11 +748,14 @@ classdef Model3 < handle
                i = mod.ilist;
                s = i(1); px = i(2); py = i(3);
                F0 = mod.F0mixer.mix(obj.frag.H2(s,s,s,s), ...
-                  obj.fnar.H2(s,s,s,s), obj.fdif.H2(s,s,s,s));
+                  obj.fnar.H2(s,s,s,s), obj.fdif.H2(s,s,s,s), ...
+                  obj, i, i, ienv);
                G1 = mod.G1mixer.mix(obj.frag.H2(s,px,s,px), ...
-                  obj.fnar.H2(s,px,s,px), obj.fdif.H2(s,px,s,px))*3;
+                  obj.fnar.H2(s,px,s,px), obj.fdif.H2(s,px,s,px), ...
+                  obj, i, i, ienv)*3;
                F2 = mod.F2mixer.mix(obj.frag.H2(px,py,px,py), ...
-                  obj.fnar.H2(px,py,px,py), obj.fdif.H2(px,py,px,py))*25/3;
+                  obj.fnar.H2(px,py,px,py), obj.fdif.H2(px,py,px,py), ...
+                  obj, i, i, ienv)*25/3;
                res(i,i,i,i) = obj.H2slater(F0,G1,F2);
             end
          end
