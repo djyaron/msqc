@@ -61,7 +61,7 @@ maxpars = 100;
 HLbasis = {'6-31G'};% '6-31G*' '6-31G**'};
 HL = cell(0,0);
 LL = cell(0,0);
-loadResults = 0;
+loadResults = 1;
 % Find all pars for which a calculation exists
 if (loadResults)
    lfiles = dir([dataroot,'/*_cfg.mat']);
@@ -74,8 +74,9 @@ if (loadResults)
          parsIn{end+1} = Cfile.par;
       end
    end
-   maxpars = length(parsIn);
+   maxpars = length(parsIn)-1; % contrl-C'd job, so last one not done
 end
+maxpars = 30;
 %%
 for ipar = 1:maxpars
    %pars{1} = [1.12 1.12 1.12 1.12 109.47 109.47 109.47 120.0 -120.0];
@@ -141,7 +142,7 @@ for ipar = 1:maxpars
 end
 
 % since even loading all the files will take time, we'll dave everything
-save([dataroot,'/ethylenerDat.mat'],'LL','HL');
+save([dataroot,'/ethylener2Dat.mat'],'LL','HL');
 
 
 
