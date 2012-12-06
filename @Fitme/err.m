@@ -291,9 +291,31 @@ if (obj.includeEtot)
       ic = ic + n;
    end
 end
+% for backwards compatability with fitme saved before this variable
+% was added
+if (isempty(obj.cost))
+   obj.cost = 0;
+end
+if (obj.cost > 0)
+   obj.setCostVector;
+   res(ic) = (ndat * obj.cost/627.509) * norm(obj.costVector(:) .* par(:));
+   plotnum(ic) = 0;
+   modelnum(ic) = 0;
+   envnum(ic) = -1;
+   etype(ic) = 0;
+   ic = ic + 1;
+end
 if (~obj.silent)
-   disp(['RMS err/ndata = ',num2str(sqrt(res*res')/ndat), ...
-      ' kcal/mol err = ',num2str(sqrt(res*res'/ndat)*627.509)]);
+   if (obj.cost > 0)
+      nc = res(1:(ic-2));
+      wc = res(ic-1);
+      disp(['RMS err/ndata = ',num2str(sqrt(nc*nc')/ndat), ...
+         ' kcal/mol err = ',num2str(sqrt(nc*nc'/ndat)*627.509) ...
+         ' kcal/mol cost = ',num2str(wc*627.509/ndat)]);      
+   else
+      disp(['RMS err/ndata = ',num2str(sqrt(res*res')/ndat), ...
+         ' kcal/mol err = ',num2str(sqrt(res*res'/ndat)*627.509)]);
+   end
 end
 obj.itcount = obj.itcount + 1;
 obj.errTrain(obj.itcount) = norm(res);

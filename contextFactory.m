@@ -3,8 +3,23 @@ close all;
 topDir = 'C:/matdl/yaron/dec12a/';
 maxIter = 500;
 
-combinations = 1;
+h2fits = 0;
+combinations = 0;
+costs = [0.1 0.3];
+printDetailsOnLoad = 0;
 
+if (h2fits)
+  dsets = cell(1,2);
+  dname = cell(1,1);
+  dname{1} = 'h2';
+  dfile = ['datasets/h2Dat.mat'];
+  ms = MSet;
+  ms.addData(dfile,[1 3 5 7], 1:2:20 ,1,796);
+  dsets{1,1} = ms;
+  ms = MSet;
+  ms.addData(dfile,[2 4 6], 2:2:20 ,1,796);
+  dsets{1,2} = ms;
+else
 % CREATE MODEL SETS
 % dataf = {'ch4rDat','ch4rDat-1c','ch4rDat-diponly','ch4rDat-linrho','ethanerDat','ethylenerDat'};
 dataf = {'ch4rDat','ethanerDat','ethylenerDat'};
@@ -50,10 +65,21 @@ if (combinations)
       end
    end
 end
+end
 
-% CREATE POLICIES
+%% CREATE POLICIES
 policies = cell(0,0);
 pname = cell(0,0);
+
+if (h2fits)
+pname{1} = 'h2';
+m1 = MFactory;
+m1.addPolicy('o','*', 'i',1, 'f','scale',  'sp','separate', 'c','r q bo');
+m1.addPolicy('o','*', 'i',1, 'j',1, 'f','scale',  'sp','hybrid', 'c','r bo q');
+policies{end+1} = m1.policy;
+m1 = [];
+else
+
 % pname{1} = 'hybridsp';
 % m1 = MFactory;
 % m1.addPolicy('o','KE', 'f','scale', 'sp','sonly', 'i',1, 'c','q r bo');
@@ -139,10 +165,11 @@ m1.addPolicy('o','E2', 'i','*', 'f','scale',  'sp','slater', 'c','r q bo');
 m1.addPolicy('o','*', 'i','*', 'j','*', 'f','scale',  'sp','hybrid', 'c','r bo q');
 % nonbond between hydrogen
 m1.addPolicy('o','E2', 'i',1,   'j',1,  'f','scale',  'sp','sonly',  ...
-    'c','bo','nb',1);
+   'c','bo','nb',1);
 policies{end+1} = m1.policy;
 m1 = [];
-
+end
+%%
 for ipol = 1:length(policies)
    for idata = 1:size(dsets,1)
       filePre=[pname{ipol},'/',dname{idata}];
@@ -181,18 +208,21 @@ for ipol = 1:length(policies)
          fprintf(1,'LOADING START \n');
          fprintf(summaryFile,'LOADING START \n');
          load(startName,toSave{:});
+         loaded = 1;
       else
          [currentTrainErr,currentPar,currentErr] = ...
             contextFit3(f1,ftest,maxIter);
          save(startName,toSave{:});
+         loaded = 0;
       end
       
       str1 = 'initial error %12.5f test %12.5f \n';
       fprintf(1,str1,currentTrainErr,currentErr);
       fprintf(summaryFile,str1,currentTrainErr,currentErr);
-      f1.printEDetails(summaryFile);
-      ftest.printEDetails(summaryFile);
-      
+      if (~loaded || printDetailsOnLoad)
+         f1.printEDetails(summaryFile);
+         ftest.printEDetails(summaryFile);
+      end
       ticID = tic;
       for iter = 1:3
          allName = [topDir,filePre,'/all-',num2str(iter),'.mat'];
@@ -200,7 +230,9 @@ for ipol = 1:length(policies)
             fprintf(1,'LOADING ITERATION %i \n',iter);
             fprintf(summaryFile,'LOADING ITERATION %i \n',iter);
             load(allName,toSave{:});
+            loaded = 1;
          else
+            loaded = 0;
             fprintf(1,'STARTING ITERATION %i \n',iter);
             fprintf(summaryFile,'STARTING ITERATION %i \n',iter);
             % unfix 1 level of context
@@ -220,10 +252,44 @@ for ipol = 1:length(policies)
          str2 = 'context error %12.5f test %12.5f \n';
          fprintf(1,str2,currentTrainErr,currentErr);
          fprintf(summaryFile,str2,currentTrainErr,currentErr);
-         f1.printEDetails(summaryFile);
-         ftest.printEDetails(summaryFile);
+         if (~loaded || printDetailsOnLoad)
+            f1.printEDetails(summaryFile);
+            ftest.printEDetails(summaryFile);
+         end
          
       end
+      if (~isempty(costs))
+         for cost = costs
+%             startName = [topDir,filePre,'/all-',num2str(3),'.mat'];
+%             fprintf(1,'LOADING %s for cost %10.5f \n',allName,cost);
+%             fprintf(summaryFile,'LOADING %s for cost %10.5f \n',allName,cost);
+%             load(allName,toSave{:});
+            costDir = [topDir,filePre,'/all-',num2str(3),'-cost'];
+            if (exist(costDir,'dir') ~= 7)
+               status = mkdir(costDir);
+            end
+            f1.cost = cost;
+            allName = [costDir,'/all-',num2str(cost),'.mat'];
+            if (exist(allName,'file'))
+               fprintf(1,'LOADING COST %10.5f \n',cost);
+               fprintf(summaryFile,'LOADING COST %10.5f \n',cost);
+               load(allName,toSave{:});
+            else
+               fprintf(1,'STARTING COST %10.5f \n',cost);
+               fprintf(summaryFile,'STARTING COST %10.5f \n',cost);
+               f1.cost = cost;
+               [currentTrainErr,currentPar,currentErr] = ...
+                  contextFit3(f1,ftest,maxIter);
+               save(allName,toSave{:});
+            end
+            str2 = 'context error %12.5f test %12.5f \n';
+            fprintf(1,str2,currentTrainErr,currentErr);
+            fprintf(summaryFile,str2,currentTrainErr,currentErr);
+            f1.printEDetails(summaryFile);
+            ftest.printEDetails(summaryFile);
+         end
+      end
+
       runTime = toc(ticID)
       diary off;
       fclose(summaryFile);
@@ -238,3 +304,5 @@ for ipol = 1:length(policies)
       %    end
    end
 end
+
+
