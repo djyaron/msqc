@@ -3,7 +3,7 @@ close all;
 topDir = 'C:/matdl/yaron/dec12a/';
 maxIter = 500;
 
-combinations = 0;
+combinations = 1;
 
 % CREATE MODEL SETS
 % dataf = {'ch4rDat','ch4rDat-1c','ch4rDat-diponly','ch4rDat-linrho','ethanerDat','ethylenerDat'};
