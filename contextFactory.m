@@ -3,9 +3,9 @@ close all;
 topDir = 'C:/matdl/yaron/dec12a/';
 maxIter = 500;
 
-h2fits = 1;
-combinations = 0;
-costs = [0.0001 0.1];
+h2fits = 0;
+combinations = 1;
+costs = [5 10 25 50]; %[0.0001 0.1];
 printDetailsOnLoad = 1;
 
 if (h2fits)
@@ -22,7 +22,7 @@ if (h2fits)
 else
 % CREATE MODEL SETS
 % dataf = {'ch4rDat','ch4rDat-1c','ch4rDat-diponly','ch4rDat-linrho','ethanerDat','ethylenerDat'};
-dataf = {'ch4rDat','ethanerDat','ethylenerDat'};
+dataf = {'ch4rDat','ethanerDat'};% ,'ethylenerDat'};
 pnn = [791,792,793];
 dsets = cell(1,2);
 dname = cell(1,1);
@@ -40,7 +40,7 @@ for idata = 1:length(dataf)
 end
 
 if (combinations)
-   combs = {[1 2], [2 3], [1 2 3]};
+   combs = {[1 2]};%, [2 3], [1 2 3]};
    dtemp = dsets;
    ntemp = dname;
    dsets = cell(0,0);
@@ -168,6 +168,17 @@ m1.addPolicy('o','E2', 'i',1,   'j',1,  'f','scale',  'sp','sonly',  ...
    'c','bo','nb',1);
 policies{end+1} = m1.policy;
 m1 = [];
+
+% pname{end+1} = 'shift';
+% m1 = MFactory;
+% m1.addPolicy('o','KE', 'i',6, 'f','const',  'sp','shift');
+% m1.addPolicy('o','EN', 'i',1, 'f','const',  'sp','shift');
+% m1.addPolicy('o','EN', 'i',6, 'f','const',  'sp','shift');
+% m1.addPolicy('o','E2', 'i',6, 'f','scale',  'sp','shift');
+% 
+% policies{end+1} = m1.policy;
+% m1 = [];
+
 end
 %%
 for ipol = 1:length(policies)
