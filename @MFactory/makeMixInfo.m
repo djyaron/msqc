@@ -135,6 +135,13 @@ else
       case 'ponly'
          desc2 = [desc,' 2p']; 
          res = makeInfo(makeMixer(pol,desc2),'KEdiagp',atype);
+      case 'shift'
+         mix = makeMixer(pol,['KE shift']);
+         m1 = makeInfo(mix,'KEdiags',1);
+         m2 = makeInfo(mix,'KEcore', 6);
+         m3 = makeInfo(mix,'KEdiags',6);
+         m4 = makeInfo(mix,'KEdiagp',6);
+         res = {m1 m2 m3 m4};         
       otherwise
          error('sp policy not compatible with KEdiag');
    end
@@ -169,6 +176,12 @@ else
       case 'ponly'
          desc2 = [desc,' 2p']; 
          res = makeInfo(makeMixer(pol,desc2),'ENdiagp',atype);
+      case 'shift'
+         mix = makeMixer(pol,'EN shift');
+         m1 = makeInfo(mix,'ENcore', atype);
+         m2 = makeInfo(mix,'ENdiags', atype);
+         m3 = makeInfo(mix,'ENdiagp',atype);
+         res = {m1 m2 m3};         
       otherwise
          error('sp policy not compatible with ENdiag');
    end
@@ -193,6 +206,11 @@ switch pol.sp
          res.mixerG1 = makeMixer(pol,[desc,' G1']);
          res.mixerF2 = makeMixer(pol,[desc,' F2']);
       end
+   case 'shift'
+      mix = makeMixer(pol,'E2 shift');
+      m1 = makeInfo(mix,'E2diag', 1);
+      m2 = makeInfo(mix,'E2diag', 6);
+      res = {m1 m2};
    otherwise
       res = makeInfo(makeMixer(pol,desc),'E2diag',atype);
 end
