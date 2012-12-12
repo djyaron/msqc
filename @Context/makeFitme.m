@@ -1,5 +1,5 @@
 function [ftrain ftest] = makeFitme(mtrain,envsTrain,HLTrain,mtest, ...
-   envsTest,HLTest,includeAdhoc,separateSP,include1s)
+   envsTest,HLTest,includeAdhoc,separateSP,include1s,hybrid)
 % Input
 %    mtrain      {ntrain} models for training
 %    envsTrain   {ntrain}(1:nenv)  envs for each train model
@@ -14,6 +14,9 @@ if (nargin < 8)
 end
 if (nargin < 9)
    include1s = 0;
+end
+if (nargin < 10)
+   hybrid = 1;
 end
 
 % get all the necessary contexts for this set of molecules
@@ -39,7 +42,7 @@ for itype =1:length(atypes)
       ncontexts = atomContexts{itype}.ndim + extraContextsAtom;
       
       desc = ['KE atype ',num2str(atype),' pca '];
-      if (Context.atypeToZtype(atype) == 6)
+      if (Context.atypeToZtype(atype) ~= 1)
          if (separateSP)
             functype = 2; % scale without constant
             parIn = [1 zeros(1,ncontexts)];
@@ -79,7 +82,7 @@ for itype =1:length(atypes)
          mixInfo{end+1} = minfo;
       end
 
-      if (include1s && (Context.atypeToZtype(atype) == 6))
+      if (include1s && (Context.atypeToZtype(atype) ~= 1))
          desc = ['KE 1s1s ',num2str(atype),' pca '];
          mixType = 11; % atom context mixer
          functype = 2; % scale without constant
@@ -104,7 +107,7 @@ for itype =1:length(atypes)
       end
       
       desc = ['EN atype ',num2str(atype),' pca '];
-      if (Context.atypeToZtype(atype) == 6)
+      if (Context.atypeToZtype(atype) ~= 1)
          functype = 3; % scale with constant
          parIn = [1 zeros(1,ncontexts) 0];
          fixed = [0 ones(1,ncontexts) 0]; % fix all contexts
@@ -143,7 +146,7 @@ for itype =1:length(atypes)
             fixed = [0 ones(1,ncontexts)]; % fix all contexts
             m1 = Mixer(parIn, mixType, desc, functype);
             m1.fixed = fixed;
-            m1.hybrid = 1;
+            m1.hybrid = hybrid;
             minfo.mixer = m1;
             minfo.type = 'KEbond';
             minfo.atype1 = atype;
@@ -153,7 +156,7 @@ for itype =1:length(atypes)
             desc = ['EN atypes ',num2str(atype),' ',num2str(atype2),' pca '];
             m1 = Mixer(parIn, mixType, desc, functype);
             m1.fixed = fixed;
-            m1.hybrid = 1;
+            m1.hybrid = hybrid;
             minfo.mixer = m1;
             minfo.type = 'ENbond';
             mixInfo{end+1} = minfo;
@@ -270,7 +273,7 @@ for imod = 1:length(mtrain);
    ftrain.addFrag(mtrain{imod},HLTrain{imod},plotnumber);
 end
 ftrain.includeKE = 1;
-ftrain.includeEN = ones(1,6);
+ftrain.includeEN = ones(1,20);
 ftrain.includeE2 = 1;
 ftrain.silent = 1;
 ftrain.setEnvs(envsTrain);
@@ -290,7 +293,7 @@ for imod = 1:length(mtest);
    ftest.addFrag(mtest{imod},HLTest{imod},plotnumber);
 end
 ftest.includeKE = 1;
-ftest.includeEN = ones(1,6);
+ftest.includeEN = ones(1,20);
 ftest.includeE2 = 1;
 ftest.silent = 1;
 ftest.setEnvs(envsTest);

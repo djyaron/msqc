@@ -11,6 +11,7 @@ classdef Fitme < handle
       includeKE % include kinetic energy in fit
       includeEN % {1,Z} include elec-nuc operators for element Z
       includeE2 % include two-elec energy in fit
+      includeEtot % include total energy fit
       
       parHF   % Last parameters for which HF was solved
       epsDensity % re-evaluate density matrix if par change > eps
@@ -37,11 +38,17 @@ classdef Fitme < handle
       silent     % suppress all displayed output
       
       hftime
+      scratchDir % used to hold scratch files
+      cset       % CSet holding context variables
+      
+      mixerCost  % derivative of err for every par in mixers
+      costVector % normed derivative of err for current pars
+      cost       % parameter multipled by norm(costVector) for err function
    end
    methods (Static)
       [ke, en, e2, newDensity] = ...
             modelCalcParallel(imod,ienv,updateDensity,...
-            includeKE,includeEN,includeE2);
+            includeKE,includeEN,includeE2,scratchDir);
    end
    methods
       function res = Fitme
@@ -54,6 +61,7 @@ classdef Fitme < handle
          res.includeKE = 1;
          res.includeEN = zeros(1,6);
          res.includeE2 = 0;
+         res.includeEtot = 0;
          res.parHF = [];
          res.plot = 1;
          res.plotNumber = [];
@@ -64,6 +72,11 @@ classdef Fitme < handle
          res.itcount = 0;
          res.parallel = 0;
          res.silent = 0;
+         res.scratchDir = '';
+         res.cset = [];
+         res.mixerCost=[];
+         res.costVector=[]; 
+         res.cost = 0.0;
       end
       function addMixer(obj, mix)
          add = 1;
@@ -211,6 +224,12 @@ classdef Fitme < handle
             if (obj.includeE2 == 1)
                ic = ic + size(obj.HLE2{1,imod},2);
             end
+            if (obj.includeEtot == 1)
+               ic = ic + size(obj.HLKE{1,imod},2);
+            end
+         end
+         if (obj.cost > 0)
+            ic = ic+1;
          end
          res = ic;
       end

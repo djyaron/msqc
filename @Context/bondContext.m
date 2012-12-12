@@ -20,7 +20,7 @@ end
 if (nbondsi > 1)
    t1 = zeros(3,nbondsi-1);
    ic = 0;
-   for katom = setDiff(bondedi,jatom);
+   for katom = setdiff(bondedi,jatom);
       ic = ic+1;
       t1(:,ic) = ...
          Context.analyzeBond(mod,ienv,iatom,katom);
@@ -34,7 +34,7 @@ end
 if (nbondsj > 1)
    t1 = zeros(3,nbondsj-1);
    ic = 0;
-   for katom = setDiff(bondedj,iatom);
+   for katom = setdiff(bondedj,iatom);
       ic = ic + 1;
       t1(:,ic) = ...
          Context.analyzeBond(mod,ienv,jatom,katom);
