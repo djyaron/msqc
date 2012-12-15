@@ -1,14 +1,15 @@
 clear classes;
 close all;
-topDir = 'C:/matdl/yaron/dec12a/';
+topDir = 'C:/matdl/yaron/dec12b/';
 maxIter = 500;
 
 h2fits = 1;
 combinations = 0;
 costs = []; %[5 10 25 50]; %[0.0001 0.1];
 printDetailsOnLoad = 0;
-weights = 1:10;
-weightProp = 0;
+weights = 1:-0.1:0;% 1:10;
+for weightProp = 0:1
+for weightFromScratch = 0:1;
 if (h2fits)
   dsets = cell(1,2);
   dname = cell(1,1);
@@ -311,6 +312,9 @@ for ipol = 1:length(policies)
             if (weightProp)
                weightDir = [weightDir,'p'];
             end
+            if (weightFromScratch)
+               weightDir = [weightDir,'-scratch'];
+            end
             if (exist(weightDir,'dir') ~= 7)
                status = mkdir(weightDir);
             end
@@ -326,6 +330,9 @@ for ipol = 1:length(policies)
                [currentTrainErr,currentPar,currentErr] = ...
                   contextFit3(f1,ftest,maxIter);
                save(allName,toSave{:});
+            end
+            if (weightFromScratch)
+               f1.setPars(zeros(size(f1.getPars)));
             end
             str2 = 'context error %12.5f test %12.5f \n';
             fprintf(1,str2,currentTrainErr,currentErr);
@@ -352,3 +359,5 @@ for ipol = 1:length(policies)
 end
 
 
+end
+end
