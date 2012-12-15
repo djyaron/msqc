@@ -1,14 +1,15 @@
 clear classes;
 close all;
-topDir = 'C:/matdl/yaron/dec12a/';
+topDir = 'C:/matdl/yaron/dec12b/';
 maxIter = 500;
 
-h2fits = 0;
+h2fits = 1;
 combinations = 0;
 costs = []; %[5 10 25 50]; %[0.0001 0.1];
 printDetailsOnLoad = 0;
-weights = [1:2:20 0.5 0.1 0];
-weightProp = 1;
+weights = 1:-0.1:0;% 1:10;
+for weightProp = 0:1
+for weightFromScratch = 0:1;
 if (h2fits)
   dsets = cell(1,2);
   dname = cell(1,1);
@@ -23,11 +24,7 @@ if (h2fits)
 else
 % CREATE MODEL SETS
 % dataf = {'ch4rDat','ch4rDat-1c','ch4rDat-diponly','ch4rDat-linrho','ethanerDat','ethylenerDat'};
-%dataf = {'ch4rDat','ethanerDat','ethylenerDat'};
-%pnn = [791,792,793];
-%dataf = {'ch4rDat','ethanerDat'};
-pnn = [791,792];
-dataf = {'ch4rDat','ethanerDat'};% ,'ethylenerDat'};
+dataf = {'ch4rDat'};% ,'ethanerDat'};% ,'ethylenerDat'};
 pnn = [791,792,793];
 dsets = cell(1,2);
 dname = cell(1,1);
@@ -174,37 +171,6 @@ m1.addPolicy('o','E2', 'i',1,   'j',1,  'f','scale',  'sp','sonly',  ...
 policies{end+1} = m1.policy;
 m1 = [];
 
-% pname{end+1} = 'spslater';
-% m1 = MFactory;
-% % Diag core on C only
-% m1.addPolicy('o','*', 'i',6, 'f','scale',  'sp','core');
-% m1.addPolicy('o','KE', 'i','*', 'f','scale',  'sp','separate', 'c','r q bo');
-% m1.addPolicy('o','EN', 'i','*', 'f','scale',  'sp','separate', 'c','r q bo');
-% m1.addPolicy('o','E2', 'i','*', 'f','scale',  'sp','slater', 'c','r q bo');
-% 
-% % Bonding
-% m1.addPolicy('o','*', 'i','*', 'j','*', 'f','scale',  'sp','separate', 'c','r bo q');
-% % nonbond between hydrogen
-% m1.addPolicy('o','E2', 'i',1,   'j',1,  'f','scale',  'sp','sonly',  ...
-%    'c','bo','nb',1);
-% policies{end+1} = m1.policy;
-% m1 = [];
-
-% pname{end+1} = 'spsep';
-% m1 = MFactory;
-% % Diag core on C only
-% m1.addPolicy('o','*', 'i',6, 'f','scale',  'sp','core');
-% m1.addPolicy('o','KE', 'i','*', 'f','scale',  'sp','separate', 'c','r q bo');
-% m1.addPolicy('o','EN', 'i','*', 'f','scale',  'sp','separate', 'c','r q bo');
-% m1.addPolicy('o','E2', 'i','*', 'f','scale',  'sp','combine', 'c','r q bo');
-% 
-% Bonding
-% m1.addPolicy('o','*', 'i','*', 'j','*', 'f','scale',  'sp','separate', 'c','r bo q');
-% % nonbond between hydrogen
-% m1.addPolicy('o','E2', 'i',1,   'j',1,  'f','scale',  'sp','sonly',  ...
-%    'c','bo','nb',1);
-% policies{end+1} = m1.policy;
-% m1 = [];
 % pname{end+1} = 'shift';
 % m1 = MFactory;
 % m1.addPolicy('o','KE', 'i',6, 'f','const',  'sp','shift');
@@ -346,6 +312,9 @@ for ipol = 1:length(policies)
             if (weightProp)
                weightDir = [weightDir,'p'];
             end
+            if (weightFromScratch)
+               weightDir = [weightDir,'-scratch'];
+            end
             if (exist(weightDir,'dir') ~= 7)
                status = mkdir(weightDir);
             end
@@ -361,6 +330,9 @@ for ipol = 1:length(policies)
                [currentTrainErr,currentPar,currentErr] = ...
                   contextFit3(f1,ftest,maxIter);
                save(allName,toSave{:});
+            end
+            if (weightFromScratch)
+               f1.setPars(zeros(size(f1.getPars)));
             end
             str2 = 'context error %12.5f test %12.5f \n';
             fprintf(1,str2,currentTrainErr,currentErr);
@@ -387,3 +359,5 @@ for ipol = 1:length(policies)
 end
 
 
+end
+end
