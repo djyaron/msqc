@@ -5,7 +5,7 @@ maxIter = 500;
 
 h2fits = 0;
 combinations = 0;
-costs = [0.1 0.3];
+costs = [10 25 50];
 printDetailsOnLoad = 0;
 
 if (h2fits)
