@@ -5,19 +5,31 @@ fct = cell(0,0);
 ms = cell(0,0);
 fitme = cell(0,0);
 fname = cell(0,0);
-% dataExt = {'','-1c','-linrho','-diponly'};
-% for iext = 1:4
-%    load(['C:\matdl\yaron\11-29-12\factory\hybrid1\ch4r',dataExt{iext},'\all-3.mat'])
+% % dataExt = {'','-1c','-linrho','-diponly'};
+% % for iext = 1:4
+% %    load(['C:\matdl\yaron\11-29-12\factory\hybrid1\ch4r',dataExt{iext},'\all-3.mat'])
+% %    fct{end+1} = fact;  fitme{end+1} = f1;  ms{end+1} = MSet.fromFitme(f1);
+% % end
+% % fname = {'orig','1c','lin','dip'};
+% 
+% dataExt = {'ethanerDat','propanerDat'};
+% for iext = 1:length(dataExt)
+%    load(['C:\matdl\yaron\dec12a\hybridslater\',dataExt{iext},'\all-3.mat'])
 %    fct{end+1} = fact;  fitme{end+1} = f1;  ms{end+1} = MSet.fromFitme(f1);
 % end
-% fname = {'orig','1c','lin','dip'};
+% fname = dataExt;
+% 
 
-dataExt = {'ethanerDat','propanerDat'};
+dataExt = {''};%,'-1c','-linrho','-diponly'};
 for iext = 1:length(dataExt)
-   load(['C:\matdl\yaron\dec12a\hybridslater\',dataExt{iext},'\all-3.mat'])
+   load(['C:\matdl\yaron\11-29-12\factory\hybrid1\ch4r',dataExt{iext},'\all-3.mat'])
+   for imix = 1:length(f1.mixers)
+      f1.mixers{imix}.bonded = 1;
+   end
+   f1.mixers{end}.bonded = 0;
    fct{end+1} = fact;  fitme{end+1} = f1;  ms{end+1} = MSet.fromFitme(f1);
 end
-fname = dataExt;
+fname = {'orig','1c','lin','dip'};
 
 %%
 nfact = length(fct);

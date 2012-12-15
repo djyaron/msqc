@@ -323,6 +323,23 @@ if (size(obj.testFitme,1) > 0)
    err1 = obj.testFitme.err(par);
    obj.errTest(obj.itcount) = norm(err1);
 end
+if (~isempty(obj.operWeights))
+   %  has fields KE, EN(1...Zmax), E2 and Etot
+   ike = (etype==1);
+   res(ike) = res(ike) * obj.operWeights.KE;
+   % find all atom types
+   atypes = unique(etype(etype>10));
+   for atype = atypes
+      iz = (etype==atype);
+      res(iz) = res(iz) * obj.operWeights.EN(atype-10);
+   end
+   i2 = (etype==2);
+   res(i2) = res(i2)*obj.operWeights.E2;
+   itot = (etype==3);
+   res(itot) = res(itot) * obj.operWeights.Etot;
+   disp(['Weighted RMS err/ndata = ',num2str(sqrt(res*res')/ndat), ...
+      ' kcal/mol err = ',num2str(sqrt(res*res'/ndat)*627.509)]);
+end
 
 if (doPlots)
    figure(obj.plotNumErr);
