@@ -3,9 +3,9 @@ close all;
 topDir = 'C:/matdl/yaron/dec12a/';
 maxIter = 500;
 
-h2fits = 1;
+h2fits = 0;
 combinations = 0;
-costs = [0.0001 0.1];
+costs = []; %[0.0001 0.1];
 printDetailsOnLoad = 1;
 
 if (h2fits)
@@ -22,8 +22,12 @@ if (h2fits)
 else
 % CREATE MODEL SETS
 % dataf = {'ch4rDat','ch4rDat-1c','ch4rDat-diponly','ch4rDat-linrho','ethanerDat','ethylenerDat'};
-dataf = {'ch4rDat','ethanerDat','ethylenerDat'};
-pnn = [791,792,793];
+
+%dataf = {'ch4rDat','ethanerDat','ethylenerDat'};
+%pnn = [791,792,793];
+dataf = {'ch4rDat','ethanerDat'};
+pnn = [791,792];
+
 dsets = cell(1,2);
 dname = cell(1,1);
 for idata = 1:length(dataf)
@@ -153,7 +157,23 @@ else
 % policies{end+1} = m1.policy;
 % m1 = [];
 
-pname{end+1} = 'hybridslater';
+% pname{end+1} = 'hybridslater';
+% m1 = MFactory;
+% % Diag core on C only
+% m1.addPolicy('o','*', 'i',6, 'f','scale',  'sp','core');
+% m1.addPolicy('o','KE', 'i','*', 'f','scale',  'sp','separate', 'c','r q bo');
+% m1.addPolicy('o','EN', 'i','*', 'f','scale',  'sp','separate', 'c','r q bo');
+% m1.addPolicy('o','E2', 'i','*', 'f','scale',  'sp','slater', 'c','r q bo');
+% 
+% % Bonding
+% m1.addPolicy('o','*', 'i','*', 'j','*', 'f','scale',  'sp','hybrid', 'c','r bo q');
+% % nonbond between hydrogen
+% m1.addPolicy('o','E2', 'i',1,   'j',1,  'f','scale',  'sp','sonly',  ...
+%    'c','bo','nb',1);
+% policies{end+1} = m1.policy;
+% m1 = [];
+
+pname{end+1} = 'spslater';
 m1 = MFactory;
 % Diag core on C only
 m1.addPolicy('o','*', 'i',6, 'f','scale',  'sp','core');
@@ -162,12 +182,29 @@ m1.addPolicy('o','EN', 'i','*', 'f','scale',  'sp','separate', 'c','r q bo');
 m1.addPolicy('o','E2', 'i','*', 'f','scale',  'sp','slater', 'c','r q bo');
 
 % Bonding
-m1.addPolicy('o','*', 'i','*', 'j','*', 'f','scale',  'sp','hybrid', 'c','r bo q');
+m1.addPolicy('o','*', 'i','*', 'j','*', 'f','scale',  'sp','separate', 'c','r bo q');
 % nonbond between hydrogen
 m1.addPolicy('o','E2', 'i',1,   'j',1,  'f','scale',  'sp','sonly',  ...
    'c','bo','nb',1);
 policies{end+1} = m1.policy;
 m1 = [];
+
+pname{end+1} = 'spsep';
+m1 = MFactory;
+% Diag core on C only
+m1.addPolicy('o','*', 'i',6, 'f','scale',  'sp','core');
+m1.addPolicy('o','KE', 'i','*', 'f','scale',  'sp','separate', 'c','r q bo');
+m1.addPolicy('o','EN', 'i','*', 'f','scale',  'sp','separate', 'c','r q bo');
+m1.addPolicy('o','E2', 'i','*', 'f','scale',  'sp','combine', 'c','r q bo');
+
+% Bonding
+m1.addPolicy('o','*', 'i','*', 'j','*', 'f','scale',  'sp','separate', 'c','r bo q');
+% nonbond between hydrogen
+m1.addPolicy('o','E2', 'i',1,   'j',1,  'f','scale',  'sp','sonly',  ...
+   'c','bo','nb',1);
+policies{end+1} = m1.policy;
+m1 = [];
+
 end
 %%
 for ipol = 1:length(policies)
