@@ -238,7 +238,21 @@ else
          if ((Za > 1) && (Zb > 1))
             res{end+1} = makeInfo(mix,[oper,'bondpp'],atype,btype);
          end
-      case 'hybrid'
+      case 'separate'
+         mixss = makeMixer(pol,[desc,'ss']);
+         mixsp = makeMixer(pol,[desc,'sp']);
+         mixpp = makeMixer(pol,[desc,'pp']);
+         res = {makeInfo(mixss,[oper,'bondss'],atype,btype)};
+         if (Za > 1)
+            res{end+1} = makeInfo(mixsp,[oper,'bondps'],atype,btype);
+         end
+         if (Zb > 1)
+            res{end+1} = makeInfo(mixsp,[oper,'bondsp'],atype,btype);
+         end
+         if ((Za > 1) && (Zb > 1))
+            res{end+1} = makeInfo(mixpp,[oper,'bondpp'],atype,btype);
+         end
+       case 'hybrid'
          mixSigma = makeMixer(pol,[desc,' sig'],1);
          res = {makeInfo(mixSigma,[oper,'bondh'],atype,btype)};
          if (strcmpi(oper,'EN') && (atype ~= btype))
