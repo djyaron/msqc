@@ -4,7 +4,7 @@ if (nargin < 2)
 end
 res = cell(0,0);
 
-molName = {'CH4' 'C2H6' 'C2H4' 'C3H8' 'C4H6','H2'};
+molName = {'CH4' 'C2H6' 'C2H4' 'C3H8' 'C4H6','H2','CF4'};
 
 [err pnum etype] = obj.err(obj.getPars);
 
@@ -39,7 +39,7 @@ if (length(unique(pnum(etype>0))) > 1)
       C = norm(eC)/sqrt(length(eC));
       r2 = norm(e2)/sqrt(length(e2));
       rtot = norm(etot)/sqrt(length(etot));
-      if ( ((ip-790) > 0) && ((ip-790) < 7) )
+      if ( ((ip-790) > 0) && ((ip-790) < 8) )
          fprintf(ofile,'>> %s ',molName{ip-790});
          x.name = molName{ip-790};
       else

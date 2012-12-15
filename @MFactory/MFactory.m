@@ -54,7 +54,8 @@ classdef MFactory < handle
          t2.oper = validatestring(t1.oper,{'KE','EN','E2','*'});
          t2.func = validatestring(t1.func,{'const','scale','interp'});
          t2.sp   = validatestring(t1.sp, ...
-          {'core','sonly','ponly','hybrid','combine','separate','slater'});
+          {'core','sonly','ponly','hybrid','combine','separate',...
+          'slater','shift'});
          t2.iatom = t1.iatom;
          if (isfield(t1,'jatom'))
             t2.jatom = t1.jatom;

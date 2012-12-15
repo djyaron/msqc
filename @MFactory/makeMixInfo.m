@@ -135,6 +135,13 @@ else
       case 'ponly'
          desc2 = [desc,' 2p']; 
          res = makeInfo(makeMixer(pol,desc2),'KEdiagp',atype);
+      case 'shift'
+         mix = makeMixer(pol,['KE shift']);
+         m1 = makeInfo(mix,'KEdiags',1);
+         m2 = makeInfo(mix,'KEcore', 6);
+         m3 = makeInfo(mix,'KEdiags',6);
+         m4 = makeInfo(mix,'KEdiagp',6);
+         res = {m1 m2 m3 m4};         
       otherwise
          error('sp policy not compatible with KEdiag');
    end
@@ -169,6 +176,12 @@ else
       case 'ponly'
          desc2 = [desc,' 2p']; 
          res = makeInfo(makeMixer(pol,desc2),'ENdiagp',atype);
+      case 'shift'
+         mix = makeMixer(pol,'EN shift');
+         m1 = makeInfo(mix,'ENcore', atype);
+         m2 = makeInfo(mix,'ENdiags', atype);
+         m3 = makeInfo(mix,'ENdiagp',atype);
+         res = {m1 m2 m3};         
       otherwise
          error('sp policy not compatible with ENdiag');
    end
@@ -193,6 +206,11 @@ switch pol.sp
          res.mixerG1 = makeMixer(pol,[desc,' G1']);
          res.mixerF2 = makeMixer(pol,[desc,' F2']);
       end
+   case 'shift'
+      mix = makeMixer(pol,'E2 shift');
+      m1 = makeInfo(mix,'E2diag', 1);
+      m2 = makeInfo(mix,'E2diag', 6);
+      res = {m1 m2};
    otherwise
       res = makeInfo(makeMixer(pol,desc),'E2diag',atype);
 end
@@ -220,7 +238,21 @@ else
          if ((Za > 1) && (Zb > 1))
             res{end+1} = makeInfo(mix,[oper,'bondpp'],atype,btype);
          end
-      case 'hybrid'
+      case 'separate'
+         mixss = makeMixer(pol,[desc,'ss']);
+         mixsp = makeMixer(pol,[desc,'sp']);
+         mixpp = makeMixer(pol,[desc,'pp']);
+         res = {makeInfo(mixss,[oper,'bondss'],atype,btype)};
+         if (Za > 1)
+            res{end+1} = makeInfo(mixsp,[oper,'bondps'],atype,btype);
+         end
+         if (Zb > 1)
+            res{end+1} = makeInfo(mixsp,[oper,'bondsp'],atype,btype);
+         end
+         if ((Za > 1) && (Zb > 1))
+            res{end+1} = makeInfo(mixpp,[oper,'bondpp'],atype,btype);
+         end
+       case 'hybrid'
          mixSigma = makeMixer(pol,[desc,' sig'],1);
          res = {makeInfo(mixSigma,[oper,'bondh'],atype,btype)};
          if (strcmpi(oper,'EN') && (atype ~= btype))

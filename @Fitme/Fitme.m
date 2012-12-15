@@ -44,6 +44,8 @@ classdef Fitme < handle
       mixerCost  % derivative of err for every par in mixers
       costVector % normed derivative of err for current pars
       cost       % parameter multipled by norm(costVector) for err function
+      
+      operWeights %  has fields KE, EN(1...Zmax), E2 and Etot
    end
    methods (Static)
       [ke, en, e2, newDensity] = ...
@@ -77,6 +79,7 @@ classdef Fitme < handle
          res.mixerCost=[];
          res.costVector=[]; 
          res.cost = 0.0;
+         res.operWeights = [];
       end
       function addMixer(obj, mix)
          add = 1;
