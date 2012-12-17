@@ -34,8 +34,8 @@ H2j = cell(obj.nbasis,obj.nbasis);
 H2k = cell(obj.nbasis,obj.nbasis);
 for i=1:obj.nbasis
    for j=1:obj.nbasis
-      H2j{i,j} = squeeze(H2(i,j,:,:));
-      H2k{i,j} = squeeze(H2(i,:,:,j));
+      H2j{i,j} = reshape(H2(i,j,:,:), obj.nbasis, obj.nbasis);
+      H2k{i,j} = reshape(H2(i,:,:,j), obj.nbasis, obj.nbasis);
    end
 end
 
@@ -103,14 +103,17 @@ while (~finished) %step 11 -- Test convergence
    %             end
    %         end
    %     end
-   for i=1:Nbasis
-      for j=i:Nbasis
-         t1 = sum(sum( P'.* H2j{i,j} ));
-         t2 = sum(sum( P'.* H2k{i,j} ));
-         G(i,j) = t1 - t2/2;
-         G(j,i) = G(i,j);
-      end
-   end
+   %for i=1:Nbasis
+   %   for j=i:Nbasis
+   %      t1 = sum(sum( P'.* H2j{i,j} ));
+   %      t2 = sum(sum( P'.* H2k{i,j} ));
+   %      G(i,j) = t1 - t2/2;
+   %      G(j,i) = G(i,j);
+   %   end
+   %end
+   
+   G = twoElecFock(P, H2j, H2k);
+   
     %step 6 -- Obtain F (fock matrix)
     F = H1 + G;
     
