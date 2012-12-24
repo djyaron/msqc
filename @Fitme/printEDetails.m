@@ -4,8 +4,11 @@ if (nargin < 2)
 end
 res = cell(0,0);
 
-molName = {'CH4' 'C2H6' 'C2H4' 'C3H8' 'C4H6','H2','CF4'};
+% turn off weighting so errors are unscaled for analysis
+saveWeights = obj.operWeights;
+obj.operWeights = [];
 
+molName = {'CH4' 'C2H6' 'C2H4' 'C3H8' 'C4H6','H2','CF4'};
 [err pnum etype] = obj.err(obj.getPars);
 
 err =err*627.509;
@@ -53,7 +56,7 @@ if (length(unique(pnum(etype>0))) > 1)
          tot, ke, H, C, r2, rtot);
    end
 end
-
+obj.operWeights = saveWeights;
 %fprintf(ofile,'\n');
 end
 
