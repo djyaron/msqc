@@ -3,8 +3,8 @@ close all;
 rootDir = 'C:/matdl/yaron/dec12c/';
 maxIter = 500;
 
-propWeights = 1;
-EtotWeight = 20;
+for propWeights = [1 0]
+for EtotWeight = [0:0.1:1 2 3 4 5 10 20 30 40]
 topDir = [rootDir,'w',num2str(EtotWeight)];
 if (propWeights)
    topDir = [topDir,'p/'];
@@ -35,7 +35,7 @@ fname{end+1} = 'ethylenerDat'; dname1{end+1}=fname{end};
 gTrain{end+1}=1:10;  eTrain{end+1}=1:2:20;
 gTest{end+1} =11:20; eTest{end+1} =2:2:20; pnn(end+1) = 793;
 
-toFit ={[ch4r], [ethaner], [ch4r,ethaner]};
+toFit = {[ethaner]};%{[ch4r], [ethaner], [ch4r,ethaner]};
 
 dsets = cell(1,2);
 dname = cell(1,1);
@@ -173,4 +173,7 @@ for ipol = 1:length(pname)
       %    end
       
    end
+end
+
+end
 end
