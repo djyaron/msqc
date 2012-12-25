@@ -74,3 +74,13 @@ for ifact = 1:nfact
    end
    fprintf(ofile,'\n');
 end
+
+%% Error versus weight
+clear classes
+close all
+dataroot = 'C:\matdl\yaron\dec12b\hybridslater\ethanerDat\all-3-weightp';
+lfiles = dir([dataroot,'/*.mat']);
+for i = 3%:length(lfiles)
+   disp(lfiles(i).name);
+   load([dataroot,'/',lfiles(i).name]);
+end
