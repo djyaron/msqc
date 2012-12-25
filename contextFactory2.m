@@ -1,10 +1,10 @@
 clear classes;
 close all;
-rootDir = 'C:/matdl/yaron/dec12c/';
+rootDir = 'C:/matdl/yaron/dec12d/';
 maxIter = 500;
 
-for propWeights = [1 0]
-for EtotWeight = [0:0.1:1 2 3 4 5 10 20 30 40]
+for propWeights = 1
+for EtotWeight = [1e7 1 5 10 20 0.1 0.5 30 0.25 0.75]
 topDir = [rootDir,'w',num2str(EtotWeight)];
 if (propWeights)
    topDir = [topDir,'p/'];
