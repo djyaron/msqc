@@ -4,6 +4,13 @@ if (nargin < 3)
    propToSD = true;
 end
 
+if (etotWeight > 1e6)
+   res.KE = 0.0;
+   res.EN = zeros(20,1);
+   res.E2 = 0.0;
+   res.Etot = 1.0;
+end
+
 if (propToSD)
    %HLKE    % {1,nmodels}(1,nenv) KE energy
    %HLEN    % {1,nmodels}(natom,nenv) electron-nuclear interaction
@@ -39,7 +46,7 @@ if (propToSD)
    res.Etot = 1.0/std(etot) * etotWeight;
 else
    res.KE = 1.0;
-   res.EN = ones(20);
+   res.EN = ones(20,1);
    res.E2 = 1.0;
    res.Etot = etotWeight;
 end
