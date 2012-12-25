@@ -3,13 +3,13 @@ close all;
 topDir = 'C:/matdl/yaron/dec12b/';
 maxIter = 500;
 
-h2fits = 1;
+h2fits = 0;
 combinations = 0;
 costs = []; %[5 10 25 50]; %[0.0001 0.1];
 printDetailsOnLoad = 0;
-weights = 1:-0.1:0;% 1:10;
-for weightProp = 0:1
-for weightFromScratch = 0:1;
+weights = [40:-4:4 3 2 1:-0.1:0];% 1:10;
+for weightProp = 0
+for weightFromScratch = 0:1
 if (h2fits)
   dsets = cell(1,2);
   dname = cell(1,1);
@@ -24,7 +24,7 @@ if (h2fits)
 else
 % CREATE MODEL SETS
 % dataf = {'ch4rDat','ch4rDat-1c','ch4rDat-diponly','ch4rDat-linrho','ethanerDat','ethylenerDat'};
-dataf = {'ch4rDat'};% ,'ethanerDat'};% ,'ethylenerDat'};
+dataf = {'ch4rDat','ethanerDat'};% ,'ethylenerDat'};
 pnn = [791,792,793];
 dsets = cell(1,2);
 dname = cell(1,1);
