@@ -34,7 +34,7 @@ if (propToSD)
          enweights(iz) = 1.0/std(en{iz});
       end
    end
-   res.EN = 1.0/enweights;
+   res.EN = enweights;
    res.E2 = 1.0/std(e2);
    res.Etot = 1.0/std(etot) * etotWeight;
 else

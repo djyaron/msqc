@@ -28,6 +28,8 @@ x.ke = ke; x.H = H; x.C = C; x.e2=r2; x.etot = rtot; x.name = 'all';
 res{1} = x;
 fprintf(ofile,'avg %5.3f ke %5.3f H %5.3f C %5.3f E2 %5.3f tot %5.3f\n',...
    tot, ke, H, C, r2, rtot);
+fprintf(ofile,'std %5.3f ke %5.3f H %5.3f C %5.3f E2 %5.3f tot %5.3f\n',...
+   std(eNoCost), std(eke), std(eH), std(eC), std(e2), std(etot));
 if (length(unique(pnum(etype>0))) > 1)
    for ip = unique(pnum)
       eavg = err(pnum==ip);
@@ -53,7 +55,9 @@ if (length(unique(pnum(etype>0))) > 1)
       res{end+1} = x;
 
       fprintf(ofile,'avg %5.3f ke %5.3f H %5.3f C %5.3f E2 %5.3f tot %5.3f\n',...
-         tot, ke, H, C, r2, rtot);
+         avg, ke, H, C, r2, rtot);
+      fprintf(ofile,'std %5.3f ke %5.3f H %5.3f C %5.3f E2 %5.3f tot %5.3f\n',...
+         std(eavg), std(eke), std(eH), std(eC), std(e2), std(etot));
    end
 end
 obj.operWeights = saveWeights;
