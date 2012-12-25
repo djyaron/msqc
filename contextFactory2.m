@@ -3,9 +3,9 @@ close all;
 rootDir = 'C:/matdl/yaron/dec12c/';
 maxIter = 500;
 
-propWeigths = 1;
+propWeights = 1;
 EtotWeight = 20;
-topDir = [topDir,'w',num2str(EtotWeight)];
+topDir = [rootDir,'w',num2str(EtotWeight)];
 if (propWeights)
    topDir = [topDir,'p/'];
 else
@@ -62,9 +62,9 @@ for ifit = 1:length(toFit)
    dsets{ic,2} = mtest;
 end
 
-%% CREATE POLICIES
-pname = {'hybridslater'}
-%%
+% CREATE POLICIES
+pname = {'hybridslater1'};
+%
 for ipol = 1:length(pname)
    for idata = 1:size(dsets,1)
       filePre=[pname{ipol},'/',dname{idata}];
@@ -72,6 +72,8 @@ for ipol = 1:length(pname)
       if (exist(dataDir,'dir') ~= 7)
          status = mkdir(dataDir);
       end
+      copyfile('c:/dave/apoly/msqc/contextFactory2.m',...
+          [dataDir,'/contextFactory2.m']);
       summaryName = [topDir,filePre,'/summary.txt'];
       % if (exist(summaryName,'file'))
       %    delete(summaryName);
@@ -86,13 +88,13 @@ for ipol = 1:length(pname)
       
       % Create fitme object
       fact  = MFactory;
-      fact.policy = policies{ipol};
+      fact.setPolicies(pname{ipol});
       fact.makeMixInfo(dsets{idata,1}.atomTypes);
       f1    = fact.makeFitme(dsets{idata,1});
       ftest = fact.makeFitme(dsets{idata,2});
       
       % Add weighting
-      f1.setWeights(EtotWeight,propWeigths);
+      f1.setWeights(EtotWeight,propWeights);
       
       fprintf(summaryFile,'train and test starting error \n');
       f1.printEDetails(summaryFile);
