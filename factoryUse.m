@@ -78,9 +78,66 @@ end
 %% Error versus weight
 clear classes
 close all
-dataroot = 'C:\matdl\yaron\dec12b\hybridslater\ethanerDat\all-3-weightp';
+% Make model set corresponding to methane
+mch4 = MSet;
+mch4.addData('datasets/ch4rDat.mat',11:20, 2:2:20 ,1,791);
+
+dataroot = 'C:\matdl\yaron\dec12b\hybridslater\ethanerDat\all-3-weight';
 lfiles = dir([dataroot,'/*.mat']);
-for i = 3%:length(lfiles)
+for i = 1:length(lfiles)
    disp(lfiles(i).name);
    load([dataroot,'/',lfiles(i).name]);
+   w(i) = f1.operWeights.Etot;
+   [a b] = f1.printEDetails;
+   etrain{i} = a{1};
+   strain{i} = b{1};
+   [a b] = ftest.printEDetails;
+   etest{i} = a{1};
+   stest{i} = b{1};
+   fmeth = fact.makeFitme(mch4);
+   [a b] = fmeth.printEDetails;
+   emeth{i} = a{1};
+   smeth{i} = b{1};
 end
+save([dataroot,'weightsum.mat'],'w','etrain','strain','etest', ...
+   'stest','emeth','smeth');
+%% 
+clear all;
+dataroot = 'C:\matdl\yaron\dec12b\hybridslater\ethanerDat\all-3-weight';
+load([dataroot,'weightsum.mat']);
+for iw = 1:length(w)
+   errs{iw,1,1} = etrain{iw};
+   errs{iw,1,2} = strain{iw};
+   errs{iw,2,1} = etest{iw};
+   errs{iw,2,2} = stest{iw};
+   errs{iw,3,1} = emeth{iw};
+   errs{iw,3,2} = smeth{iw};
+end
+
+close all
+toplot = {'ke','H','C','e2','etot'};
+psym = {'co','bo','b^','k^','ro'};
+ltype = {'-','--'};
+[ws,is] = sort(w);
+etrain = cell(length(ws),1);
+for id = 1:size(errs,2) % data set
+   for il = 1:2 % err or standard deviation
+      for it = 1:length(toplot) % data type
+         for i = 1:length(w)
+            x(i) = ws(i);
+            er = errs{is(i),id,il};
+            y(i) = getfield(er,toplot{it});
+         end
+         figure(70+id);
+         subplot(2,1,il)
+         hold on;
+         plot(x,y,[psym{it},ltype{il}]);
+      end
+   end
+   figure(70+id);
+   ylabel('average error');
+   xlabel('weight of Etotal');
+   legend(toplot);
+end
+
+
