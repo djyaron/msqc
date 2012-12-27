@@ -9,6 +9,8 @@ if (etotWeight > 1e6)
    res.EN = zeros(20,1);
    res.E2 = 0.0;
    res.Etot = 1.0;
+   obj.operWeights = res;
+   return
 end
 
 if (propToSD)
