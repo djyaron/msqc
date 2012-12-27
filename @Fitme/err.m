@@ -337,8 +337,10 @@ if (~isempty(obj.operWeights))
    res(i2) = res(i2)*obj.operWeights.E2;
    itot = (etype==3);
    res(itot) = res(itot) * obj.operWeights.Etot;
+   if (~obj.silent)
    disp(['Weighted RMS err/ndata = ',num2str(sqrt(res*res')/ndat), ...
       ' kcal/mol err = ',num2str(sqrt(res*res'/ndat)*627.509)]);
+   end
 end
 
 if (doPlots)
