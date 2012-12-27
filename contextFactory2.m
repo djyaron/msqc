@@ -1,10 +1,10 @@
 clear classes;
 close all;
-rootDir = 'C:/matdl/yaron/dec12d/';
+rootDir = 'C:/matdl/yaron/2010a/';
 maxIter = 500;
 
 for propWeights = 0
-for EtotWeight = [1e7 1 5 10 20 0.1 0.5 30 0.25 0.75]
+for EtotWeight = 1 %$[1e7 1 5 10 20 0.1 0.5 30 0.25 0.75]
 topDir = [rootDir,'w',num2str(EtotWeight)];
 if (propWeights)
    topDir = [topDir,'p/'];
@@ -94,7 +94,7 @@ for ipol = 1:length(pname)
       ftest = fact.makeFitme(dsets{idata,2});
       
       % Add weighting
-      f1.setWeights(EtotWeight,propWeights);
+      %f1.setWeights(EtotWeight,propWeights);
       
       fprintf(summaryFile,'train and test starting error \n');
       f1.printEDetails(summaryFile);
