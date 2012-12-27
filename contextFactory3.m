@@ -1,7 +1,8 @@
 clear classes;
 close all;
-rootDir = 'C:/matdl/yaron/2010a/';
-maxIter = 500;
+rootDir = 'C:/matdl/yaron/dec12e/';
+maxIter = 10000;
+epsTest = 0.01;
 
 for propWeights = 0
 for EtotWeight = 1 %$[1e7 1 5 10 20 0.1 0.5 30 0.25 0.75]
@@ -35,7 +36,7 @@ fname{end+1} = 'ethylenerDat'; dname1{end+1}=fname{end};
 gTrain{end+1}=1:10;  eTrain{end+1}=1:2:20;
 gTest{end+1} =11:20; eTest{end+1} =2:2:20; pnn(end+1) = 793;
 
-toFit = {[ethaner]};%{[ch4r], [ethaner], [ch4r,ethaner]};
+toFit = {ch4r};%{[ethaner]};%{[ch4r], [ethaner], [ch4r,ethaner]};
 
 dsets = cell(1,2);
 dname = cell(1,1);
@@ -62,8 +63,8 @@ for ifit = 1:length(toFit)
    dsets{ic,2} = mtest;
 end
 
-% CREATE POLICIES
-pname = {'hybridslater1'};
+% set policies
+pname = {'hybridslater1'}; %{'h2fits'};
 %
 for ipol = 1:length(pname)
    for idata = 1:size(dsets,1)
@@ -92,6 +93,8 @@ for ipol = 1:length(pname)
       fact.makeMixInfo(dsets{idata,1}.atomTypes);
       f1    = fact.makeFitme(dsets{idata,1});
       ftest = fact.makeFitme(dsets{idata,2});
+      f1.silent = 1;
+      ftest.silent = 1;
       
       % Add weighting
       %f1.setWeights(EtotWeight,propWeights);
@@ -103,15 +106,18 @@ for ipol = 1:length(pname)
       %
       startName = [topDir,filePre,'/start.mat'];
       toSave = {'fact','f1','ftest','currentTrainErr', ...
-         'currentPar','currentErr'};
+         'currentPar','currentErr','monitor'};
       if (exist(startName,'file'))
          fprintf(1,'LOADING START \n');
          fprintf(summaryFile,'LOADING START \n');
          load(startName,toSave{:});
          loaded = 1;
       else
-         [currentTrainErr,currentPar,currentErr] = ...
-            contextFit3(f1,ftest,maxIter);
+         [currentTrainErr,currentPar,currentErr,monitor] = ...
+            contextFit4(f1,ftest,maxIter,epsTest);
+         fprintf(1,'Stop criteria: %s \n',monitor.stoppingCriterion);
+%          fprintf(summaryFile,'Stop criteria: %s \n', ...
+%             monitor.stoppingCriterion);
          save(startName,toSave{:});
          loaded = 0;
       end
@@ -145,8 +151,11 @@ for ipol = 1:length(pname)
                   end
                end
             end
-            [currentTrainErr,currentPar,currentErr] = ...
-               contextFit3(f1,ftest,maxIter);
+            [currentTrainErr,currentPar,currentErr,monitor] = ...
+               contextFit4(f1,ftest,maxIter,epsTest);
+            fprintf(1,'Stop criteria: %s \n',monitor.stoppingCriterion);
+%             fprintf(summaryFile,'Stop criteria: %s \n', ...
+%                monitor.stoppingCriterion);
             save(allName,toSave{:});
          end
          str2 = 'context error %12.5f test %12.5f \n';
@@ -162,15 +171,6 @@ for ipol = 1:length(pname)
       runTime = toc(ticID)
       diary off;
       fclose(summaryFile);
-      %    %%
-      %    for i=1:length(errors)
-      %       mix = f1.mixers{mixes{i}.imix};
-      %       ipar = mixes{i}.ipar;
-      %       etemp = errors(i);
-      %       disp([mix.desc,' context ',num2str(ipar),' err ', ...
-      %          num2str(etemp)]);
-      %       disp(['pars ',num2str(pars{i})]);
-      %    end
       
    end
 end

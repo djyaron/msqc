@@ -704,6 +704,8 @@ classdef Model3 < handle
          for iatom = 1:obj.natom
             for jatom = 1:obj.natom
                if (iatom ~= jatom)
+                  bondExists = obj.isBonded(iatom,jatom);
+                  if (bondExists == mix.bonded)
                   if ( ((obj.Z(iatom) == Z1) && (obj.Z(jatom) == Z2)) || ...
                         ((obj.Z(iatom) == Z2) && (obj.Z(jatom) == Z1)) )
                      mixerAdded = 1;
@@ -715,6 +717,7 @@ classdef Model3 < handle
                      mod.llist = jlist;
                      mod.mixer = mix;
                      obj.H2mods{1,end+1} = mod;
+                  end
                   end
                end
             end
