@@ -36,7 +36,7 @@ fname{end+1} = 'ethylenerDat'; dname1{end+1}=fname{end};
 gTrain{end+1}=1:10;  eTrain{end+1}=1:2:20;
 gTest{end+1} =11:20; eTest{end+1} =2:2:20; pnn(end+1) = 793;
 
-toFit = {ch4r};%{[ethaner]};%{[ch4r], [ethaner], [ch4r,ethaner]};
+toFit = {ethaner};%{[ethaner]};%{[ch4r], [ethaner], [ch4r,ethaner]};
 
 dsets = cell(1,2);
 dname = cell(1,1);
@@ -74,7 +74,7 @@ for ipol = 1:length(pname)
          status = mkdir(dataDir);
       end
       copyfile('c:/dave/apoly/msqc/contextFactory2.m',...
-          [dataDir,'/contextFactory2.m']);
+          [dataDir,'/contextFactory3.m']);
       summaryName = [topDir,filePre,'/summary.txt'];
       % if (exist(summaryName,'file'))
       %    delete(summaryName);
