@@ -47,10 +47,10 @@ if (propToSD)
    res.E2 = 1.0/std(e2);
    res.Etot = 1.0/std(etot) * etotWeight;
 else
-   res.KE = 1.0;
-   res.EN = ones(20,1);
-   res.E2 = 1.0;
-   res.Etot = etotWeight;
+   res.KE = 1.0/etotWeight;
+   res.EN = ones(20,1)/etotWeight;
+   res.E2 = 1.0/etotWeight;
+   res.Etot = 1.0;
 end
 
 obj.operWeights = res;
