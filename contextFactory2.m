@@ -92,7 +92,7 @@ for ipol = 1:length(pname)
       fact.makeMixInfo(dsets{idata,1}.atomTypes);
       f1    = fact.makeFitme(dsets{idata,1});
       ftest = fact.makeFitme(dsets{idata,2});
-      
+      input junk;
       % Add weighting
       %f1.setWeights(EtotWeight,propWeights);
       

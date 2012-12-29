@@ -1,4 +1,4 @@
-function [err,pt, testErr] = contextFit3(f1,ftest,maxIter)
+function [err,pt, testErr, exitflag] = contextFit3(f1,ftest,maxIter)
 
 if (nargin < 5)
    maxIter = 500;
