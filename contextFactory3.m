@@ -1,12 +1,15 @@
 clear classes;
 close all;
-rootDir = 'C:/matdl/yaron/dec12e/';
-maxIter = 10000;
-epsTest = 0.01;
+rootDir = 'C:/matdl/yaron/dec12e/iter100/';
+maxIter = 10;
+updateContext = 1;
 
 for propWeights = 0
-for EtotWeight = [1e7 5 10 20 0.1 0.5 30 0.25 0.75]
-topDir = [rootDir,'w',num2str(EtotWeight)];
+for EtotWeight = 1; %[1e7 1 5 10 20 0.1 0.5 30 0.25 0.75]
+if (updateContext)
+   topDir = [rootDir,'c1/'];
+end
+topDir = [topDir,'w',num2str(EtotWeight)];
 if (propWeights)
    topDir = [topDir,'p/'];
 else
@@ -97,9 +100,11 @@ for ipol = 1:length(pname)
       ftest.silent = 1;
       
       % Add weighting
-      f1.setWeights(EtotWeight,propWeights);
-      ftest.setWeights(EtotWeight,propWeights);
-      
+      if ((propWeights == 0) && (EtotWeight == 1))
+      else
+         f1.setWeights(EtotWeight,propWeights);
+         ftest.setWeights(EtotWeight,propWeights);
+      end
       fprintf(summaryFile,'train and test starting error \n');
       f1.printEDetails(summaryFile);
       ftest.printEDetails(summaryFile);
@@ -115,7 +120,7 @@ for ipol = 1:length(pname)
          loaded = 1;
       else
          [currentTrainErr,currentPar,currentErr,monitor] = ...
-            contextFit4(f1,ftest,maxIter,epsTest);
+            contextFit4(f1,ftest,maxIter,epsTest,updateContext);
          fprintf(1,'Stop criteria: %s \n',monitor.stoppingCriterion);
 %          fprintf(summaryFile,'Stop criteria: %s \n', ...
 %             monitor.stoppingCriterion);
@@ -153,7 +158,7 @@ for ipol = 1:length(pname)
                end
             end
             [currentTrainErr,currentPar,currentErr,monitor] = ...
-               contextFit4(f1,ftest,maxIter,epsTest);
+               contextFit4(f1,ftest,maxIter,epsTest,updateContext);
             fprintf(1,'Stop criteria: %s \n',monitor.stoppingCriterion);
 %             fprintf(summaryFile,'Stop criteria: %s \n', ...
 %                monitor.stoppingCriterion);

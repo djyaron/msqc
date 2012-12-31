@@ -1,5 +1,6 @@
 classdef OptMonitor < handle
    properties
+      ftrain    % fitme for training, need pointer to update context
       ftest     % fitme object for monitoring convergence
       param     % cell array of params
       values    % cell array of optimValues
@@ -9,9 +10,9 @@ classdef OptMonitor < handle
       lsqOutput % all outputs returned by lsqnonline
       maxIter % 
       ediff   %
-      %xdiff   %
       stoppingCriterion % string holding information on termination
       plotNum % if nonzero, plots to this figure number
+      updateContext % update context after each successful iteration
    end
    methods (Static)
       function res = tokcal(errs)
@@ -19,26 +20,24 @@ classdef OptMonitor < handle
       end
    end
    methods
-      function res = OptMonitor(ftest,maxIter, ediff, xdiff)
-         if (nargin < 2)
+      function res = OptMonitor(ftrain,ftest,maxIter, ediff)
+         if (nargin < 3)
             maxIter = 50;
          end
-         if (nargin < 3)
+         if (nargin < 4)
             ediff = 0.01;
          end
-         if (nargin < 4)
-            xdiff = 1e-3;
-         end
+         res.ftrain = ftrain;
+         res.ftest = ftest;
          res.param = cell(0,0);
          res.values =  cell(0,0);
          res.state = cell(0,0);
          res.etest = cell(0,0);
          res.maxIter = maxIter;
          res.ediff   = ediff;
-         %res.xdiff   = xdiff;
          res.accepted = [];
-         res.ftest = ftest;
          res.plotNum = 0;
+         res.updateContext = 0;
       end
       function stop = toCall(obj,x,optimValues,state,varargin)
          %disp('inside OptMontor.toCall');
@@ -75,6 +74,10 @@ classdef OptMonitor < handle
                      plot(optimValues.iteration, ...
                         obj.tokcal(obj.etest{end}),'ro');
                   end
+               end
+               if (obj.updateContext)
+                  obj.ftrain.updateContext;
+                  obj.ftest.updateContext;
                end
             end
             stop = obj.shouldWeStop;

@@ -139,5 +139,74 @@ for id = 1:size(errs,2) % data set
    xlabel('weight of Etotal');
    legend(toplot);
 end
+%% Do major plots
 
+dataroot = ...
+   'C:\Users\yaron\Documents\My Dropbox\MSQCdata\dec12e\w1\hybridslater1\ch4rDat';
+%dataroot = 'C:\matdl\yaron\dec12e\c1\w1\h2fits\h2Dat';
+lfiles = {'start.mat', 'all-1.mat'};%, 'all-2.mat', 'all-3.mat'};
 
+load([dataroot,'\start.mat']);
+ms = cell(0,0);
+ms{end+1} = MSet.fromFitme(f1);
+ms{end+1} = MSet.fromFitme(ftest);
+
+fitmes = cell(0,0);
+fitmes{end+1} = f1;
+fitmes{end+1} = ftest;
+% errs{dataset, iter, err/sd}
+errs = cell(0,0,0);
+iterSig = [];
+for iset = 1:length(ms)
+   iter = 0;
+   for i = 1:length(lfiles)
+      load([dataroot,'\',lfiles{i}]);
+      fm1 = fact.makeFitme(ms{iset},fitmes{iset});
+      ngood = length(monitor.accepted);
+      iterSig = [iterSig iter+1];
+      for igood = 1:ngood
+         iter = iter + 1;
+         ipar = monitor.accepted(igood);
+         pars = monitor.param{ipar};
+         disp([lfiles{i},' infile ',num2str(ipar),' total ',...
+            num2str(iter)]);
+         fm1.setPars(pars);
+         [a b] = fm1.printEDetails;
+         errs{iset,iter,1} = a;
+         errs{iset,iter,2} = b;
+      end
+   end
+end
+save(['bigplot.mat'],'errs'); %,'emeth','smeth');
+%%
+clear classes
+close all
+load(['bigplot.mat']); %,'emeth','smeth');
+toplot = {'ke','H','e2','etot'};%{'ke','H','C','e2','etot'};
+psym = {'co','bo','k^','ro'};%{'co','bo','b^','k^','ro'};
+ltype = {'-','--'};
+
+% errs{dataset, iter, err/sd}
+for idata = 1:size(errs,1) % data set
+   for itype = 1:length(toplot) % data type
+      for il = 1:2 % err or standard deviation
+         niter = size(errs,2);
+         x = zeros(niter,1);
+         y = zeros(niter,1);
+         for iter = 1:niter
+            er = errs{idata,iter,il};
+            %input junk
+            x(iter) = iter;
+            y(iter) = getfield(er{1},toplot{itype});
+         end
+         figure(70+idata);
+         subplot(2,1,il)
+         hold on;
+         plot(x,y,[psym{itype},ltype{il}]);
+      end
+   end
+   figure(70+idata);
+   ylabel('average error');
+   xlabel('iteration');
+   legend(toplot);
+end
