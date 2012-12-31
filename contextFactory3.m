@@ -5,7 +5,7 @@ maxIter = 10000;
 epsTest = 0.01;
 
 for propWeights = 0
-for EtotWeight = [1e7 1 5 10 20 0.1 0.5 30 0.25 0.75]
+for EtotWeight = [1e7 5 10 20 0.1 0.5 30 0.25 0.75]
 topDir = [rootDir,'w',num2str(EtotWeight)];
 if (propWeights)
    topDir = [topDir,'p/'];
