@@ -1,3 +1,4 @@
+% Script when working on charge update
 clear classes;
 load('C:\Users\yaron\Documents\My Dropbox\MSQCdata\dec12e\w1\hybridslater1\ch4rDat\start.mat')
 load('datasets/ch4rDat.mat');
@@ -102,3 +103,37 @@ figure(10)
 plot(qindH1,qindH2,'r.');
 figure(11)
 plot(qindC1,qindC2,'b.');
+%% No change occuring on later iterations. What is the problem?
+%clear classes
+load('C:\matdl\yaron\dec12e\c1\w1\h2fits\h2Dat\all-1.mat');
+f1.setPars(zeros(size(f1.getPars)));
+e1 = f1.err(zeros(size(f1.getPars)));
+f1.updateContext;
+%%
+imod = 1;
+ienv = 1;
+m1 = f1.models{imod};
+q0 = m1.charges(:,1);
+q1 = m1.charges(:,ienv+1);
+bo = m1.bondOrders(:,:,ienv+1);
+fq0 = m1.frag.mcharge(0);
+fq1 = m1.frag.mcharge(ienv);
+fbo = m1.frag.calcBO(ienv+1); 
+
+%%
+clear all
+load('chdebug.mat');
+cold = fold.cset.context{1,11};
+cnew = fnew.cset.context{1,11};
+bo1 = [];
+bo2 = [];
+for iatom = 2:5
+   for ienv = 1:10
+      bo1 = [bo1 squeeze(cold(3,1,iatom,ienv))'];
+      bo2 = [bo2 squeeze(cnew(3,1,iatom,ienv))'];
+   end
+end
+plot(bo1,bo2,'r.');
+
+
+
