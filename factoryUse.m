@@ -142,42 +142,62 @@ end
 %% Do major plots
 
 dataroot = ...
-   'C:\Users\yaron\Documents\My Dropbox\MSQCdata\dec12e\w1\hybridslater1\ch4rDat';
+   'C:\Users\yaron\Dropbox\MSQCdata\dec12e\w1\hybridslater1\ethanerDat';
 %dataroot = 'C:\matdl\yaron\dec12e\c1\w1\h2fits\h2Dat';
-lfiles = {'start.mat', 'all-1.mat'};%, 'all-2.mat', 'all-3.mat'};
+lfiles = {'start.mat', 'all-1.mat', 'all-2.mat', 'all-3.mat'};
 
 load([dataroot,'\start.mat']);
 ms = cell(0,0);
 ms{end+1} = MSet.fromFitme(f1);
 ms{end+1} = MSet.fromFitme(ftest);
+mtemp = MSet;
+mtemp.addData('datasets/ch4rDat.mat',1:10,1:2:20,1,791);
+ms{end+1} = mtemp;
+mtemp = MSet;
+mtemp.addData('datasets/butaner-orig.mat',1:10,1:2:20,1,791);
+ms{end+1} = mtemp;
+mtemp = MSet;
+mtemp.addData('datasets/tbutaner-orig.mat',1:10,1:2:20,1,791);
+ms{end+1} = mtemp;
 
 fitmes = cell(0,0);
 fitmes{end+1} = f1;
 fitmes{end+1} = ftest;
+fitmes{end+1} = [];
+fitmes{end+1} = [];
+fitmes{end+1} = [];
 % errs{dataset, iter, err/sd}
 errs = cell(0,0,0);
 iterSig = [];
-for iset = 1:length(ms)
-   iter = 0;
-   for i = 1:length(lfiles)
-      load([dataroot,'\',lfiles{i}]);
-      fm1 = fact.makeFitme(ms{iset},fitmes{iset});
-      ngood = length(monitor.accepted);
-      iterSig = [iterSig iter+1];
-      for igood = 1:ngood
-         iter = iter + 1;
-         ipar = monitor.accepted(igood);
-         pars = monitor.param{ipar};
-         disp([lfiles{i},' infile ',num2str(ipar),' total ',...
-            num2str(iter)]);
-         fm1.setPars(pars);
-         [a b] = fm1.printEDetails;
-         errs{iset,iter,1} = a;
-         errs{iset,iter,2} = b;
-      end
-   end
+iter = 0;
+for i = 1:length(lfiles)
+  load([dataroot,'\',lfiles{i}]);
+  ngood = length(monitor.accepted);
+  iterSig = [iterSig iter+1];
+  for igood = 1:ngood
+     iter = iter + 1;
+     ipar = monitor.accepted(igood);
+     pars = monitor.param{ipar};
+     disp([lfiles{i},' infile ',num2str(ipar),' total ',...
+        num2str(iter)]);
+     for iset = 1:length(ms)
+        if (iset == 1)
+           fm1=f1;
+           fm1.setPars(pars);
+        else
+           if (isempty(fitmes{iset}))
+              fm1=fact.makeFitme(ms{iset});
+           else
+              fm1 = fact.makeFitme(ms{iset},fitmes{iset});
+           end
+        end
+        [a b] = fm1.printEDetails;
+        errs{iset,iter,1} = a;
+        errs{iset,iter,2} = b;
+     end
+  end
 end
-save(['bigplot.mat'],'errs'); %,'emeth','smeth');
+save([dataroot, '\bigplot.mat'],'errs'); %,'emeth','smeth');
 %%
 clear classes
 close all
