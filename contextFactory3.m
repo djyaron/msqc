@@ -1,7 +1,8 @@
 clear classes;
 close all;
 rootDir = 'C:/matdl/yaron/dec12e/iter100/';
-maxIter = 10;
+maxIter = 100;
+epsTest = -1;
 updateContext = 1;
 
 for propWeights = 0
