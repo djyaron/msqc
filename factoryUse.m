@@ -78,14 +78,18 @@ end
 %% Do major plots
 
 dataroot = ...
-   'C:\Users\yaron\Dropbox\MSQCdata\dec12e\w1\hybridslater1\ethanerDat';
+   'C:\matdl\yaron\dec12e\iter100\w1\hybridslater1\ethanerDat';
 %dataroot = 'C:\matdl\yaron\dec12e\c1\w1\h2fits\h2Dat';
 lfiles = {'start.mat', 'all-1.mat', 'all-2.mat', 'all-3.mat'};
 
 load([dataroot,'\start.mat']);
 ms = cell(0,0);
-ms{end+1} = MSet.fromFitme(f1);
-ms{end+1} = MSet.fromFitme(ftest);
+mtemp = MSet;
+mtemp.addData('datasets/ethanerDat.mat',1:10,1:2:20,1,791);
+ms{end+1} = mtemp;
+mtemp = MSet;
+mtemp.addData('datasets/ethanerDat.mat',11:20,2:2:20,1,791);
+ms{end+1} = mtemp;
 mtemp = MSet;
 mtemp.addData('datasets/ch4rDat.mat',1:10,1:2:20,1,791);
 ms{end+1} = mtemp;
@@ -96,12 +100,6 @@ mtemp = MSet;
 mtemp.addData('datasets/tbutaner-orig.mat',1:10,1:2:20,1,791);
 ms{end+1} = mtemp;
 
-fitmes = cell(0,0);
-fitmes{end+1} = f1;
-fitmes{end+1} = ftest;
-fitmes{end+1} = [];
-fitmes{end+1} = [];
-fitmes{end+1} = [];
 % errs{dataset, iter, err/sd}
 errs = cell(0,0,0);
 iterSig = [];
@@ -116,24 +114,17 @@ for i = 1:length(lfiles)
      pars = monitor.param{ipar};
      disp([lfiles{i},' infile ',num2str(ipar),' total ',...
         num2str(iter)]);
+     % Get the parameters into the factory
+     f1.setPars(pars);
      for iset = 1:length(ms)
-        if (iset == 1)
-           fm1=f1;
-           fm1.setPars(pars);
-        else
-           if (isempty(fitmes{iset}))
-              fm1=fact.makeFitme(ms{iset});
-           else
-              fm1 = fact.makeFitme(ms{iset},fitmes{iset});
-           end
-        end
-        [a b] = fm1.printEDetails;
+        fm2=fact.makeFitme(ms{iset});
+        [a b] = fm2.printEDetails;
         errs{iset,iter,1} = a;
         errs{iset,iter,2} = b;
      end
   end
 end
-save([dataroot, '\bigplot.mat'],'errs'); %,'emeth','smeth');
+save([dataroot, '\bigplot.mat'],'errs','iterSig'); %,'emeth','smeth');
 %%
 clear classes
 close all
