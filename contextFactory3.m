@@ -1,12 +1,12 @@
 clear classes;
 close all;
-rootDir = 'C:/matdl/yaron/dec12e/iter100/';
-maxIter = 100;
-epsTest = -1;
-updateContext = 1;
+topDir = 'C:/matdl/yaron/dec12e/';
+maxIter = 10000;
+epsTest = 0.01;
+updateContext = 0;
 
 for propWeights = 0
-for EtotWeight = 1; %[1e7 1 5 10 20 0.1 0.5 30 0.25 0.75]
+for EtotWeight = [0 1e8]; %[1e7 1 5 10 20 0.1 0.5 30 0.25 0.75]
 if (updateContext)
    topDir = [rootDir,'c1/'];
 end
