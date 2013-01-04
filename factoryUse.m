@@ -126,11 +126,11 @@ for i = 1:length(lfiles)
 end
 save([dataroot, '\bigplot.mat'],'errs','iterSig'); %,'emeth','smeth');
 %%
-clear classes
-close all
-dataroot = ...
+%clear classes
+%close all
+%dataroot = ...
    'C:\Users\yaron\Documents\My Dropbox\MSQCdata\dec12e\w1\hybridslater1\ethanerDat';
-load([dataroot, '\bigplot.mat']); %,'emeth','smeth');
+%load([dataroot, '\bigplot.mat']); %,'emeth','smeth');
 toplot = {'ke','H','e2','etot'};%{'ke','H','C','e2','etot'};
 psym = {'co','bo','k^','ro'};%{'co','bo','b^','k^','ro'};
 ltype = {'-','--'};
