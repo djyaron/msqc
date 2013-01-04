@@ -75,81 +75,21 @@ for ifact = 1:nfact
    fprintf(ofile,'\n');
 end
 
-%% Error versus weight
-clear classes
-close all
-% Make model set corresponding to methane
-mch4 = MSet;
-mch4.addData('datasets/ch4rDat.mat',11:20, 2:2:20 ,1,791);
-
-dataroot = 'C:\matdl\yaron\dec12b\hybridslater\ethanerDat\all-3-weight';
-lfiles = dir([dataroot,'/*.mat']);
-for i = 1:length(lfiles)
-   disp(lfiles(i).name);
-   load([dataroot,'/',lfiles(i).name]);
-   w(i) = f1.operWeights.Etot;
-   [a b] = f1.printEDetails;
-   etrain{i} = a{1};
-   strain{i} = b{1};
-   [a b] = ftest.printEDetails;
-   etest{i} = a{1};
-   stest{i} = b{1};
-   fmeth = fact.makeFitme(mch4);
-   [a b] = fmeth.printEDetails;
-   emeth{i} = a{1};
-   smeth{i} = b{1};
-end
-save([dataroot,'weightsum.mat'],'w','etrain','strain','etest', ...
-   'stest','emeth','smeth');
-%% 
-clear all;
-dataroot = 'C:\matdl\yaron\dec12b\hybridslater\ethanerDat\all-3-weight';
-load([dataroot,'weightsum.mat']);
-for iw = 1:length(w)
-   errs{iw,1,1} = etrain{iw};
-   errs{iw,1,2} = strain{iw};
-   errs{iw,2,1} = etest{iw};
-   errs{iw,2,2} = stest{iw};
-   errs{iw,3,1} = emeth{iw};
-   errs{iw,3,2} = smeth{iw};
-end
-
-close all
-toplot = {'ke','H','C','e2','etot'};
-psym = {'co','bo','b^','k^','ro'};
-ltype = {'-','--'};
-[ws,is] = sort(w);
-etrain = cell(length(ws),1);
-for id = 1:size(errs,2) % data set
-   for il = 1:2 % err or standard deviation
-      for it = 1:length(toplot) % data type
-         for i = 1:length(w)
-            x(i) = ws(i);
-            er = errs{is(i),id,il};
-            y(i) = getfield(er,toplot{it});
-         end
-         figure(70+id);
-         subplot(2,1,il)
-         hold on;
-         plot(x,y,[psym{it},ltype{il}]);
-      end
-   end
-   figure(70+id);
-   ylabel('average error');
-   xlabel('weight of Etotal');
-   legend(toplot);
-end
 %% Do major plots
 
 dataroot = ...
-   'C:\Users\yaron\Dropbox\MSQCdata\dec12e\w1\hybridslater1\ethanerDat';
+   'C:\matdl\yaron\dec12e\iter100\w1\hybridslater1\ethanerDat';
 %dataroot = 'C:\matdl\yaron\dec12e\c1\w1\h2fits\h2Dat';
 lfiles = {'start.mat', 'all-1.mat', 'all-2.mat', 'all-3.mat'};
 
 load([dataroot,'\start.mat']);
 ms = cell(0,0);
-ms{end+1} = MSet.fromFitme(f1);
-ms{end+1} = MSet.fromFitme(ftest);
+mtemp = MSet;
+mtemp.addData('datasets/ethanerDat.mat',1:10,1:2:20,1,791);
+ms{end+1} = mtemp;
+mtemp = MSet;
+mtemp.addData('datasets/ethanerDat.mat',11:20,2:2:20,1,791);
+ms{end+1} = mtemp;
 mtemp = MSet;
 mtemp.addData('datasets/ch4rDat.mat',1:10,1:2:20,1,791);
 ms{end+1} = mtemp;
@@ -160,12 +100,6 @@ mtemp = MSet;
 mtemp.addData('datasets/tbutaner-orig.mat',1:10,1:2:20,1,791);
 ms{end+1} = mtemp;
 
-fitmes = cell(0,0);
-fitmes{end+1} = f1;
-fitmes{end+1} = ftest;
-fitmes{end+1} = [];
-fitmes{end+1} = [];
-fitmes{end+1} = [];
 % errs{dataset, iter, err/sd}
 errs = cell(0,0,0);
 iterSig = [];
@@ -180,32 +114,26 @@ for i = 1:length(lfiles)
      pars = monitor.param{ipar};
      disp([lfiles{i},' infile ',num2str(ipar),' total ',...
         num2str(iter)]);
+     % Get the parameters into the factory
+     f1.setPars(pars);
      for iset = 1:length(ms)
-        if (iset == 1)
-           fm1=f1;
-           fm1.setPars(pars);
-        else
-           if (isempty(fitmes{iset}))
-              fm1=fact.makeFitme(ms{iset});
-           else
-              fm1 = fact.makeFitme(ms{iset},fitmes{iset});
-           end
-        end
-        [a b] = fm1.printEDetails;
+        fm2=fact.makeFitme(ms{iset});
+        [a b] = fm2.printEDetails;
         errs{iset,iter,1} = a;
         errs{iset,iter,2} = b;
      end
   end
 end
-save([dataroot, '\bigplot.mat'],'errs'); %,'emeth','smeth');
+save([dataroot, '\bigplot.mat'],'errs','iterSig'); %,'emeth','smeth');
 %%
-clear classes
-close all
-dataroot = ...
+%clear classes
+%close all
+%dataroot = ...
    'C:\Users\yaron\Documents\My Dropbox\MSQCdata\dec12e\w1\hybridslater1\ethanerDat';
 load([dataroot, '\bigplot.mat']); %,'emeth','smeth');
 toplot = {'ke','H','C','e2','etot'};
 psym = {'ko','c^','b^','ks','ro'};
+
 ltype = {'-','--'};
 
 % errs{dataset, iter, err/sd}
@@ -224,16 +152,124 @@ for idata = 1:size(errs,1) % data set
          figure(70+idata);
          subplot(2,1,il)
          hold on;
-         semilogy(x,y,[psym{itype},ltype{il}]);
+         plot(x,y,[psym{itype},ltype{il}]);
+      end
+   end
+   figure(70+idata);
+   subplot(2,1,1);
+   set(gca,'YSCALE','log');
+   set(gca,'YGRID','on');
+   subplot(2,1,2);
+   set(gca,'YSCALE','log');
+   set(gca,'YGRID','on');
+   ylabel('average error');
+   xlabel('iteration');
+   legend(toplot);
+end
+
+%% Error versus weight
+% note that w 40 is actually infinity
+ws = [0 0.1 0.25 0.5 0.75 1 5 10 20 30 1e8];
+ms = cell(0,0);
+mtemp = MSet;
+mtemp.addData('datasets/ethanerDat.mat',1:10,1:2:20,1,791);
+ms{end+1} = mtemp;
+mtemp = MSet;
+mtemp.addData('datasets/ethanerDat.mat',11:20,2:2:20,1,791);
+ms{end+1} = mtemp;
+mtemp = MSet;
+mtemp.addData('datasets/ch4rDat.mat',1:10,1:2:20,1,791);
+ms{end+1} = mtemp;
+mtemp = MSet;
+mtemp.addData('datasets/butaner-orig.mat',1:10,1:2:20,1,791);
+ms{end+1} = mtemp;
+mtemp = MSet;
+mtemp.addData('datasets/tbutaner-orig.mat',1:10,1:2:20,1,791);
+ms{end+1} = mtemp;
+
+fitmes = cell(0,0);
+fitmes{end+1} = f1;
+fitmes{end+1} = ftest;
+fitmes{end+1} = [];
+fitmes{end+1} = [];
+fitmes{end+1} = [];
+% errs{dataset, w, err/sd}
+errs = cell(0,0,0);
+iterSig = [];
+iter = 0;
+iw = 0;
+for wt = ws
+   iw = iw+1;
+   load(['C:\matdl\yaron\dec12e\w',num2str(wt), ...
+      '\hybridslater1\ethanerDat\all-3.mat']);
+   ntest = length(monitor.etest);
+   errTest = zeros(ntest,1);
+   for i = 1:ntest
+      errTest(i) = norm(monitor.etest{i});
+   end
+   [emin,imin] = min(errTest);
+   iterMin = monitor.accepted(imin);
+   pars = monitor.param{iterMin};
+   disp(['wt = ',num2str(wt),' min is ',num2str(imin),' of ', ...
+      num2str(length(errTest))]);
+   % Get the parameters into the factory
+   fm1=f1;
+   fm1.setPars(pars);
+   for iset = 1:length(ms)
+      fm2=fact.makeFitme(ms{iset});
+      if (iset == 2)
+         fm2.setWeights(wt,0);
+         errCheck = fm2.err(pars);
+         disp(['test error should agree: ',...
+            num2str(max(abs(errCheck-monitor.etest{imin})))]);
+         fm2.operWeights = [];
+      end
+      [a b] = fm2.printEDetails;
+      errs{iset,iw,1} = a;
+      errs{iset,iw,2} = b;
+   end
+end
+save(['c:\matdl\yaron\dec12e\wplot.mat'],'ws','errs');
+
+%%
+clear classes;
+load('c:\matdl\yaron\dec12e\wplot.mat');
+close all;
+toplot = {'ke','H','e2','etot'};%{'ke','H','C','e2','etot'};
+psym = {'co','bo','k^','ro'};%{'co','bo','b^','k^','ro'};
+ltype = {'-','--'};
+
+ws(end) = 1000
+% errs{dataset, iter, err/sd}
+for idata = 1:size(errs,1) % data set
+   for itype = 1:length(toplot) % data type
+      for il = 1:2 % err or standard deviation
+         nw = size(errs,2);
+         x = zeros(nw,1);
+         y = zeros(nw,1);
+         ii = 0;
+         for iw = [1 3 2 4:10]
+            ii = ii+1;
+            er = errs{idata,iw,il};
+            %input junk
+            x(ii) = ws(iw);
+            y(ii) = getfield(er{1},toplot{itype});
+         end
+         figure(70+idata);
+         subplot(2,1,il)
+         hold on;
+         plot(x,y,[psym{itype},ltype{il}]);
       end
    end
    figure(70+idata);
    subplot(2,1,1);
    %set(gca,'YSCALE','log');
    set(gca,'YGRID','on');
+   set(gca,'XSCALE','log');
    subplot(2,1,2);
    %set(gca,'YSCALE','log');
    set(gca,'YGRID','on');
+   set(gca,'XSCALE','log');
    ylabel('average error');
    xlabel('iteration');
    legend(toplot);

@@ -7,7 +7,7 @@ classdef OptMonitor < handle
       state     % cell array of states ('init','iteration' etc)
       accepted  % list of accepted iterations
       etest     % cell array of test error on accepted iterations
-      lsqOutput % all outputs returned by lsqnonline
+      lsqOutput % all outputs returned by lsqnonlin
       maxIter % 
       ediff   %
       stoppingCriterion % string holding information on termination
