@@ -204,8 +204,8 @@ close all
 dataroot = ...
    'C:\Users\yaron\Documents\My Dropbox\MSQCdata\dec12e\w1\hybridslater1\ethanerDat';
 load([dataroot, '\bigplot.mat']); %,'emeth','smeth');
-toplot = {'ke','H','e2','etot'};%{'ke','H','C','e2','etot'};
-psym = {'co','bo','k^','ro'};%{'co','bo','b^','k^','ro'};
+toplot = {'ke','H','C','e2','etot'};
+psym = {'ko','c^','b^','ks','ro'};
 ltype = {'-','--'};
 
 % errs{dataset, iter, err/sd}
@@ -229,10 +229,10 @@ for idata = 1:size(errs,1) % data set
    end
    figure(70+idata);
    subplot(2,1,1);
-   set(gca,'YSCALE','log');
+   %set(gca,'YSCALE','log');
    set(gca,'YGRID','on');
    subplot(2,1,2);
-   set(gca,'YSCALE','log');
+   %set(gca,'YSCALE','log');
    set(gca,'YGRID','on');
    ylabel('average error');
    xlabel('iteration');
