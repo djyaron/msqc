@@ -5,13 +5,24 @@ if (nargin < 3)
 end
 
 if (etotWeight > 1e6)
-   res.KE = 0.0;
-   res.EN = zeros(20,1);
-   res.E2 = 0.0;
-   res.Etot = 1.0;
-   obj.operWeights = res;
+   res = [];
+   obj.operWeights = [];
+   obj.includeEN = zeros(1,20);
+   obj.includeKE = 0;
+   obj.includeE2 = 0;
+   obj.includeEtot = 1;
    return
 end
+
+if (etotWeight == 0)
+   res = [];
+   obj.operWeights = [];
+   obj.includeEN = ones(1,20);
+   obj.includeKE = 1;
+   obj.includeE2 = 1;
+   obj.includeEtot = 0;
+   return
+end   
 
 if (propToSD)
    %HLKE    % {1,nmodels}(1,nenv) KE energy

@@ -1,5 +1,8 @@
-function [err,pt, testErr, monitor] = contextFit4(f1,ftest,maxIter,epsTest)
-
+function [err,pt, testErr, monitor] = contextFit4(f1,ftest,...
+   maxIter,epsTest,updateContext)
+if (nargin < 5)
+   updateContext = 0;
+end
 lowLimits = zeros(f1.npar,1);
 highLimits = lowLimits;
 i1 = 1;
@@ -23,8 +26,9 @@ for imix = 1:length(f1.mixers)
    end
 end
 
-monitor = OptMonitor(ftest,maxIter,epsTest);
+monitor = OptMonitor(f1,ftest,maxIter,epsTest);
 monitor.plotNum = 99;
+monitor.updateContext = updateContext;
 start = f1.getPars;
 options = optimset('DiffMinChange',1.0e-4,'TolFun',1.0e-10, ...
    'TolX',3.0e-10,'MaxFunEvals',1e5,'Display','iter',...

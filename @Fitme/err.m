@@ -82,20 +82,35 @@ else
    parfor icalc = 1:ncalc
       imod = calcs{icalc}.imod;
       ienv = calcs{icalc}.ienv;
-      [ke, en, e2, newDensity] = Fitme.modelCalcParallel(imod,ienv,redoDensity,...
+      [ke, en, e2, newDensity, orb, Eorb, Ehf] = ...
+         Fitme.modelCalcParallel(imod,ienv,redoDensity,...
          includeKE,includeEN,includeE2,scratchDir);
       t1 = [];
       t1.ke = ke;
       t1.en = en;
       t1.e2 = e2;
       t1.density = newDensity;
+      t1.orb  = orb;
+      t1.Eorb = Eorb;
+      t1.Ehf  = Ehf;
       calcRes{icalc} = t1;
    end
    
-   for icalc = 1:ncalc
-      imod = calcs{icalc}.imod;
-      ienv = calcs{icalc}.ienv;
-      obj.models{imod}.densitySave{ienv+1} = calcRes{icalc}.density;
+   if (redoDensity)
+      for icalc = 1:ncalc
+         imod = calcs{icalc}.imod;
+         ienv = calcs{icalc}.ienv;
+         obj.models{imod}.densitySave{ienv+1} = calcRes{icalc}.density;
+         if (ienv == 0)
+            obj.models{imod}.orb  = calcRes{icalc}.orb;
+            obj.models{imod}.Eorb = calcRes{icalc}.Eorb;
+            obj.models{imod}.Ehf  = calcRes{icalc}.Ehf;
+         else
+            obj.models{imod}.orbEnv(:,:,ienv) = calcRes{icalc}.orb;
+            obj.models{imod}.EorbEnv(:,ienv)  = calcRes{icalc}.Eorb;
+            obj.models{imod}.EhfEnv(1,ienv)   = calcRes{icalc}.Ehf;
+         end
+      end
    end
 end
 % to allow control-C to stop the job
