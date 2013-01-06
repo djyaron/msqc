@@ -1,8 +1,11 @@
+%% factoryUse
 function factoryUse()
 %diffEnv;
-bigPlotsGenData();
+%bigPlotsGenData();
 %bigPlot1(); % each molecule gets own window
 %bigPlot2(); % ethane train and test in one window
+
+weightPlotGenData();
 
 end
 %% bigPlot2
@@ -247,7 +250,7 @@ for idata = 1:size(errs,1) % data set
    legend(toplot);
 end
 end
-
+%% weightPlotGenData
 function weightPlotGenData()
 ws = [0 0.1 0.25 0.5 0.75 1 5 10 20 30 1e8];
 ms = cell(0,0);
@@ -261,20 +264,18 @@ mtemp = MSet;
 mtemp.addData('datasets/ch4rDat.mat',1:10,1:2:20,1,791);
 ms{end+1} = mtemp;
 mtemp = MSet;
-mtemp.addData('datasets/butaner-orig.mat',1:10,1:2:20,1,791);
+mtemp.addData('datasets/propaner2-orig.mat',1:10,1:2:20,1,791);
 ms{end+1} = mtemp;
 mtemp = MSet;
-mtemp.addData('datasets/tbutaner-orig.mat',1:10,1:2:20,1,791);
+mtemp.addData('datasets/butaner2-orig.mat',1:10,1:2:20,1,791);
+ms{end+1} = mtemp;
+mtemp = MSet;
+mtemp.addData('datasets/tbutaner2-orig.mat',1:10,1:2:20,1,791);
 ms{end+1} = mtemp;
 
-fitmes = cell(0,0);
-fitmes{end+1} = f1;
-fitmes{end+1} = ftest;
-fitmes{end+1} = [];
-fitmes{end+1} = [];
-fitmes{end+1} = [];
+
 % errs{dataset, w, err/sd}
-errs = cell(0,0,0);
+errs = cell(0,0);
 iterSig = [];
 iter = 0;
 iw = 0;
@@ -296,21 +297,22 @@ for wt = ws
    fm1=f1;
    fm1.setPars(pars);
    for iset = 1:length(ms)
-      fm2=fact.makeFitme(ms{iset});
-      if (iset == 2)
-         fm2.setWeights(wt,0);
-         errCheck = fm2.err(pars);
-         disp(['test error should agree: ',...
-            num2str(max(abs(errCheck-monitor.etest{imin})))]);
-         fm2.operWeights = [];
-      end
-      [a b] = fm2.printEDetails;
-      errs{iset,iw,1} = a;
-      errs{iset,iw,2} = b;
+        fm2=fact.makeFitme(ms{iset});
+        saveWeights = fm2.operWeights;
+        fm2.operWeights = [];
+        [eout plotnum etype modelnum envnum] = fm2.err(fm2.getPars);
+        fm2.operWeights = saveWeights;
+        tsave.err = eout;
+        tsave.plotnum = plotnum;
+        tsave.etype = etype;
+        tsave.modelnum = modelnum;
+        tsave.envnum = envnum;
+        errs{iset,iw} = tsave;
    end
 end
 save(['c:\matdl\yaron\dec12e\wplot.mat'],'ws','errs');
 end
+%%weightPlot1
 function weightPlot1()
 load('c:\matdl\yaron\dec12e\wplot.mat');
 close all;
