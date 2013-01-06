@@ -5,7 +5,7 @@ maxIter = 10000;
 epsTest = 0.01;
 
 for propWeights = 0
-for EtotWeight = [1e7 1 5 10 20 0.1 0.5 30 0.25 0.75]
+for EtotWeight = [0.5 30 0.25 0.75] %[1e7 1 5 10 20 0.1 0.5 30 0.25 0.75]
 topDir = [rootDir,'w',num2str(EtotWeight)];
 if (propWeights)
    topDir = [topDir,'p/'];
@@ -36,7 +36,7 @@ fname{end+1} = 'ethylenerDat'; dname1{end+1}=fname{end};
 gTrain{end+1}=1:10;  eTrain{end+1}=1:2:20;
 gTest{end+1} =11:20; eTest{end+1} =2:2:20; pnn(end+1) = 793;
 
-toFit = {ch4r};%{[ethaner]};%{[ch4r], [ethaner], [ch4r,ethaner]};
+toFit = {[ethaner]};%{[ch4r], [ethaner], [ch4r,ethaner]};
 
 dsets = cell(1,2);
 dname = cell(1,1);
