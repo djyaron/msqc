@@ -1,17 +1,18 @@
 function factoryUse()
 %diffEnv;
+bigPlotsGenData();
 %bigPlot1(); % each molecule gets own window
-bigPlot2(); % ethane train and test in one window
+%bigPlot2(); % ethane train and test in one window
 
 end
 %% bigPlot2
 function bigPlot2()
 dataroot = ...
-   'C:\Users\yaron\Documents\My Dropbox\MSQCdata\dec12e\iter100\w1\hybridslater1\ethanerDat';
-load([dataroot, '\bigplot.mat']);
+   'C:\matdl\yaron\dec12e\iter100\w1\hybridslater1\ethanerDat';
+load([dataroot, '\bigplotdeb.mat']);
 ethTrain = 1; ethTest = 2; meth = 3; prop = 4; nbut = 5; tbut = 6;
 nC = [2,2,1,3,4,4];
-nH = [6,6,4,8,10];
+nH = [6,6,4,8,10,10];
 toplot = {'ke','H','C','e2','etot','all'};
 pcol = {'g','c','b','m','r','k'};
 lineType = {'-',':'};
@@ -25,8 +26,12 @@ for idata = [ethTrain ethTest]
          x = zeros(niter,1);
          y = zeros(niter,1);
          for iter = 1:niter
-            er1 = errs{idata,iter,il};
-            er = getTotalError(er1{1},nC(idata),nH(idata));
+            [er1 ersd] = EDetails(errs{idata,iter});
+            if (il == 1)
+               er = getTotalError(er1,nC(idata),nH(idata));
+            else
+               er = getTotalError(er1,nC(idata),nH(idata));
+            end
             x(iter) = iter;
             y(iter) = getfield(er,toplot{itype});
          end
@@ -47,7 +52,7 @@ ylabel('RMS error (kcal/mol)');
 xlabel('iteration');
 legend(toplot);
 end
-
+%% errOut
 function errOut = getTotalError(errIn,nC,nH)
 errOut.ke = errIn.ke;
 errOut.H = nH * errIn.H;
@@ -56,7 +61,7 @@ errOut.e2 = errIn.e2;
 errOut.etot = errIn.etot;
 errOut.all = errOut.ke + errOut.H + errOut.C + errOut.e2 + errOut.etot;
 end
-
+%% diffEnv
 function diffEnv()
 %clear classes;
 %close all;
@@ -134,8 +139,8 @@ for ifact = 1:nfact
 end
 
 end
-
-function BigPlotsGenData()
+%% bigPlotsGenData
+function bigPlotsGenData()
 dataroot = ...
    'C:\matdl\yaron\dec12e\iter100\w1\hybridslater1\ethanerDat';
 %dataroot = 'C:\matdl\yaron\dec12e\c1\w1\h2fits\h2Dat';
@@ -153,10 +158,13 @@ mtemp = MSet;
 mtemp.addData('datasets/ch4rDat.mat',1:10,1:2:20,1,791);
 ms{end+1} = mtemp;
 mtemp = MSet;
-mtemp.addData('datasets/butaner-orig.mat',1:10,1:2:20,1,791);
+mtemp.addData('datasets/propaner2-orig.mat',1:10,1:2:20,1,791);
 ms{end+1} = mtemp;
 mtemp = MSet;
-mtemp.addData('datasets/tbutaner-orig.mat',1:10,1:2:20,1,791);
+mtemp.addData('datasets/butaner2-orig.mat',1:10,1:2:20,1,791);
+ms{end+1} = mtemp;
+mtemp = MSet;
+mtemp.addData('datasets/tbutaner2-orig.mat',1:10,1:2:20,1,791);
 ms{end+1} = mtemp;
 
 % errs{dataset, iter}
@@ -177,11 +185,11 @@ for i = 1:length(lfiles)
      f1.setPars(pars);
      for iset = 1:length(ms)
         fm2=fact.makeFitme(ms{iset});
-        saveWeights = obj.operWeights;
+        saveWeights = fm2.operWeights;
         obj.operWeights = [];
-        [res plotnum etype modelnum envnum] = fm2.err(fm2.getPars);
-        obj.operWeights = saveWeights;
-        tsave.err = res;
+        [eout plotnum etype modelnum envnum] = fm2.err(fm2.getPars);
+        fm2.operWeights = saveWeights;
+        tsave.err = eout;
         tsave.plotnum = plotnum;
         tsave.etype = etype;
         tsave.modelnum = modelnum;
@@ -190,14 +198,15 @@ for i = 1:length(lfiles)
      end
   end
 end
-save([dataroot, '\bigplot2.mat'],'errs','iterSig'); %,'emeth','smeth');
+save([dataroot, '\bigplot3.mat'],'errs','iterSig'); %,'emeth','smeth');
+disp('done');
 end
 %% bigPlot1
 function bigPlot1()
 % each molecule gets its own window
 dataroot = ...
-   'C:\Users\yaron\Documents\My Dropbox\MSQCdata\dec12e\iter100\w1\hybridslater1\ethanerDat';
-load([dataroot, '\bigplot.mat']); %,'emeth','smeth');
+   'C:\matdl\yaron\dec12e\iter100\w1\hybridslater1\ethanerDat';
+load([dataroot, '\bigplotdeb.mat']); %,'emeth','smeth');
 toplot = {'ke','H','C','e2','etot'};
 psym = {'ko','c^','b^','ks','ro'};
 
@@ -211,10 +220,14 @@ for idata = 1:size(errs,1) % data set
          x = zeros(niter,1);
          y = zeros(niter,1);
          for iter = 1:niter
-            er = errs{idata,iter,il};
+            [er ersd] = EDetails(errs{idata,iter});
             %input junk
             x(iter) = iter;
-            y(iter) = getfield(er{1},toplot{itype});
+            if (il == 1)
+               y(iter) = getfield(er,toplot{itype});
+            else
+               y(iter) = getfield(ersd,toplot{itype});
+            end
          end
          figure(70+idata);
          subplot(2,1,il)
@@ -344,12 +357,12 @@ end
 end
 
 %% EDetails
-function [res resSD] = EDetails(obj, errIn, ofile)
+function [res resSD] = EDetails(errIn, ofile)
 if (nargin < 2)
    ofile = 1;
 end
 err = errIn.err;
-etype = errIn.etype
+etype = errIn.etype;
 
 err =err*627.509;
 eke = err(etype==1);
