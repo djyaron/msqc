@@ -1,5 +1,65 @@
-clear classes;
-close all;
+function factoryUse()
+%diffEnv;
+%bigPlot1(); % each molecule gets own window
+bigPlot2(); % ethane train and test in one window
+
+end
+%% bigPlot2
+function bigPlot2()
+dataroot = ...
+   'C:\Users\yaron\Documents\My Dropbox\MSQCdata\dec12e\iter100\w1\hybridslater1\ethanerDat';
+load([dataroot, '\bigplot.mat']);
+ethTrain = 1; ethTest = 2; meth = 3; prop = 4; nbut = 5; tbut = 6;
+nC = [2,2,1,3,4,4];
+nH = [6,6,4,8,10];
+toplot = {'ke','H','C','e2','etot','all'};
+pcol = {'g','c','b','m','r','k'};
+lineType = {'-',':'};
+% errs{dataset, iter, err/sd}
+figure(70)
+clf
+for idata = [ethTrain ethTest]
+   for itype = 1:length(toplot) % data type
+      for il = 1 % err or standard deviation
+         niter = size(errs,2);
+         x = zeros(niter,1);
+         y = zeros(niter,1);
+         for iter = 1:niter
+            er1 = errs{idata,iter,il};
+            er = getTotalError(er1{1},nC(idata),nH(idata));
+            x(iter) = iter;
+            y(iter) = getfield(er,toplot{itype});
+         end
+         hold on;
+         plot(x,y,[pcol{itype},lineType{idata}]);
+      end
+   end
+end
+set(gca,'YSCALE','log');
+set(gca,'YTick',[2 4 6 8 10 20 40 60 80 100 200 400 600 800]);
+for isig = 2:length(iterSig)
+   xL = iterSig(isig);
+   yL = get(gca,'YLim');
+   line([xL xL],yL,'color','k');
+end
+%set(gca,'YGRID','on');
+ylabel('RMS error (kcal/mol)');
+xlabel('iteration');
+legend(toplot);
+end
+
+function errOut = getTotalError(errIn,nC,nH)
+errOut.ke = errIn.ke;
+errOut.H = nH * errIn.H;
+errOut.C = nC * errIn.C;
+errOut.e2 = errIn.e2;
+errOut.etot = errIn.etot;
+errOut.all = errOut.ke + errOut.H + errOut.C + errOut.e2 + errOut.etot;
+end
+
+function diffEnv()
+%clear classes;
+%close all;
 
 fct = cell(0,0);
 ms = cell(0,0);
@@ -31,7 +91,7 @@ for iext = 1:length(dataExt)
 end
 fname = {'orig','1c','lin','dip'};
 
-%%
+
 nfact = length(fct);
 ndata = length(fct);
 esum = zeros(nfact,ndata);
@@ -60,8 +120,6 @@ for ifact = 1:nfact
       
    end
 end
-%%
-ofile = 1;
 for idata = 1:nfact
    fprintf(ofile,'\t%s ',fname{idata});
 end
@@ -75,8 +133,9 @@ for ifact = 1:nfact
    fprintf(ofile,'\n');
 end
 
-%% Do major plots
+end
 
+function BigPlotsGenData()
 dataroot = ...
    'C:\matdl\yaron\dec12e\iter100\w1\hybridslater1\ethanerDat';
 %dataroot = 'C:\matdl\yaron\dec12e\c1\w1\h2fits\h2Dat';
@@ -125,11 +184,11 @@ for i = 1:length(lfiles)
   end
 end
 save([dataroot, '\bigplot.mat'],'errs','iterSig'); %,'emeth','smeth');
-%%
-%clear classes
-%close all
-%dataroot = ...
-   'C:\Users\yaron\Documents\My Dropbox\MSQCdata\dec12e\w1\hybridslater1\ethanerDat';
+end
+function bigPlot1()
+% each molecule gets its own window
+dataroot = ...
+   'C:\Users\yaron\Documents\My Dropbox\MSQCdata\dec12e\iter100\w1\hybridslater1\ethanerDat';
 load([dataroot, '\bigplot.mat']); %,'emeth','smeth');
 toplot = {'ke','H','C','e2','etot'};
 psym = {'ko','c^','b^','ks','ro'};
@@ -166,9 +225,9 @@ for idata = 1:size(errs,1) % data set
    xlabel('iteration');
    legend(toplot);
 end
+end
 
-%% Error versus weight
-% note that w 40 is actually infinity
+function weightPlotGenData()
 ws = [0 0.1 0.25 0.5 0.75 1 5 10 20 30 1e8];
 ms = cell(0,0);
 mtemp = MSet;
@@ -230,9 +289,8 @@ for wt = ws
    end
 end
 save(['c:\matdl\yaron\dec12e\wplot.mat'],'ws','errs');
-
-%%
-clear classes;
+end
+function weightPlot1()
 load('c:\matdl\yaron\dec12e\wplot.mat');
 close all;
 toplot = {'ke','H','e2','etot'};%{'ke','H','C','e2','etot'};
@@ -273,4 +331,6 @@ for idata = 1:size(errs,1) % data set
    ylabel('average error');
    xlabel('iteration');
    legend(toplot);
+end
+
 end
