@@ -159,8 +159,8 @@ mtemp = MSet;
 mtemp.addData('datasets/tbutaner-orig.mat',1:10,1:2:20,1,791);
 ms{end+1} = mtemp;
 
-% errs{dataset, iter, err/sd}
-errs = cell(0,0,0);
+% errs{dataset, iter}
+errs = cell(0,0);
 iterSig = [];
 iter = 0;
 for i = 1:length(lfiles)
@@ -177,14 +177,22 @@ for i = 1:length(lfiles)
      f1.setPars(pars);
      for iset = 1:length(ms)
         fm2=fact.makeFitme(ms{iset});
-        [a b] = fm2.printEDetails;
-        errs{iset,iter,1} = a;
-        errs{iset,iter,2} = b;
+        saveWeights = obj.operWeights;
+        obj.operWeights = [];
+        [res plotnum etype modelnum envnum] = fm2.err(fm2.getPars);
+        obj.operWeights = saveWeights;
+        tsave.err = res;
+        tsave.plotnum = plotnum;
+        tsave.etype = etype;
+        tsave.modelnum = modelnum;
+        tsave.envnum = envnum;
+        errs{iset,iter} = tsave;
      end
   end
 end
-save([dataroot, '\bigplot.mat'],'errs','iterSig'); %,'emeth','smeth');
+save([dataroot, '\bigplot2.mat'],'errs','iterSig'); %,'emeth','smeth');
 end
+%% bigPlot1
 function bigPlot1()
 % each molecule gets its own window
 dataroot = ...
@@ -334,3 +342,36 @@ for idata = 1:size(errs,1) % data set
 end
 
 end
+
+%% EDetails
+function [res resSD] = EDetails(obj, errIn, ofile)
+if (nargin < 2)
+   ofile = 1;
+end
+err = errIn.err;
+etype = errIn.etype
+
+err =err*627.509;
+eke = err(etype==1);
+eH  = err(etype==11);
+eC  = err(etype==16);
+e2  = err(etype==2);
+etot = err(etype==3);
+eNoCost = err(etype>0);
+tot = norm(eNoCost)/sqrt(length(eNoCost));
+ke = norm(eke)/sqrt(length(eke));
+H = norm(eH)/sqrt(length(eH));
+C = norm(eC)/sqrt(length(eC));
+r2 = norm(e2)/sqrt(length(e2));
+rtot = norm(etot)/sqrt(length(etot));
+x.ke = ke; x.H = H; x.C = C; x.e2=r2; x.etot = rtot; x.name = 'all';
+res = x;
+fprintf(ofile,'avg %5.3f ke %5.3f H %5.3f C %5.3f E2 %5.3f tot %5.3f\n',...
+   tot, ke, H, C, r2, rtot);
+fprintf(ofile,'std %5.3f ke %5.3f H %5.3f C %5.3f E2 %5.3f tot %5.3f\n',...
+   std(eNoCost), std(eke), std(eH), std(eC), std(e2), std(etot));
+x2.ke = std(eke); x2.H = std(eH); x2.C = std(eC); 
+x2.e2=std(e2); x2.etot = std(etot); x2.name = 'all';
+resSD = x2;
+end
+
