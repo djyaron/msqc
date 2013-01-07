@@ -1,7 +1,7 @@
 function factoryUse()
 %diffEnv;
-bigPlotsGenData();
-%bigPlot1(); % each molecule gets own window
+%bigPlotsGenData();
+bigPlot1(); % each molecule gets own window
 %bigPlot2(); % ethane train and test in one window
 
 end
@@ -206,7 +206,7 @@ function bigPlot1()
 % each molecule gets its own window
 dataroot = ...
    'C:\matdl\yaron\dec12e\iter100\w1\hybridslater1\ethanerDat';
-load([dataroot, '\bigplotdeb.mat']); %,'emeth','smeth');
+load([dataroot, '\bigplot3.mat']); %,'emeth','smeth');
 toplot = {'ke','H','C','e2','etot'};
 psym = {'ko','c^','b^','ks','ro'};
 
