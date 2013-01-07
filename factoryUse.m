@@ -455,18 +455,18 @@ ms{end+1} = mtemp;
 mtemp = MSet;
 mtemp.addData('datasets/ethanerDat.mat',11:20,2:2:20,1,791);
 ms{end+1} = mtemp;
-% mtemp = MSet;
-% mtemp.addData('datasets/ch4rDat.mat',1:10,1:2:20,1,791);
-% ms{end+1} = mtemp;
-% mtemp = MSet;
-% mtemp.addData('datasets/propaner2-orig.mat',1:10,1:2:20,1,791);
-% ms{end+1} = mtemp;
-% mtemp = MSet;
-% mtemp.addData('datasets/butaner2-orig.mat',1:10,1:2:20,1,791);
-% ms{end+1} = mtemp;
-% mtemp = MSet;
-% mtemp.addData('datasets/tbutaner2-orig.mat',1:10,1:2:20,1,791);
-% ms{end+1} = mtemp;
+mtemp = MSet;
+mtemp.addData('datasets/ch4rDat.mat',1:10,1:2:20,1,791);
+ms{end+1} = mtemp;
+mtemp = MSet;
+mtemp.addData('datasets/propaner2-orig.mat',1:10,1:2:20,1,791);
+ms{end+1} = mtemp;
+mtemp = MSet;
+mtemp.addData('datasets/butaner2-orig.mat',1:10,1:2:20,1,791);
+ms{end+1} = mtemp;
+mtemp = MSet;
+mtemp.addData('datasets/tbutaner2-orig.mat',1:10,1:2:20,1,791);
+ms{end+1} = mtemp;
 
 
 % errs{dataset, ifile}
@@ -476,7 +476,7 @@ iter = 0;
 iw = 0;
 files = {'start.mat' 'start.mat' 'all-3.mat'}; 
 for ifile = 1:3
-   load(['C:\Users\yaron\Documents\My Dropbox\MSQCdata\dec12e\w',num2str(wt), ...
+   load(['C:\Users\yaron\Dropbox\MSQCdata\dec12e\w',num2str(wt), ...
       '\hybridslater1\ethanerDat\',files{ifile}]);
    ntest = length(monitor.etest);
    errTest = zeros(ntest,1);
