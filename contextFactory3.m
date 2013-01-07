@@ -6,6 +6,7 @@ epsTest = -1;
 updateContext = 0;
 
 for propWeights = 0
+
 for EtotWeight = 1; %[1e7 1 5 10 20 0.1 0.5 30 0.25 0.75]
 if (updateContext)
    topDir = [rootDir,'c1/'];
