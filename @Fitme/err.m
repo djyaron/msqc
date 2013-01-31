@@ -7,6 +7,11 @@ end
 if (~obj.silent)
    disp(['Fitme.err called with par = ',num2str(par)]);
 end
+
+if (~isempty(obj.cset))
+   obj.cset.saveIndices;
+end
+
 obj.setPars(par);
 if (~obj.parallel)
    dpar = obj.updateDensity();
@@ -40,7 +45,7 @@ else
    % Write out matlab files that hold each of the models
    maxEnv = 0;
    for imod = 1:obj.nmodels
-      fileName = ['fitmeMod',num2str(imod),'.mat'];
+      fileName = [obj.scratchDir,'fitmeMod',num2str(imod),'.mat'];
       mod = obj.models{imod};
       save(fileName,'mod');
       maxEnv = max([maxEnv, length(obj.envs{1,imod})]);
@@ -62,27 +67,50 @@ else
    % Do the calcs and save results
    ncalc = length(calcs);
    calcRes = cell(ncalc,1);
-   includeKE = obj.includeKE;
-   includeEN = obj.includeEN;
-   includeE2 = obj.includeE2;
+   % if Etot is fit, need all operators
+   if (~obj.includeEtot)
+      includeKE = obj.includeKE;
+      includeEN = obj.includeEN;
+      includeE2 = obj.includeE2;
+   else
+      includeKE = 1;
+      includeEN = ones(1,20);
+      includeE2 = 1;
+   end
+   scratchDir = obj.scratchDir;
    % disp('starting parfor loop');
    parfor icalc = 1:ncalc
       imod = calcs{icalc}.imod;
       ienv = calcs{icalc}.ienv;
-      [ke, en, e2, newDensity] = Fitme.modelCalcParallel(imod,ienv,redoDensity,...
-         includeKE,includeEN,includeE2);
+      [ke, en, e2, newDensity, orb, Eorb, Ehf] = ...
+         Fitme.modelCalcParallel(imod,ienv,redoDensity,...
+         includeKE,includeEN,includeE2,scratchDir);
       t1 = [];
       t1.ke = ke;
       t1.en = en;
       t1.e2 = e2;
       t1.density = newDensity;
+      t1.orb  = orb;
+      t1.Eorb = Eorb;
+      t1.Ehf  = Ehf;
       calcRes{icalc} = t1;
    end
    
-   for icalc = 1:ncalc
-      imod = calcs{icalc}.imod;
-      ienv = calcs{icalc}.ienv;
-      obj.models{imod}.densitySave{ienv+1} = calcRes{icalc}.density;
+   if (redoDensity)
+      for icalc = 1:ncalc
+         imod = calcs{icalc}.imod;
+         ienv = calcs{icalc}.ienv;
+         obj.models{imod}.densitySave{ienv+1} = calcRes{icalc}.density;
+         if (ienv == 0)
+            obj.models{imod}.orb  = calcRes{icalc}.orb;
+            obj.models{imod}.Eorb = calcRes{icalc}.Eorb;
+            obj.models{imod}.Ehf  = calcRes{icalc}.Ehf;
+         else
+            obj.models{imod}.orbEnv(:,:,ienv) = calcRes{icalc}.orb;
+            obj.models{imod}.EorbEnv(:,ienv)  = calcRes{icalc}.Eorb;
+            obj.models{imod}.EhfEnv(1,ienv)   = calcRes{icalc}.Ehf;
+         end
+      end
    end
 end
 % to allow control-C to stop the job
@@ -102,8 +130,25 @@ ndat = obj.ndata;
 res = zeros(1,ndat);
 plotnum = zeros(1,ndat);
 etype = zeros(1,ndat);
+if (obj.includeEtot)
+   calcKE = 1;
+   calcEN = ones(1,20);
+   calcE2 = 1;
+   % hold pointer to start of this model in resTot
+   rangeMod = cell(1,obj.nmodels);
+   ntot = 0;
+   for imod = 1:obj.nmodels
+      rangeMod{imod} = (ntot+1):(ntot+length(obj.envs{1,imod}));
+      ntot = ntot + length(obj.envs{1,imod});
+   end
+   resTot = zeros(1,ntot);
+else
+   calcKE = obj.includeKE;
+   calcEN = obj.includeEN;
+   calcE2 = obj.includeE2;
+end
 for imod = 1:obj.nmodels
-   if (obj.includeKE == 1)
+   if (calcKE)
       hlevel = obj.HLKE{1,imod};
       if (~obj.parallel)
          modpred = obj.models{imod}.EKE(obj.envs{1,imod});
@@ -117,12 +162,17 @@ for imod = 1:obj.nmodels
       end
       t1 = hlevel - modpred;
       n = size(t1,2);
-      res(1,ic:(ic+n-1))= t1;
-      plotnum(1,ic:(ic+n-1))= obj.plotNumber(imod);
-      modelnum(1,ic:(ic+n-1)) = imod;
-      envnum(1,ic:(ic+n-1)) = obj.envs{1,imod};
-      etype(1,ic:(ic+n-1))= 1;
-      ic = ic + n;
+      if (obj.includeKE)
+         res(1,ic:(ic+n-1))= t1;
+         plotnum(1,ic:(ic+n-1))= obj.plotNumber(imod);
+         modelnum(1,ic:(ic+n-1)) = imod;
+         envnum(1,ic:(ic+n-1)) = obj.envs{1,imod};
+         etype(1,ic:(ic+n-1))= 1;
+         ic = ic + n;
+      end
+      if (obj.includeEtot)
+         resTot(rangeMod{imod}) = t1;
+      end
       if (doPlots)
          figure(obj.plotNumber(imod));
          subplot(4,2,1);
@@ -144,7 +194,7 @@ for imod = 1:obj.nmodels
       end
    end
    for iatom = 1:obj.models{imod}.natom
-      if (obj.includeEN( obj.models{imod}.Z(iatom) ))
+      if (calcEN( obj.models{imod}.Z(iatom) ))
          hlevel = obj.HLEN{imod}(iatom,:);
          if (~obj.parallel)
             modpred = obj.models{imod}.Een(iatom,obj.envs{1,imod});
@@ -157,13 +207,18 @@ for imod = 1:obj.nmodels
             end
          end
          t1 = hlevel - modpred;
-         n = size(t1,2);
-         res(1,ic:(ic+n-1)) = t1;
-         plotnum(1,ic:(ic+n-1))= obj.plotNumber(imod);
-         modelnum(1,ic:(ic+n-1)) = imod;
-         envnum(1,ic:(ic+n-1)) = obj.envs{1,imod};
-         etype(1,ic:(ic+n-1))= 10 + obj.models{imod}.Z(iatom);
-         ic = ic + n;
+         if (obj.includeEN(obj.models{imod}.Z(iatom) ))
+            n = size(t1,2);
+            res(1,ic:(ic+n-1)) = t1;
+            plotnum(1,ic:(ic+n-1))= obj.plotNumber(imod);
+            modelnum(1,ic:(ic+n-1)) = imod;
+            envnum(1,ic:(ic+n-1)) = obj.envs{1,imod};
+            etype(1,ic:(ic+n-1))= 10 + obj.models{imod}.Z(iatom);
+            ic = ic + n;
+         end
+         if (obj.includeEtot)
+            resTot(rangeMod{imod}) = resTot(rangeMod{imod}) + t1;
+         end
          if (doPlots)
             if (obj.models{imod}.Z(iatom) == 1)
                frame1 = 3;
@@ -193,7 +248,7 @@ for imod = 1:obj.nmodels
          end
       end
    end
-   if (obj.includeE2)
+   if (calcE2)
       hlevel = obj.HLE2{1,imod};
       if (~obj.parallel)
          modpred = obj.models{imod}.E2(obj.envs{1,imod});
@@ -206,13 +261,18 @@ for imod = 1:obj.nmodels
          end
       end
       t1 = hlevel - modpred;
-      n = size(t1,2);
-      res(1,ic:(ic+n-1))= t1;
-      plotnum(1,ic:(ic+n-1))= obj.plotNumber(imod);
-      modelnum(1,ic:(ic+n-1)) = imod;
-      envnum(1,ic:(ic+n-1)) = obj.envs{1,imod};
-      etype(1,ic:(ic+n-1))= 2;
-      ic = ic + n;
+      if (obj.includeE2)
+         n = size(t1,2);
+         res(1,ic:(ic+n-1))= t1;
+         plotnum(1,ic:(ic+n-1))= obj.plotNumber(imod);
+         modelnum(1,ic:(ic+n-1)) = imod;
+         envnum(1,ic:(ic+n-1)) = obj.envs{1,imod};
+         etype(1,ic:(ic+n-1))= 2;
+         ic = ic + n;
+      end
+      if (obj.includeEtot)
+         resTot(rangeMod{imod}) = resTot(rangeMod{imod}) + t1;
+      end
       if (doPlots)
          figure(obj.plotNumber(imod));
          subplot(4,2,7);
@@ -234,15 +294,68 @@ for imod = 1:obj.nmodels
       end
    end
 end
+if (obj.includeEtot)
+   for imod = 1:obj.nmodels
+      t1 = resTot(rangeMod{imod});
+      n = size(t1,2);
+      res(1,ic:(ic+n-1))= t1;
+      plotnum(1,ic:(ic+n-1))= obj.plotNumber(imod);
+      modelnum(1,ic:(ic+n-1)) = imod;
+      envnum(1,ic:(ic+n-1)) = obj.envs{1,imod};
+      etype(1,ic:(ic+n-1))= 3;
+      ic = ic + n;
+   end
+end
+% for backwards compatability with fitme saved before this variable
+% was added
+if (isempty(obj.cost))
+   obj.cost = 0;
+end
+if (obj.cost > 0)
+   obj.setCostVector;
+   res(ic) = (ndat * obj.cost/627.509) * norm(obj.costVector(:) .* par(:));
+   plotnum(ic) = 0;
+   modelnum(ic) = 0;
+   envnum(ic) = -1;
+   etype(ic) = 0;
+   ic = ic + 1;
+end
 if (~obj.silent)
-   disp(['RMS err/ndata = ',num2str(sqrt(res*res')/ndat), ...
-      ' kcal/mol err = ',num2str(sqrt(res*res'/ndat)*627.509)]);
+   if (obj.cost > 0)
+      nc = res(1:(ic-2));
+      wc = res(ic-1);
+      disp(['RMS err/ndata = ',num2str(sqrt(nc*nc')/ndat), ...
+         ' kcal/mol err = ',num2str(sqrt(nc*nc'/ndat)*627.509) ...
+         ' kcal/mol cost = ',num2str(wc*627.509/ndat)]);      
+   else
+      disp(['RMS err/ndata = ',num2str(sqrt(res*res')/ndat), ...
+         ' kcal/mol err = ',num2str(sqrt(res*res'/ndat)*627.509)]);
+   end
 end
 obj.itcount = obj.itcount + 1;
 obj.errTrain(obj.itcount) = norm(res);
 if (size(obj.testFitme,1) > 0)
    err1 = obj.testFitme.err(par);
    obj.errTest(obj.itcount) = norm(err1);
+end
+if (~isempty(obj.operWeights))
+   %  has fields KE, EN(1...Zmax), E2 and Etot
+   ike = (etype==1);
+   res(ike) = res(ike) * obj.operWeights.KE;
+   % find all atom types
+   atypes = unique(etype(etype>10));
+   for atype = atypes
+      iz = (etype==atype);
+      res(iz) = res(iz) * obj.operWeights.EN(atype-10);
+   end
+   i2 = (etype==2);
+   res(i2) = res(i2)*obj.operWeights.E2;
+   itot = (etype==3);
+   res(itot) = res(itot) * obj.operWeights.Etot;
+   if (~obj.silent)
+   disp(['Weighted RMS err/ndata = ',num2str(sqrt(res*res')/ndat), ...
+      ' kcal/mol err = ',num2str(sqrt(res*res'/ndat)*627.509)]);
+   end
 end
 
 if (doPlots)

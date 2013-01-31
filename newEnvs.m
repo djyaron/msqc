@@ -202,7 +202,6 @@ end
 save('datasets/env4.mat','env');
 %% Generate a new set of environments
 clear all;
-nenv = 25;
 edge = 5;
 env = cell(25,1);
 for ienv = 1:25
@@ -309,3 +308,58 @@ disp(['std of C charges from LL and HL  ', num2str(std(qs{6,1})), ' ', num2str(s
 disp(['std of H charges from LL and HL  ', num2str(std(qs{1,1})), ' ', num2str(std(qs{1,2}))]);
 %disp(['std of CH3 charges from LL and HL  ', num2str(std(ch3sum{1})), ' ', num2str(std(ch3sum{2}))]);
  
+
+%% What is our current spread in energies
+load('datasets\ch4rDat-orig.mat');
+%load('datasets\ethylenerDat.mat');
+%%
+nmol = size(LL,1);
+nenv = LL{1,1}.nenv; 
+% +1 for ground state
+Emol = zeros(nmol,nenv+1);
+Eenv = Emol;
+Egaussian = Emol;
+for i=1:nmol
+   f1 = LL{i,1};
+   Eke1 = f1.EKE;
+   Ehf = Eke1;
+   for iatom = 1:f1.natom
+      Een1{iatom} = f1.Een(iatom);
+      Ehf = Ehf + Een1{iatom};
+   end
+   for ienv=0:f1.nenv;
+      E21(ienv+1) = f1.partitionE2(ienv,f1.H2,{1:f1.nbasis});
+   end
+   Ehf = Ehf + E21;
+   Ehf = Ehf + f1.Hnuc;
+   Emol(i,:) = Ehf;
+   Eenv(i,:) = f1.Eenv;
+   % The [] makes a vector with first element no env, and remainder in env
+   Egaussian(i,:) = [f1.Ehf, f1.EhfEnv];
+end
+Emol = Emol * 627.509;
+Eenv = Eenv * 627.509;
+Egaussian = Egaussian * 627.509;
+
+% Emol is energy of molecule (without interaction with env) (geom,env)
+
+disp(['max disagreement is ', ...
+   num2str(max(max(abs(Egaussian - Emol - Eenv))))]);
+figure(1);
+hist(Emol(:,1)-mean(Emol(:,1)),20);
+title('molecule in zero environment');
+figure(2);
+hist(Emol(:)-mean(Emol(:)),20);
+title('molecule in environments');
+Epol = zeros(size(Emol));
+for i=1:size(Emol,1)
+   Epol(i,:) = Emol(i,:) - Emol(i,1);
+end
+figure(3);
+hist(Epol(:), 50);
+title('polarization effects');
+figure(8);
+boxplot(Epol);
+%%
+figure(9);
+boxplot(Epol');

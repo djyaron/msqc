@@ -1,38 +1,17 @@
-function contextRapid()
-% Playing around with ways to ramp up context
-%clear classes;
-%close all;
-% choose representative environments
-% load('datasets/ch4rDat.mat');
-% m1 = LL{1,1};
-% Ehf = m1.EhfEnv;
-% [a,i] = sort(Ehf);
-% plot(a,'b.');
-% %ikeep = i(5:10:90); % used for train of methane
-% %ikeep = i(8:10:88); % used for test of methane
-% ikeep1 = i(4:3:20);
-% ikeep1 = sort(ikeep1);
-% ikeep2 = i(5:3:21);
-% ikeep2 = sort(ikeep2);
-% hold on;
-% plot(ikeep1,Ehf(ikeep1),'ro');
-% plot(ikeep2,Ehf(ikeep2),'go');
-% %save('ch4keep.mat','ikeep');
-%
-psc = 1;
-if (psc)
-    topDir = '/brashear/yaron/matdl/11-27-12/psctiming/psc15-rd/';
-    scratchDir = '$SCRATCH_RAMDISK\';
-else
-    topDir = 'C:/matdl/yaron/11-27-12/psctiming/laptop2/';
-    scratchDir = 'c:/tmp/';
-end
-ftype = 3;
-fitmeParallel = 1;
-showPlots = 0;
-separateSP = 0;
+function context2psc %(topDir)
+%if (nargin < 1)
+   topDir = 'C:/matdl/yaron/11-26-12/timing/hootie4/';
+%   topDir = '/brashear/yaron/matdl/timing/hootie1/';
+%end   
+disp('got to 1');
+iprocess = 1;
+disp('got to 2');
 
-for iprocess = 1 %11; % [3 8 6];
+runParallel = 1;
+showPlots = 0;
+psc = 0; % true if you do not want to use optimization toolbox
+
+ics = 1;
 
 if (iprocess == 1)
    trainC{1} = {'h2',[2 3 4],'envs',1:5};
@@ -72,39 +51,19 @@ elseif (iprocess == 6)
    ikeep2 = [5    10    14    17    20    25];
    testC{1} = {'ch4r',11:20,'ethaner',11:20,'envs',ikeep2};
    filePrefix{1} = 'ch4r-ethaner';
-elseif (iprocess == 7)
-   %   load('ch4keep.mat');
-   ikeep = [6     7     8    13    16    24];
-   trainC{1} = {'ethaner',1:10,'envs',ikeep};
-   ikeep2 = [5    10    14    17    20    25];
-   testC{1} = {'ethaner',11:20,'envs',ikeep2};
-   filePrefix{1} = 'ethaner';
-elseif (iprocess == 8)
-   %   load('ch4keep.mat');
-   ikeep = [6     7     8    13    16    24];
-   trainC{1} = {'ethaner',1:10,'envs',ikeep};
-   ikeep2 = [5    10    14    17    20    25];
-   testC{1} = {'ethaner',11:20,'envs',ikeep2};
-   filePrefix{1} = 'ethaner';
-elseif (iprocess == 11)
-   %   load('ch4keep.mat');
-   trainC{1} = {'ch4r',1:10,'envs',1:10};
-   ikeep2 = [5    10    14    17    20    25];
-   testC{1} = {'ch4r',11:20,'envs',11:20};
-   filePrefix{1} = 'ch4-env1';
-elseif (iprocess == 12)
-   %   load('ch4keep.mat');
-   ikeep = [6     7     8    13    16    24];
-   trainC{1} = {'ch4r',1:10,'envs',ikeep};
-   ikeep2 = [5    10    14    17    20    25];
-   testC{1} = {'ch4r',11:20,'envs',ikeep2};
-   filePrefix{1} = 'ch4r-alone';
 end
+disp('got to 3');
+
 filePre = filePrefix{1};
 dataDir = [topDir,filePre];
 if (exist(dataDir,'dir') ~= 7)
-   status = mkdir(dataDir);
+   [status, message] = mkdir(dataDir);
+   if (~status)
+       error(['failed to create ',dataDir, ' with error ', message]);
+   end
 end
+disp('got to 4');
+
 summaryName = [topDir,filePre,'/summary.txt'];
 % if (exist(summaryName,'file'))
 %    delete(summaryName);
@@ -134,13 +93,8 @@ diagNames = {'val','rho','avg r','avg bo','shift'};
 bondNames = {'val','r','bo','drho'};
 
 ke.H = Mixer(iP3,11,'ke.H',3);
-if (separateSP)
-   ke.Cs = Mixer(iP3,11,'ke.Cs',3);
-   ke.Cp = Mixer(iP3,11,'ke.Cp',3);
-else
-   ke.Cs = Mixer(iP3,11,'ke.C',3);
-   ke.Cp = ke.Cs;
-end
+ke.Cs = Mixer(iP3,11,'ke.C',3);
+ke.Cp = ke.Cs;
 ke.HH = Mixer(iP2,12,'ke.HH',2);
 ke.CH = Mixer(iP2,12,'ke.CH',2);
 ke.CH.hybrid = 1;
@@ -150,13 +104,8 @@ ke.CCp = Mixer(iP2,12,'ke.CCp',2);
 ke.CCp.hybrid = 2;
 
 en.H = Mixer(iP3,11,'en.H',3);
-if (separateSP)
-   en.Cs = Mixer(iP3,11,'en.Cs',3);
-   en.Cp = Mixer(iP3,11,'en.Cp',3);
-else
-   en.Cs = Mixer(iP3,11,'en.C',3);
-   en.Cp = en.Cs;
-end
+en.Cs = Mixer(iP3,11,'en.C',3);
+en.Cp = en.Cs;
 en.HH = Mixer(iP2,12,'en.HH',2);
 en.CH = Mixer(iP2,12,'en.CH',2);
 en.CH.hybrid = 1;
@@ -176,18 +125,19 @@ end
 e2.CC = Mixer(iP2,12,'e2.CC',2);
 e2.CH = Mixer(iP2,12,'e2.CH',2);
 
+
 % Create fitme object
 f1 = makeFitme(trainIn{:},commonIn{:},'enstructh',en, ...
    'kestructh',ke,'e2struct',e2);
-f1.parallel = fitmeParallel;
-f1.scratchDir = scratchDir;
+f1.silent = 1;
+f1.parallel = 0;
 ftest = makeFitme(testIn{:},commonIn{:},'enstructh',en, ...
    'kestructh',ke,'e2struct',e2);
-ftest.parallel = fitmeParallel;
-ftest.scratchDir = scratchDir;
+ftest.silent = 1;
+ftest.parallel = 0;
 %f1 = makeFitme(trainIn{:},commonIn{:},'enmods',0, ...
 %   'kestructh',ke);
-
+disp('got to 5');
 
 % Fix all context sensitive parameters
 for imix = 1:length(f1.mixers)
@@ -202,8 +152,7 @@ for imix = 1:length(f1.mixers)
       mix.fixed = [0 1];
    end
 end
-
-ftest.printEDetails;
+disp('got to 6');
 
 startName = [topDir,filePre,'/start.mat'];
 toSave = {'f1','ftest','currentTrainErr','currentPar','currentErr'};
@@ -212,17 +161,15 @@ if (exist(startName,'file'))
    fprintf(summaryFile,'LOADING START \n');
    load(startName,toSave{:});
 else
-   startTic = tic;
-   [currentTrainErr,currentPar,currentErr] = contextFit2(f1,ftest,0,0,0,500,0);
-   disp(['time for starting fit ',num2str(toc(startTic))]);
-   %save(startName);
+   [currentTrainErr,currentPar,currentErr] = contextFit2(f1,ftest,0,0,0,500,1);
+   save(startName);
 end
 
 str1 = 'initial error %12.5f test %12.5f \n';
 fprintf(1,str1,currentTrainErr,currentErr);
 fprintf(summaryFile,str1,currentTrainErr,currentErr);
-ticID = tic;
-for iter = []; %1:5
+%ticID = tic;
+for iter = 1:1
    allName = [topDir,filePre,'/all-',num2str(iter),'.mat'];
    if (exist(allName,'file'))
       fprintf(1,'LOADING ITERATION %i \n',iter);
@@ -231,28 +178,94 @@ for iter = []; %1:5
    else
       fprintf(1,'STARTING ITERATION %i \n',iter);
       fprintf(summaryFile,'STARTING ITERATION %i \n',iter);
+      if (runParallel)
+         save('f1temp.mat','f1','ftest');
+      end
       % set up loop over imix and ipar, so we can do one big parfor loop
       ic = 0;
       mixes = {};
-      % unfix all parameters
-      for imix = 1:length(f1.mixers)
+      for imix = 1:2 %length(f1.mixers)
          mix = f1.mixers{imix};
          for ipar = 1:length(mix.par)
             if (mix.fixed(ipar) == 1)
-               mix.fixed(ipar) = 0;
+               temp2.imix = imix;
+               temp2.ipar = ipar;
+               if (mix.mixType == 11)
+                  names = diagNames;
+               elseif (mix.mixType == 12)
+                  names = bondNames;
+               elseif (mix.mixType == 4)
+                  names = {'val','r'};
+               end
+               temp2.name = [mix.desc,' ',names{ipar}];
+               ic = ic+1;
+               mixes{ic} = temp2;
             end
          end
       end
-      [currentTrainErr,currentPar,currentErr] = contextFit2(f1,ftest,0,0,0,500,psc);
-      save(allName);
-      
-      str2 = 'context error %12.5f test %12.5f \n';
-      fprintf(1,str2,currentTrainErr,currentErr);
-      fprintf(summaryFile,str2,currentTrainErr,currentErr);
+      nSave = length(mixes);
+      etrain = zeros(nSave,1);
+      errors = zeros(nSave,1);
+      pars = cell(nSave,1);
+      ticInput = tic
+      disp('got to 7');
 
+      parfor ic = 1:nSave
+         imix = mixes{ic}.imix;
+         ipar = mixes{ic}.ipar;
+         %name = mixes{ic}.name;
+         %      if (runParallel)
+         [etemp,ptemp,etest] = contextFit2([],[],imix,ipar,0,100,psc);
+         %      else
+         %         [etemp, ptemp] = contextFit(f1,imix,ipar);
+         %      end
+         etrain(ic) = etemp;
+         errors(ic) = etest;
+         pars{ic} = ptemp;
+         %       temp.imix = imix;
+         %       temp.ipar = ipar;
+         %       temp.name = [desc,' ',names{ipar}];
+         %       mixes{ic} = temp;
+         %      disp([desc,' context ',names{ipar},' err ', ...
+         %         num2str(etemp - currentError)]);
+         %       if (~runParallel)
+         %          f1.printMixers;
+         %          %            input('junk');
+         %          f1.mixers{imix}.fixed(ipar) = 1;
+         %          f1.mixers{imix}.par(ipar) = 0;
+         %          f1.setPars(currentPar);
+         %       end
+         %      fprintf(summaryFile, ...
+         %         '%s %12.5f \n',name,etemp);
+         %       fprintf(summaryFile, ' %i %12.5f \n',ic,etemp);
+         
+      end
+      toc(ticInput)
+      disp('Done with loop over all mixers');
+      for ic=1:nSave
+         fprintf(summaryFile, ...
+            '%s train %12.5f test %12.5f \n',mixes{ic}.name,etrain(ic),errors(ic));
+      end
+      [lowErr,lowi] = min(errors);
+      [lowErrTrain,lowiTrain] = min(etrain);
+      currentError = lowErr;
+      currentPar = pars{lowi};
+      imix = mixes{lowi}.imix;
+      ipar = mixes{lowi}.ipar;
+      name = mixes{lowi}.name;
+      str2 = '%s Lowest error of %12.5f and %12.5f is from %s \n';
+      fprintf(1,str2, 'train', etrain(lowiTrain), errors(lowiTrain),...
+         mixes{lowiTrain}.name);
+      fprintf(summaryFile, str2, 'train', etrain(lowiTrain), errors(lowiTrain),...
+         mixes{lowiTrain}.name);
+      fprintf(1,str2, 'test', etrain(lowi), currentError,name);
+      fprintf(summaryFile, str2, 'test', etrain(lowi), currentError,name);
+      f1.mixers{imix}.fixed(ipar) = 0;
+      f1.setPars(pars{lowi});
+      f1.printMixers;
+      save(allName);
    end
 end
-runTime = toc(ticID)
 diary off;
 fclose(summaryFile);
 %    %%
@@ -264,4 +277,5 @@ fclose(summaryFile);
 %          num2str(etemp)]);
 %       disp(['pars ',num2str(pars{i})]);
 %    end
+%runTime = toc(ticID)
 end
