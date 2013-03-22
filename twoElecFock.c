@@ -11,6 +11,8 @@
  *
  * Date:
  *   7-19-12
+ * Updated:
+ *   3-21-13
  *
  * Inputs:
  *   prhs[0]: P (nbasis * nbasis) density matrix.
@@ -21,10 +23,9 @@
  *   plhs[0]: G (nbasis * nbasis) 2-electron components of Fock matrix.
  *
  * Notes: 
- *   In the interest of not adding code overhead, no checks are done
- *     to see that the input data matches this above criteria, so be careful.
- *     Segfaults in MEX functions are not pretty.
  *   P, G, and each H2j is symmetric. Each H2k is not symmetric.
+ *   The code validates the dimensions of the inputs using the CHECK macro.
+ *     Overhead appears to be minimal.
  *
  * Compile Line: 
  *   mex twoElecFock.c
@@ -40,11 +41,16 @@
 /* 2D Column-Major-Order array lookup pattern. */
 #define CMO2(i, j, I) ((j) * (I) + (i))
 
+/* Input verification macro. */
+#define CHECK(A) ((A) ? (void)0 : \
+mexErrMsgIdAndTxt("twoElecFock:invalidDim", \
+"Invalid dimension found in twoElecFock input."))
+
 void mexFunction (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
     double t1, t2;
     double *G, *P, *H2jj, *H2kk;
     int i, j, k, l, nbasis;
-    mxArray *H2j, *H2k;
+    mxArray *H2j, *H2k, *mH2jj, *mH2kk;
     
     /* Pull data out of the input arrays. */
     P = mxGetPr(prhs[0]);
@@ -52,6 +58,14 @@ void mexFunction (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
     H2k = (mxArray*)prhs[2];
     nbasis = (int)mxGetM(prhs[0]);
     
+    /* Validate input. */
+    CHECK(nbasis == mxGetM(prhs[0]));
+    CHECK(nbasis == mxGetN(prhs[0]));
+    CHECK(nbasis == mxGetM(H2j));
+    CHECK(nbasis == mxGetN(H2j));
+    CHECK(nbasis == mxGetM(H2k));
+    CHECK(nbasis == mxGetN(H2k));
+
     /* Allocate the return array. */
     G = mxCalloc(nbasis * nbasis, sizeof(double));
     
@@ -64,9 +78,15 @@ void mexFunction (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
             t1 = 0.0;
             t2 = 0.0;
             
-            /* Get current arrrays out of the cell arrays. */
-            H2jj = mxGetPr(mxGetCell(H2j, CMO2(i, j, nbasis)));
-            H2kk = mxGetPr(mxGetCell(H2k, CMO2(i, j, nbasis)));
+            /* Get current arrrays out of the cell arrays and validate input. */
+            mH2jj = mxGetCell(H2j, CMO2(i, j, nbasis));
+            mH2kk = mxGetCell(H2k, CMO2(i, j, nbasis));
+            CHECK(nbasis == mxGetM(mH2jj));
+            CHECK(nbasis == mxGetN(mH2jj));
+            CHECK(nbasis == mxGetM(mH2kk));
+            CHECK(nbasis == mxGetN(mH2kk));
+            H2jj = mxGetPr(mH2jj);
+            H2kk = mxGetPr(mH2kk);
             
             /* Build the elements of G. */
             for (l = 0; l < nbasis; l++) {

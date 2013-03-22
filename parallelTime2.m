@@ -30,7 +30,8 @@ e2.CC = Mixer(iP,1,'e2.CC',ftype);
 e2.CH = Mixer(iP,1,'e2.CH',ftype);
 
 f2 = makeFitme('ch4',1:16,'ethane',1:7,'ethylene',1:7,'envs',0:25,...
-    'enstruct1',en,'kestruct',ke,'e2struct',e2);
+    'enstruct1',en,'kestruct',ke,'e2struct',e2,'verify',1);
+f2.scratchDir = 'I:/';
 p = f2.getPars();
 f2.plot = 0;
 
