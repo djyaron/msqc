@@ -52,6 +52,13 @@ void mexFunction (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
     int i, j, k, l, nbasis;
     mxArray *H2j, *H2k, *mH2jj, *mH2kk;
     
+    if (nlhs > 1)
+        mexErrMsgIdAndTxt("twoElecFock:nlhs",
+                "Invalid number of output variables for twoElecFock.");
+    if (nrhs != 3)
+        mexErrMsgIdAndTxt("twoElecFock:nrhs",
+                "Invalid number of input variables to twoElecFock.");
+    
     /* Pull data out of the input arrays. */
     P = mxGetPr(prhs[0]);
     H2j = (mxArray*)prhs[1];
