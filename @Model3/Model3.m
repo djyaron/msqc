@@ -49,6 +49,8 @@ classdef Model3 < handle
       %   ilist, jlist, klist, llist:  elements to modify
       %   mixer : pointer to a mix function
       H2mods % {1,n}
+      
+      verify    % Verify output. Currently for C code.
    %end
    %properties (Transient)
       densitySave   % cell array {1:nenv+1} of most recent density matrices
@@ -706,7 +708,7 @@ classdef Model3 < handle
             for jatom = 1:obj.natom
                if (iatom ~= jatom)
                   bondExists = obj.isBonded(iatom,jatom);
-                  if (bondExists == mix.bonded)
+                  %%if (bondExists == mix.bonded)
                   if ( ((obj.Z(iatom) == Z1) && (obj.Z(jatom) == Z2)) || ...
                         ((obj.Z(iatom) == Z2) && (obj.Z(jatom) == Z1)) )
                      mixerAdded = 1;
@@ -719,7 +721,7 @@ classdef Model3 < handle
                      mod.mixer = mix;
                      obj.H2mods{1,end+1} = mod;
                   end
-                  end
+                  %end
                end
             end
          end
