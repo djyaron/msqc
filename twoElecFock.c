@@ -96,11 +96,9 @@ void mexFunction (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
             H2kk = mxGetPr(mH2kk);
             
             /* Build the elements of G. */
-            for (l = 0; l < nbasis; l++) {
-                for (k = 0; k < nbasis; k++) {
-                    t1 += H2jj[CMO2(k, l, nbasis)] * P[CMO2(k, l, nbasis)];
-                    t2 += H2kk[CMO2(k, l, nbasis)] * P[CMO2(k, l, nbasis)];
-                }
+            for (l = 0; l < nbasis * nbasis; l++) {
+                t1 += H2jj[l] * P[l];
+                t2 += H2kk[l] * P[l];
             }
             
             G[CMO2(i, j, nbasis)] = t1 - t2 / 2;
