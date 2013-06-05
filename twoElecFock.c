@@ -31,7 +31,7 @@
  *   mex twoElecFock.c
  *
  * MEX Library Reference:
- *   http://www.mathworks.com/help/techdoc/apiref/bqoqnz0.html
+ *   http://www.mathworks.com/help/matlab/programming-interfaces-for-c-c-fortran-com.html
  *
  */
 
@@ -49,7 +49,7 @@ mexErrMsgIdAndTxt("twoElecFock:invalidDim", \
 void mexFunction (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
     double t1, t2;
     double *G, *P, *H2jj, *H2kk;
-    int i, j, k, l, nbasis;
+    int i, j, k, nbasis;
     mxArray *H2j, *H2k, *mH2jj, *mH2kk;
     
     if (nlhs > 1)
@@ -96,9 +96,9 @@ void mexFunction (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
             H2kk = mxGetPr(mH2kk);
             
             /* Build the elements of G. */
-            for (l = 0; l < nbasis * nbasis; l++) {
-                t1 += H2jj[l] * P[l];
-                t2 += H2kk[l] * P[l];
+            for (k = 0; k < nbasis * nbasis; k++) {
+                t1 += H2jj[k] * P[k];
+                t2 += H2kk[k] * P[k];
             }
             
             G[CMO2(i, j, nbasis)] = t1 - t2 / 2;
