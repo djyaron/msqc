@@ -21,7 +21,8 @@ else
    filledOrbs = obj.orbEnv(:,1:nocc,env);
 end
 
-res = 2* (filledOrbs * filledOrbs');
+%res = 2* (filledOrbs * filledOrbs');
+res = mm(2, filledOrbs);
 
 end
 
