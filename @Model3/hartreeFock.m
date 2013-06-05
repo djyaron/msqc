@@ -115,7 +115,7 @@ while (~finished) %step 11 -- Test convergence
     F = H1 + G;
     
     %step 7 -- Calculate the transformed F matrix
-    Ft = X'*F*X; %#ok<MINV>
+    Ft = X'*F*X;
     
     %step 8 -- Find e and the transformed expansion coefficient matrices
     [Ct1,e1] = eig(Ft);
@@ -128,7 +128,6 @@ while (~finished) %step 11 -- Test convergence
     
     %step 10 -- Calculate the new density matrix
     Plast = Pn;
-    Pn = zeros(Nbasis);
     %Cj = conj(C);
     filled = 1:(Nelec/2);
     Pn = 2* C(:,filled)*( C(:,filled)');

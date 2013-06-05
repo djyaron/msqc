@@ -190,15 +190,13 @@ classdef Model3 < handle
         function res = KE(obj,ienv)
             % start with H1 matrix of unmodified STO-3G
             res   = obj.frag.KE;
-            const = 0;
             for imod = 1:size(obj.KEmods,2)
                 mod = obj.KEmods{1,imod};
                 ii = mod.ilist;
                 jj = mod.jlist;
+                tmp = mod.mixer.mix('KE', {ii, jj}, obj, ii, jj, ienv);
                 res(ii,jj) = res(ii,jj) - obj.frag.KE(ii,jj) ...
-                    + mod.mixer.mix(obj.frag.KE(ii,jj), ...
-                    obj.fnar.KE(ii,jj), obj.fdif.KE(ii,jj), ...
-                    obj,ii,jj,ienv);
+                    + tmp;
             end
         end
         %       function mixUsed = addKEmodConst(obj,mix)
@@ -398,10 +396,9 @@ classdef Model3 < handle
                 mod = mods{1,imod};
                 ii = mod.ilist;
                 jj = mod.jlist;
+                tmp = mod.mixer.mix('H1en', {ii, jj, iatom}, obj, ii, jj, ienv);
                 res(ii,jj) = res(ii,jj) - obj.frag.H1en(ii,jj,iatom) ...
-                    + mod.mixer.mix(obj.frag.H1en(ii,jj,iatom), ...
-                    obj.fnar.H1en(ii,jj,iatom), ...
-                    obj.fdif.H1en(ii,jj,iatom), obj, ii, jj, ienv );
+                    + tmp;
             end
         end
         %       function mixUsed = addENmodConst(obj,mix)
@@ -744,10 +741,9 @@ classdef Model3 < handle
                     j = mod.jlist;
                     k = mod.klist;
                     l = mod.llist;
+                    tmp = mod.mixer.mix('H2', {i, j, k, l}, obj, i, k, ienv);
                     res(i,j,k,l) = res(i,j,k,l) - obj.frag.H2(i,j,k,l) ...
-                        + mod.mixer.mix(obj.frag.H2(i,j,k,l), ...
-                        obj.fnar.H2(i,j,k,l), ...
-                        obj.fdif.H2(i,j,k,l), obj, i, k, ienv);
+                        + tmp;
                 else
                     % F0 = h2(s,s,s,s);  F2 = h2(px,py,px,py)*25/3;
                     % G1 = h2(s,px,s,px)*3;
