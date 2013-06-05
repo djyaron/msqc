@@ -13,4 +13,3 @@ capacity = numel(A);
 res = sum(abs(A(:) - B(:)) <= tol) == capacity;
 
 end
-
