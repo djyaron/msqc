@@ -1,5 +1,5 @@
 /*
- * C = mm(S, A, <B>)
+ * C = elementWiseCombine(A, B)
  *
  * Description:
  *   Equivalent to sum(sum(A .* B)) for 2D matrices.
@@ -12,7 +12,7 @@
  * Date:
  *   6-4-13
  * Updated:
- *   6-4-13
+ *   6-7-13
  *
  * Inputs:
  *   prhs[0]: A (m * n) Matrix.
