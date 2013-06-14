@@ -10,7 +10,6 @@ classdef Mixer < handle
                   % 4 = iterp with const
       index       % field that can be used to store an external unique ID
                   % index is not used internally in this class
-      interpolate % Use fnar and fdif or frag to mix.
    end
    
    methods
@@ -33,8 +32,6 @@ classdef Mixer < handle
          obj.desc = desc;
          obj.funcType = funcType;
          obj.hybrid = 0;
-         
-         obj.interpolate = any(obj.funcType == [1 4]);
       end
       function res = deepCopy(obj)
          res = Mixer(obj.par,obj.mixType,obj.desc,obj.funcType);

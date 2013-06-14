@@ -1,4 +1,4 @@
-function res = mix(obj, field, idx, mod, ii, jj, ienv)
+function res = mix(obj, v0, mod, ii, jj, ienv)
 % Description:
 %   All aspects of mixing have been combined into a single file to boost
 %   performance, although it makes for some less clear code.
@@ -11,43 +11,17 @@ function res = mix(obj, field, idx, mod, ii, jj, ienv)
 %   (number of atoms bonded to that atom, as defined in bonded array of the
 %   model).
 %
-% Date:
-%   6-4-13
-% Updated:
-%   6-4-13
-%
-% Inputs:
-%   obj:   Mixer instance.
-%   field: String of the field in mod to mix.
-%   idx:   Index in mod.(field) to use.
+% Input:
+%   v0:    Relevant operator data.
 %   mod:   Model3 instance.
 %   ii:    ilist.
 %   jj:    jlist.
 %   ienv:  Environment to use.
 %
-% Outputs:
+% Output:
 %   res:   Mix result.
 
-% Only pull out the data we actually need for this mix.
-if (obj.interpolate)
-    v1 = mod.fnar.(field);
-    v1 = v1(idx{:});
-    v2 = mod.fdif.(field);
-    v2 = v2(idx{:});
-else
-    v0 = mod.frag.(field);
-    v0 = v0(idx{:});
-end
-
 switch (obj.mixType)
-    case (0)
-        % mix objects v1 and v2, using parameter x.
-        %   for x << 0, we get v1, and x>>0 we get v2, with the
-        %   switch from v1 to v2 occuring mostly as x=-1..1
-        c1 = (tanh(obj.par(1))+1)/2.0;
-        c2 = 1-c1;
-        res = c2 * v1 + c1 * v2;
-        return
     case (1)
         x = obj.par(1);
     case (2)
@@ -181,12 +155,7 @@ if (obj.hybrid)
     % We first determine the original H elements between the hybrid orbs:
     %     <a|H|b> = sum_j,k <a|j><j|H|k><k|b>
     %      Hhyb     =     rot' * H * rot
-    if (interpolate)
-        v1 = rot1' * v1 * rot2;
-        v2 = rot1' * v2 * rot2;
-    else
-        v0 = rot1' * v0 * rot2;
-    end
+    v0 = rot1' * v0 * rot2;
 end
 
 switch(obj.funcType)
