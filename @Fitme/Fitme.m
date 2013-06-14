@@ -47,11 +47,6 @@ classdef Fitme < handle
       
       operWeights %  has fields KE, EN(1...Zmax), E2 and Etot
    end
-   methods (Static)
-      [ke, en, e2, newDensity, orb, Eorb, Ehf] = ...
-            modelCalcParallel(imod,ienv,updateDensity,...
-            includeKE,includeEN,includeE2,scratchDir);
-   end
    methods
       function res = Fitme
          res.models = cell(0,0);
@@ -72,7 +67,7 @@ classdef Fitme < handle
          res.LLEN = cell(0,0);
          res.errCalls = 0;
          res.itcount = 0;
-         res.parallel = 0;
+         res.parallel = matlabpool('size');
          res.silent = 0;
          res.scratchDir = '';
          res.cset = [];
