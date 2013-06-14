@@ -1,401 +1,401 @@
 classdef Model3 < handle
-    %{
+   %{
    Interpolate between narrow and diffuse STO-3G matrix elements.
-    %}
-    properties
-        % Input to the class
-        frag;  % Fragment with regular STO-3G basis set
-        fnar;  % Fragment with narrow  STO-3G basis set
-        fdif;  % Fragment with diffuse STO-3G basis set
-        
-        % Most recent predictions of the model
-        Ehf     % Hartree Fock energy
-        Eorb    % (nbasis,1)      molecular orbital energies
-        orb     % (nbasis,nbasis) molecular orbital coefficients
-        EhfEnv   % (1,nenv)        Hartree-Fock energy in env
-        EorbEnv; % (nbasis,nenv)   molecular orbital energies in env
-        orbEnv;  % (nbasis,nbasis,nenv) molecular orbitals in env
-        
-        % Useful properties initialized in the constructor
-        natom   % number of atoms in fragment
-        nelec   % number of electrons in the fragment
-        Z       % (1,natom) atomic numbers of the molecules
-        aType   % (1,natom) atom type (initialized to Z)
-        rcart   % (3,natom) cartesian coordinates of the atoms
-        nenv
-        X       % Transformation matrix used in hartreeFock
-        
-        nbasis  % number of atomic (and molecular) basis functions
-        basisAtom  % (nbasis,1) atom # on which the function is centered
-        basisType  % (nbasis,1) l quantum number: 0=s 1=p 2=d 3=d etc
-        basisSubType % (nbasis,1) m quantum number: s=1 p=3 d=6 (cartesian)
-        onAtom     % {natom,1}  list of basis functions on iatom
-        valAtom    % {natom,type} list of valence basis functions of type
-        %              (1-s 2-p) on iatom
-        isBonded   % (natom,natom)  1 if atoms are bonded, 0 otherwise
-        coord      % (natom,1)      # of atoms bonded to this atom
-        charges    % (natom,nenv+1)  current charges on the atoms
-        bondOrders % (natom,natom,nenv+1) current bond orders
-        
-        mixers     % (1,n)   cell array of mixers that are currently in use
-        KEmods     % {1,n}   cell array of modifications to KE operator
-        ENmods   % {natom}{1,n} cell array of modifications to H1en opers
-        % a 1-elec operator modification has the following members
-        %   ilist : modify ilist x jlist elements
-        %   jlist :
-        %   mixer  : pointer to a mix function
-        
-        % a 2-elec operator modification has the following members
-        %   ilist, jlist, klist, llist:  elements to modify
-        %   mixer : pointer to a mix function
-        H2mods % {1,n}
-        
-        verify    % Verify output. Currently for C code.
-        %end
-        %properties (Transient)
-        densitySave   % cell array {1:nenv+1} of most recent density matrices
-        % used to start HF iterations
-        % cached contexts (see atomContext and bondContext)
-        atomContextXSaved % {iatom,ienv}
-        atomContextNSaved % {iatom}
-        bondContextXSaved % {iatom,jatom,ienv}
-        bondContextNSaved % {iatom,jatom}
-        index % used and managed externally
-    end
-    methods (Static)
-        h2 = H2slater(F0, G1, F2)
-    end
-    methods
-        function res = Model3(frag_,fnar_, fdif_)
-            if (nargin ~= 0)
-                res.frag = frag_;
-                res.fnar = fnar_;
-                res.fdif = fdif_;
-                res.natom = frag_.natom;
-                res.nelec = frag_.nelec;
-                res.Z     = frag_.Z;
-                res.aType = res.Z;
-                res.rcart = frag_.rcart;
-                res.nenv  = frag_.nenv;
-                res.nbasis = frag_.nbasis;
-                res.basisAtom = frag_.basisAtom;
-                res.basisType = frag_.basisType;
-                res.basisSubType = frag_.basisSubType;
-                for iatom = 1:res.natom
-                    res.onAtom{iatom,1} = find(res.basisAtom == iatom);
-                end
-                for iatom = 1:res.natom
-                    % kind of a hack. For s orbitals, we take the maximum value
-                    % from the list of basis functions on the atom, since this
-                    % will be the valence orbital (2s instead of 1s for C)
-                    res.valAtom{iatom,1} = find(res.basisAtom == iatom & ...
-                        res.basisType == 0, 1, 'last' );
-                    % For p orbitals, we just take the ones that matach
-                    res.valAtom{iatom,2} = find(res.basisAtom == iatom & ...
-                        res.basisType == 1);
-                end
-                res.isBonded = zeros(res.natom,res.natom);
-                res.coord = zeros(res.natom,1);
-                for iatom = 1:res.natom
-                    for jatom = 1:res.natom
-                        res.isBonded(iatom,jatom) = res.bonded(iatom,jatom);
-                    end
-                    res.coord(iatom) = sum(res.isBonded(iatom,:));
-                end
-                res.KEmods = cell(0,0);
-                res.ENmods = cell(1,res.natom);
-                for i=1:res.natom
-                    res.ENmods{1,i} = cell(0,0);
-                end
-                res.H2mods = cell(0,0);
-                res.densitySave = cell(1,res.nenv+1);
-                res.mixers = cell(0,0);
-                if (isfield(frag_,'savedCharges'))
-                    res.charges = frag_.savedCharges;
-                else
-                    % Initialize charges and bond orders
-                    res.charges = zeros(res.natom,res.nenv+1);
-                    for ienv = 0:res.nenv
-                        res.charges(:,ienv+1) = res.frag.mcharge(ienv)';
-                    end
-                end
-                % Initialize bond orders
-                if (isfield(frag_,'savedBondOrders'))
-                    res.bondOrders = frag_.savedBondOrders;
-                else
-                    res.bondOrders = zeros(res.natom,res.natom,res.nenv+1);
-                    for ienv = 0:res.nenv
-                        res.bondOrders(:,:,ienv+1) = res.frag.calcBO(ienv);
-                    end
-                end
-                res.EhfEnv  = zeros(1,res.nenv);
-                res.EorbEnv = zeros(res.nbasis,res.nenv);
-                res.orbEnv  = zeros(res.nbasis,res.nbasis,res.nenv);
-                res.atomContextXSaved = {};
-                res.atomContextNSaved = {};
-                res.bondContextXSaved = {};
-                res.bondContextNSaved = {};
+   %}
+   properties
+      % Input to the class
+      frag;  % Fragment with regular STO-3G basis set
+      fnar;  % Fragment with narrow  STO-3G basis set
+      fdif;  % Fragment with diffuse STO-3G basis set
+      
+      % Most recent predictions of the model
+      Ehf     % Hartree Fock energy
+      Eorb    % (nbasis,1)      molecular orbital energies
+      orb     % (nbasis,nbasis) molecular orbital coefficients
+      EhfEnv   % (1,nenv)        Hartree-Fock energy in env
+      EorbEnv; % (nbasis,nenv)   molecular orbital energies in env
+      orbEnv;  % (nbasis,nbasis,nenv) molecular orbitals in env
+      
+      % Useful properties initialized in the constructor
+      natom   % number of atoms in fragment
+      nelec   % number of electrons in the fragment
+      Z       % (1,natom) atomic numbers of the molecules
+      aType   % (1,natom) atom type (initialized to Z)
+      rcart   % (3,natom) cartesian coordinates of the atoms
+      nenv
+      X       % Transformation matrix used in hartreeFock
+      
+      nbasis  % number of atomic (and molecular) basis functions
+      basisAtom  % (nbasis,1) atom # on which the function is centered
+      basisType  % (nbasis,1) l quantum number: 0=s 1=p 2=d 3=d etc
+      basisSubType % (nbasis,1) m quantum number: s=1 p=3 d=6 (cartesian)
+      onAtom     % {natom,1}  list of basis functions on iatom
+      valAtom    % {natom,type} list of valence basis functions of type
+      %              (1-s 2-p) on iatom
+      isBonded   % (natom,natom)  1 if atoms are bonded, 0 otherwise
+      coord      % (natom,1)      # of atoms bonded to this atom
+      charges    % (natom,nenv+1)  current charges on the atoms
+      bondOrders % (natom,natom,nenv+1) current bond orders
+      
+      mixers     % (1,n)   cell array of mixers that are currently in use
+      KEmods     % {1,n}   cell array of modifications to KE operator
+      ENmods   % {natom}{1,n} cell array of modifications to H1en opers
+      % a 1-elec operator modification has the following members
+      %   ilist : modify ilist x jlist elements
+      %   jlist :
+      %   mixer  : pointer to a mix function
+      
+      % a 2-elec operator modification has the following members
+      %   ilist, jlist, klist, llist:  elements to modify
+      %   mixer : pointer to a mix function
+      H2mods % {1,n}
+      
+      verify    % Verify output. Currently for C code.
+      %end
+      %properties (Transient)
+      densitySave   % cell array {1:nenv+1} of most recent density matrices
+      % used to start HF iterations
+      % cached contexts (see atomContext and bondContext)
+      atomContextXSaved % {iatom,ienv}
+      atomContextNSaved % {iatom}
+      bondContextXSaved % {iatom,jatom,ienv}
+      bondContextNSaved % {iatom,jatom}
+      index % used and managed externally
+   end
+   methods (Static)
+      h2 = H2slater(F0, G1, F2)
+   end
+   methods
+      function res = Model3(frag_,fnar_, fdif_)
+         if (nargin ~= 0)
+            res.frag = frag_;
+            res.fnar = fnar_;
+            res.fdif = fdif_;
+            res.natom = frag_.natom;
+            res.nelec = frag_.nelec;
+            res.Z     = frag_.Z;
+            res.aType = res.Z;
+            res.rcart = frag_.rcart;
+            res.nenv  = frag_.nenv;
+            res.nbasis = frag_.nbasis;
+            res.basisAtom = frag_.basisAtom;
+            res.basisType = frag_.basisType;
+            res.basisSubType = frag_.basisSubType;
+            for iatom = 1:res.natom
+               res.onAtom{iatom,1} = find(res.basisAtom == iatom);
             end
-        end
-        function clearModifiers(obj)
-            obj.KEmods = cell(0,0);
-            obj.ENmods = cell(1,obj.natom);
-            for i=1:obj.natom
-                obj.ENmods{1,i} = cell(0,0);
+            for iatom = 1:res.natom
+               % kind of a hack. For s orbitals, we take the maximum value
+               % from the list of basis functions on the atom, since this
+               % will be the valence orbital (2s instead of 1s for C)
+               res.valAtom{iatom,1} = find(res.basisAtom == iatom & ...
+                  res.basisType == 0, 1, 'last' );
+               % For p orbitals, we just take the ones that matach
+               res.valAtom{iatom,2} = find(res.basisAtom == iatom & ...
+                  res.basisType == 1);
             end
-            obj.H2mods = cell(0,0);
-            obj.mixers = cell(0,0);
-        end
-        function res = npar(obj)
-            res = 0;
-            for i=1:size(obj.mixers,2)
-                res = res + obj.mixers{1,i}.npar;
+            res.isBonded = zeros(res.natom,res.natom);
+            res.coord = zeros(res.natom,1);
+            for iatom = 1:res.natom
+               for jatom = 1:res.natom
+                  res.isBonded(iatom,jatom) = res.bonded(iatom,jatom);
+               end
+               res.coord(iatom) = sum(res.isBonded(iatom,:));
             end
-        end
-        function addMixer(obj, mix)
-            add = 1;
-            for i=1:size(obj.mixers,2)
-                if (mix == obj.mixers{1,i})
-                    add = 0;
-                    break;
-                end
+            res.KEmods = cell(0,0);
+            res.ENmods = cell(1,res.natom);
+            for i=1:res.natom
+               res.ENmods{1,i} = cell(0,0);
             end
-            if (add == 1)
-                obj.mixers{1,end+1} = mix;
+            res.H2mods = cell(0,0);
+            res.densitySave = cell(1,res.nenv+1);
+            res.mixers = cell(0,0);
+            if (isfield(frag_,'savedCharges'))
+               res.charges = frag_.savedCharges;
+            else
+               % Initialize charges and bond orders
+               res.charges = zeros(res.natom,res.nenv+1);
+               for ienv = 0:res.nenv
+                  res.charges(:,ienv+1) = res.frag.mcharge(ienv)';
+               end
             end
-        end
-        function setPars(obj, pars)
-            ic = 1;
-            for i = 1:size(obj.mixers,2)
-                mtemp = obj.mixers{1,i};
-                n = mtemp.npar;
-                if (n > 0)
-                    mtemp.setPars( pars(ic:(ic+n-1)));
-                end
-                ic = ic + n;
+            % Initialize bond orders
+            if (isfield(frag_,'savedBondOrders'))
+               res.bondOrders = frag_.savedBondOrders;
+            else
+               res.bondOrders = zeros(res.natom,res.natom,res.nenv+1);
+               for ienv = 0:res.nenv
+                  res.bondOrders(:,:,ienv+1) = res.frag.calcBO(ienv);
+               end
             end
-        end
-        function res = H1(obj, ienv)
-            if (nargin < 2)
-                ienv = 0;
+            res.EhfEnv  = zeros(1,res.nenv);
+            res.EorbEnv = zeros(res.nbasis,res.nenv);
+            res.orbEnv  = zeros(res.nbasis,res.nbasis,res.nenv);
+            res.atomContextXSaved = {};
+            res.atomContextNSaved = {};
+            res.bondContextXSaved = {};
+            res.bondContextNSaved = {};
+         end
+      end
+      function clearModifiers(obj)
+         obj.KEmods = cell(0,0);
+         obj.ENmods = cell(1,obj.natom);
+         for i=1:obj.natom
+            obj.ENmods{1,i} = cell(0,0);
+         end
+         obj.H2mods = cell(0,0);
+         obj.mixers = cell(0,0);
+      end
+      function res = npar(obj)
+         res = 0;
+         for i=1:size(obj.mixers,2)
+            res = res + obj.mixers{1,i}.npar;
+         end
+      end
+      function addMixer(obj, mix)
+         add = 1;
+         for i=1:size(obj.mixers,2)
+            if (mix == obj.mixers{1,i})
+               add = 0;
+               break;
             end
-            res = obj.KE(ienv);
-            for iatom = 1:obj.natom
-                res = res + obj.H1en(iatom,ienv);
+         end
+         if (add == 1)
+            obj.mixers{1,end+1} = mix;
+         end
+      end
+      function setPars(obj, pars)
+         ic = 1;
+         for i = 1:size(obj.mixers,2)
+            mtemp = obj.mixers{1,i};
+            n = mtemp.npar;
+            if (n > 0)
+               mtemp.setPars( pars(ic:(ic+n-1)));
             end
-            if (ienv > 0)
-                res = res + obj.frag.H1Env(:,:,ienv);
-            end
-        end
-        function res = KE(obj,ienv)
-            % start with H1 matrix of unmodified STO-3G
-            res   = obj.frag.KE;
-            for imod = 1:size(obj.KEmods,2)
-                mod = obj.KEmods{1,imod};
-                ii = mod.ilist;
-                jj = mod.jlist;
+            ic = ic + n;
+         end
+      end
+      function res = H1(obj, ienv)
+         if (nargin < 2)
+            ienv = 0;
+         end
+         res = obj.KE(ienv);
+         for iatom = 1:obj.natom
+            res = res + obj.H1en(iatom,ienv);
+         end
+         if (ienv > 0)
+            res = res + obj.frag.H1Env(:,:,ienv);
+         end
+      end
+      function res = KE(obj,ienv)
+         % start with H1 matrix of unmodified STO-3G
+         res   = obj.frag.KE;
+         for imod = 1:size(obj.KEmods,2)
+            mod = obj.KEmods{1,imod};
+            ii = mod.ilist;
+            jj = mod.jlist;
                 tmp = mod.mixer.mix(obj.frag.KE(ii, jj), obj, ii, jj, ienv);
-                res(ii,jj) = res(ii,jj) - obj.frag.KE(ii,jj) ...
-                    + tmp;
+            res(ii,jj) = res(ii,jj) - obj.frag.KE(ii,jj) ...
+               + tmp;
+         end
+      end
+      %       function mixUsed = addKEmodConst(obj,mix)
+      %           mod.ilist = 1:obj.nbasis;
+      %           mod.jlist = 1:obj.nbasis;
+      %           mod.mixer = mix;
+      %           obj.KEmods{1,end+1} = mod;
+      %           obj.addMixer(mix);
+      %           mixUsed = mix;
+      %       end
+      function mixUsed = addKEmodDiag(obj,Zs,types,mix)
+         if (nargin < 3)
+            types = [1 2];
+         end
+         if (nargin < 4)
+            mix = Mixer;
+            % create a mix object for these blocks
+            mix.desc = ['KE Diag Zs [',num2str(Zs),'] types [', ...
+               num2str(types),']'];
+         end
+         mixerAdded = 0;
+         for iZ = Zs % loop over all desired elements
+            for iatom = find(obj.Z == iZ) % loop over atoms of this element
+               ilist = []; % orbitals of "types" on this atom
+               for itype = types
+                  ilist = [ilist obj.valAtom{iatom,itype}'];
+               end
+               % Create a modifier for this block of the matrix
+               mod.ilist = ilist;
+               mod.jlist = ilist;
+               mod.mixer = mix;
+               obj.KEmods{1,end+1} = mod;
+               mixerAdded = 1;
             end
-        end
-        %       function mixUsed = addKEmodConst(obj,mix)
-        %           mod.ilist = 1:obj.nbasis;
-        %           mod.jlist = 1:obj.nbasis;
-        %           mod.mixer = mix;
-        %           obj.KEmods{1,end+1} = mod;
-        %           obj.addMixer(mix);
-        %           mixUsed = mix;
-        %       end
-        function mixUsed = addKEmodDiag(obj,Zs,types,mix)
-            if (nargin < 3)
-                types = [1 2];
+         end
+         if (mixerAdded)
+            obj.addMixer(mix);
+            mixUsed = mix;
+         else
+            mixUsed = [];
+         end
+      end
+      function mixUsed = addKEcore(obj,Z,mix)
+         mixerAdded = 0;
+         for iatom = find(obj.Z == Z) % loop over atoms of this element
+            if (length(obj.onAtom{iatom}) ~= 5)
+               error('Model3:addKEcore not called on atom with 5 basis functions');
             end
-            if (nargin < 4)
-                mix = Mixer;
-                % create a mix object for these blocks
-                mix.desc = ['KE Diag Zs [',num2str(Zs),'] types [', ...
-                    num2str(types),']'];
-            end
-            mixerAdded = 0;
-            for iZ = Zs % loop over all desired elements
-                for iatom = find(obj.Z == iZ) % loop over atoms of this element
-                    ilist = []; % orbitals of "types" on this atom
-                    for itype = types
-                        ilist = [ilist obj.valAtom{iatom,itype}'];
-                    end
-                    % Create a modifier for this block of the matrix
-                    mod.ilist = ilist;
-                    mod.jlist = ilist;
-                    mod.mixer = mix;
-                    obj.KEmods{1,end+1} = mod;
-                    mixerAdded = 1;
-                end
-            end
-            if (mixerAdded)
-                obj.addMixer(mix);
-                mixUsed = mix;
-            else
-                mixUsed = [];
-            end
-        end
-        function mixUsed = addKEcore(obj,Z,mix)
-            mixerAdded = 0;
-            for iatom = find(obj.Z == Z) % loop over atoms of this element
-                if (length(obj.onAtom{iatom}) ~= 5)
-                    error('Model3:addKEcore not called on atom with 5 basis functions');
-                end
-                s1 = obj.onAtom{iatom}(1);
-                mod.ilist = s1;
-                mod.jlist = s1;
-                mod.mixer = mix;
-                obj.KEmods{1,end+1} = mod;
-                mixerAdded = 1;
-            end
-            if (mixerAdded)
-                obj.addMixer(mix);
-                mixUsed = mix;
-            else
-                mixUsed = [];
-            end
-        end
-        function mixUsed = addKEmodBonded(obj,Z1,Z2,types1,types2, mix)
-            if (nargin < 4)
-                types1 = [1 2];
-            end
-            if (nargin < 5)
-                types2 = [1 2];
-            end
-            if (nargin < 6)
-                mix = Mixer();
-                mix.desc = ['KE bonded Z [',num2str(Z1),'] types [', ...
-                    num2str(types1),'] with Z [',num2str(Z2),'] types [', ...
-                    num2str(types2),']'];
-            end
-            mixerAdded = 0;
-            for iatom = 1:obj.natom
-                for jatom = 1:obj.natom
-                    bondExists = obj.isBonded(iatom,jatom);
-                    if ((mix.hybrid == 2) && bondExists)
-                        % check for pi bond
-                        bondExists = (obj.coord(iatom) == 3) && ...
-                            (obj.coord(jatom) == 3);
-                    end
-                    if (bondExists)
-                        for itype = 1:2
-                            for jtype = 1:2
-                                addmods = 0;
-                                if ((obj.Z(iatom) == Z1) && (obj.Z(jatom) == Z2))
-                                    if (any(ismember(itype,types1)) && ...
-                                            any(ismember(jtype,types2)) )
-                                        addmods = 1;
-                                    end
-                                end
-                                if ((obj.Z(iatom) == Z2) && (obj.Z(jatom) == Z1))
-                                    if (any(ismember(itype,types2)) && ...
-                                            any(ismember(jtype,types1)) )
-                                        addmods = 1;
-                                    end
-                                end
-                                if (addmods)
-                                    mixerAdded = 1;
-                                    mod.ilist = obj.valAtom{iatom,itype}';
-                                    mod.jlist = obj.valAtom{jatom,jtype}';
-                                    mod.mixer = mix;
-                                    obj.KEmods{1,end+1} = mod;
-                                end
-                            end
-                        end
-                    end
-                end
-            end
-            if (mixerAdded)
-                obj.addMixer(mix);
-                mixUsed = mix;
-            else
-                mixUsed = [];
-            end
-        end
-        function mixUsed = addMMStretch(obj,oper,Z1,Z2, mix)
-            if (nargin < 5)
-                mix = Mixer();
-                mix.type = 2;
-                mix.par = [0 0 0];
-                mix.fixed = [0 0 0];
-                mix.desc = ['MM ',oper,' Z [',num2str(Z1), ...
-                    '] with Z [',num2str(Z2),']'];
-            end
-            mixerAdded = 0;
-            for iatom = 1:obj.natom
-                for jatom = (iatom + 1):obj.natom
-                    bondExists = obj.isBonded(iatom,jatom);
-                    if (bondExists)
-                        mixerAdded = 1;
-                        mod.ilist = (1:obj.nbasis)';
-                        mod.jlist = (1:obj.nbasis)';
-                        mod.mixer = mix;
-                        switch oper
-                            case 'KE'
-                                obj.KEmods{1,end+1} = mod;
-                            otherwise
-                                error('Model3.addMMStretch: unknown oper type');
-                        end
-                    end
-                end
-            end
-            if (mixerAdded)
-                obj.addMixer(mix);
-                mixUsed = mix;
-            else
-                mixUsed = [];
-            end
-        end
-        function mixUsed = addKEmodBondedh(obj,Z1,Z2,mix)
-            mixerAdded = 0;
-            for iatom = 1:obj.natom
-                for jatom = 1:obj.natom
-                    bondExists = obj.isBonded(iatom,jatom);
-                    if ((mix.hybrid == 2) && bondExists)
-                        % check for pi bond
-                        bondExists = (obj.coord(iatom) == 3) && ...
-                            (obj.coord(jatom) == 3);
-                    end
-                    if (bondExists)
+            s1 = obj.onAtom{iatom}(1);
+            mod.ilist = s1;
+            mod.jlist = s1;
+            mod.mixer = mix;
+            obj.KEmods{1,end+1} = mod;
+            mixerAdded = 1;
+         end
+         if (mixerAdded)
+            obj.addMixer(mix);
+            mixUsed = mix;
+         else
+            mixUsed = [];
+         end
+      end
+      function mixUsed = addKEmodBonded(obj,Z1,Z2,types1,types2, mix)
+         if (nargin < 4)
+            types1 = [1 2];
+         end
+         if (nargin < 5)
+            types2 = [1 2];
+         end
+         if (nargin < 6)
+            mix = Mixer();
+            mix.desc = ['KE bonded Z [',num2str(Z1),'] types [', ...
+               num2str(types1),'] with Z [',num2str(Z2),'] types [', ...
+               num2str(types2),']'];
+         end
+         mixerAdded = 0;
+         for iatom = 1:obj.natom
+            for jatom = 1:obj.natom
+               bondExists = obj.isBonded(iatom,jatom);
+               if ((mix.hybrid == 2) && bondExists)
+                  % check for pi bond
+                  bondExists = (obj.coord(iatom) == 3) && ...
+                     (obj.coord(jatom) == 3);
+               end
+               if (bondExists)
+                  for itype = 1:2
+                     for jtype = 1:2
                         addmods = 0;
                         if ((obj.Z(iatom) == Z1) && (obj.Z(jatom) == Z2))
-                            addmods = 1;
+                           if (any(ismember(itype,types1)) && ...
+                                 any(ismember(jtype,types2)) )
+                              addmods = 1;
+                           end
                         end
                         if ((obj.Z(iatom) == Z2) && (obj.Z(jatom) == Z1))
-                            addmods = 1;
+                           if (any(ismember(itype,types2)) && ...
+                                 any(ismember(jtype,types1)) )
+                              addmods = 1;
+                           end
                         end
                         if (addmods)
-                            mixerAdded = 1;
-                            mod.ilist = [obj.valAtom{iatom,1}',...
-                                obj.valAtom{iatom,2}'];
-                            mod.jlist = [obj.valAtom{jatom,1}',...
-                                obj.valAtom{jatom,2}'];
-                            mod.mixer = mix;
-                            obj.KEmods{1,end+1} = mod;
+                           mixerAdded = 1;
+                           mod.ilist = obj.valAtom{iatom,itype}';
+                           mod.jlist = obj.valAtom{jatom,jtype}';
+                           mod.mixer = mix;
+                           obj.KEmods{1,end+1} = mod;
                         end
-                    end
-                end
+                     end
+                  end
+               end
             end
-            if (mixerAdded)
-                obj.addMixer(mix);
-                mixUsed = mix;
-            else
-                mixUsed = [];
+         end
+         if (mixerAdded)
+            obj.addMixer(mix);
+            mixUsed = mix;
+         else
+            mixUsed = [];
+         end
+      end
+      function mixUsed = addMMStretch(obj,oper,Z1,Z2, mix)
+         if (nargin < 5)
+            mix = Mixer();
+            mix.type = 2;
+            mix.par = [0 0 0];
+            mix.fixed = [0 0 0];
+            mix.desc = ['MM ',oper,' Z [',num2str(Z1), ...
+               '] with Z [',num2str(Z2),']'];
+         end
+         mixerAdded = 0;
+         for iatom = 1:obj.natom
+            for jatom = (iatom + 1):obj.natom
+               bondExists = obj.isBonded(iatom,jatom);
+               if (bondExists)
+                  mixerAdded = 1;
+                  mod.ilist = (1:obj.nbasis)';
+                  mod.jlist = (1:obj.nbasis)';
+                  mod.mixer = mix;
+                  switch oper
+                     case 'KE'
+                        obj.KEmods{1,end+1} = mod;
+                     otherwise
+                        error('Model3.addMMStretch: unknown oper type');
+                  end
+               end
             end
-        end
-        function res = H1en(obj, iatom, ienv)
-            % start with H1 matrix of unmodified STO-3G
-            res   = obj.frag.H1en(:,:,iatom);
-            
-            mods = obj.ENmods{1,iatom};
-            for imod = 1:size(mods,2)
-                mod = mods{1,imod};
-                ii = mod.ilist;
-                jj = mod.jlist;
+         end
+         if (mixerAdded)
+            obj.addMixer(mix);
+            mixUsed = mix;
+         else
+            mixUsed = [];
+         end
+      end
+      function mixUsed = addKEmodBondedh(obj,Z1,Z2,mix)
+         mixerAdded = 0;
+         for iatom = 1:obj.natom
+            for jatom = 1:obj.natom
+               bondExists = obj.isBonded(iatom,jatom);
+               if ((mix.hybrid == 2) && bondExists)
+                  % check for pi bond
+                  bondExists = (obj.coord(iatom) == 3) && ...
+                     (obj.coord(jatom) == 3);
+               end
+               if (bondExists)
+                  addmods = 0;
+                  if ((obj.Z(iatom) == Z1) && (obj.Z(jatom) == Z2))
+                     addmods = 1;
+                  end
+                  if ((obj.Z(iatom) == Z2) && (obj.Z(jatom) == Z1))
+                     addmods = 1;
+                  end
+                  if (addmods)
+                     mixerAdded = 1;
+                     mod.ilist = [obj.valAtom{iatom,1}',...
+                        obj.valAtom{iatom,2}'];
+                     mod.jlist = [obj.valAtom{jatom,1}',...
+                        obj.valAtom{jatom,2}'];
+                     mod.mixer = mix;
+                     obj.KEmods{1,end+1} = mod;
+                  end
+               end
+            end
+         end
+         if (mixerAdded)
+            obj.addMixer(mix);
+            mixUsed = mix;
+         else
+            mixUsed = [];
+         end
+      end
+      function res = H1en(obj, iatom, ienv)
+         % start with H1 matrix of unmodified STO-3G
+         res   = obj.frag.H1en(:,:,iatom);
+         
+         mods = obj.ENmods{1,iatom};
+         for imod = 1:size(mods,2)
+            mod = mods{1,imod};
+            ii = mod.ilist;
+            jj = mod.jlist;
                 tmp = mod.mixer.mix(obj.frag.H1en(ii, jj, iatom), obj, ii, jj, ienv);
                 res(ii,jj) = res(ii,jj) - obj.frag.H1en(ii,jj,iatom) ...
                     + tmp;
