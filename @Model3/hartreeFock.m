@@ -7,7 +7,7 @@ function [orb,Eorb,Ehf] = hartreeFock(obj,ienv,eps,maxIter,minIter)
 %          [defaults to 0, with 0 meaning isolated fragment]
 %   eps:   convergence criteria
 %          [defaults to 1e-8]
-% Output
+% Output:
 %   orb:   (nbasis,nbasis)
 %            orbital coefficient matrix (atom basis #, mol orb #)
 %   Eorb:  (nbasis,1)  molecular orbital energies
@@ -28,8 +28,8 @@ end
 
 H1 = obj.H1(ienv);
 H2 = obj.H2(ienv);
-%  H2j {nbasis,nbasis} cell array of coulomb integrals
-%  H2k {nbasis,nbasis} cell array of exchange integrals
+% H2j {nbasis,nbasis} cell array of coulomb integrals
+% H2k {nbasis,nbasis} cell array of exchange integrals
 H2j = cell(obj.nbasis,obj.nbasis);
 H2k = cell(obj.nbasis,obj.nbasis);
 for i=1:obj.nbasis
@@ -39,16 +39,16 @@ for i=1:obj.nbasis
     end
 end
 
-S  = obj.S;
+S = obj.S;
 Enuc = obj.Hnuc(ienv);
 Nelec = obj.frag.nelec;
 
-Nbasis = size(H1,1); %Getting size of basis set
+Nbasis = size(H1,1);  % Getting size of basis set
 
-%step 3 -- Calculate transformation matrix (eq. 3.167)
+% Step 3 -- Calculate transformation matrix (eq. 3.167).
 X = inv(sqrtm(S));
 
-%step 4 -- Guess at density matrix -- all zeros right now
+% Step 4 -- Guess at density matrix -- all zeros right now.
 if ((size(obj.densitySave{ienv+1},1) == 0) && ...
         (size(obj.densitySave{1},1) == 0))
     Pn = obj.frag.density(ienv);
@@ -58,18 +58,18 @@ else
     Pn = obj.densitySave{ienv+1};
 end
 
-Plast = Pn; % previous density matrix
+Plast = Pn;  % previous density matrix
 iter = 0;
 finished = false;
 
-% For use in updating charges
+% For use in updating charges.
 arange = cell(obj.natom,1);
 for iatom = 1:obj.natom
     arange{iatom} = find(obj.basisAtom == iatom);
 end
 
-%Begin iteration through
-while (~finished) %step 11 -- Test convergence
+% Begin iteration through.
+while (~finished)  % Step 11 -- Test convergence
     
     if (iter < maxIter/2)
         P = 0.5 * Pn + 0.5 * Plast;
@@ -90,8 +90,8 @@ while (~finished) %step 11 -- Test convergence
     %       obj.charges(:,ienv+1) = Q;
     %       H1 = obj.H1(ienv);
     %    end
-    %step 5 -- Build 2-electron components of Fock matrix
     
+    % Step 5 -- Build 2-electron components of Fock matrix.
     G = twoElecFock(P, H2j, H2k);
     
     if (obj.verify)
@@ -111,22 +111,22 @@ while (~finished) %step 11 -- Test convergence
         end
     end
     
-    %step 6 -- Obtain F (fock matrix)
+    % Step 6 -- Obtain F (fock matrix).
     F = H1 + G;
     
-    %step 7 -- Calculate the transformed F matrix
+    % Step 7 -- Calculate the transformed F matrix.
     Ft = X'*F*X;
     
-    %step 8 -- Find e and the transformed expansion coefficient matrices
+    % Step 8 -- Find e and the transformed expansion coefficient matrices.
     [Ct1,e1] = eig(Ft);
     e2 = diag(e1);
     [e, i1] = sort(e2);
     Ct = Ct1(:,i1);
     
-    %step 9 -- Transform Ct back to C
+    % Step 9 -- Transform Ct back to C.
     C = X*Ct; %#ok<MINV>
     
-    %step 10 -- Calculate the new density matrix
+    % Step 10 -- Calculate the new density matrix.
     Plast = Pn;
     %Cj = conj(C);
     filled = 1:(Nelec/2);
@@ -151,13 +151,12 @@ while (~finished) %step 11 -- Test convergence
         end
     end
 end
-%End of iteration of steps 5-11
+% End of iteration of steps 5-11.
 
-%if (iter < maxIter)
-P = Pn; %for convenience
+P = Pn;  % For convenience.
 obj.densitySave{ienv+1} = P;
 
-%Step 12: Output
+% Step 12: Output.
 
 %Total energy
 %3.184: E0 = 1/2 Sum(i,j) {P(j,i)[H1(i,j) + F(i,j)]}
@@ -170,17 +169,12 @@ obj.densitySave{ienv+1} = P;
 Ee = sum(sum(P.*(H1+F)));
 Ehf = Ee/2 + Enuc;
 
-%Orbital energies
+% Orbital energies.
 Eorb = e;
 
-%Molecular orbital components
+% Molecular orbital components.
 orb = C;
-% else
-%    Ehf = NaN;
-%    Eorb = NaN;
-%    orb = NaN;
-%    throw(MException('Model3:hartreeFock','exceeded maxIter'));
-% end
+
 if (iter+1 > maxIter)
     disp('You are living on the edge.. hartree fock didn''t converge');
 end

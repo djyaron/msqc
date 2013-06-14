@@ -7,5 +7,6 @@ n = size(envs,2);
 res = zeros(1,n);
 for i = 1:n
    ienv = envs(i);
-   res(i) = sum(sum( obj.density(ienv).*obj.H1en(iatom,ienv) ));
+   %res(i) = sum(sum( obj.density(ienv).*obj.H1en(iatom,ienv) ));
+   res(i) = elementWiseCombine(obj.density(ienv), obj.H1en(iatom, ienv));
 end

@@ -10,7 +10,8 @@ for i = 1:n
    if (ienv == 0)
       res(i) = 0.0;
    else
-      res(i)  = sum(sum( obj.density(ienv).*obj.frag.H1Env(:,:,ienv) ) );
+      %res(i)  = sum(sum( obj.density(ienv).*obj.frag.H1Env(:,:,ienv) ) );
+      res(i) = elementWiseCombine(obj.density(ienv), obj.frag.H1Env(:, :, ienv));
       res(i) = res(i) + obj.frag.HnucEnv(ienv) - obj.frag.Hnuc;
    end
 end
