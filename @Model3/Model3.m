@@ -194,7 +194,7 @@ classdef Model3 < handle
                 mod = obj.KEmods{1,imod};
                 ii = mod.ilist;
                 jj = mod.jlist;
-                tmp = mod.mixer.mix('KE', {ii, jj}, obj, ii, jj, ienv);
+                tmp = mod.mixer.mix(obj.frag.KE(ii, jj), obj, ii, jj, ienv);
                 res(ii,jj) = res(ii,jj) - obj.frag.KE(ii,jj) ...
                     + tmp;
             end
@@ -396,7 +396,7 @@ classdef Model3 < handle
                 mod = mods{1,imod};
                 ii = mod.ilist;
                 jj = mod.jlist;
-                tmp = mod.mixer.mix('H1en', {ii, jj, iatom}, obj, ii, jj, ienv);
+                tmp = mod.mixer.mix(obj.frag.H1en(ii, jj, iatom), obj, ii, jj, ienv);
                 res(ii,jj) = res(ii,jj) - obj.frag.H1en(ii,jj,iatom) ...
                     + tmp;
             end
@@ -741,7 +741,7 @@ classdef Model3 < handle
                     j = mod.jlist;
                     k = mod.klist;
                     l = mod.llist;
-                    tmp = mod.mixer.mix('H2', {i, j, k, l}, obj, i, k, ienv);
+                    tmp = mod.mixer.mix(obj.frag.H2(i, j, k, l), obj, i, k, ienv);
                     res(i,j,k,l) = res(i,j,k,l) - obj.frag.H2(i,j,k,l) ...
                         + tmp;
                 else
