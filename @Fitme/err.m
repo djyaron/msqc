@@ -12,6 +12,10 @@ function [res, plotnum, etype, modelnum, envnum] = err(obj, par)
 %   modelnum:
 %   envnum:
 
+if (nargin < 2)
+   par = obj.getPars;
+end
+
 flip = 0;  % To handle fit routines that pass row or column.
 if (size(par,1)>size(par,2))
    par = par';

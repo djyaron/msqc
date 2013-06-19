@@ -75,6 +75,9 @@ classdef Fitme < handle
          res.costVector=[]; 
          res.cost = 0.0;
          res.operWeights = [];
+
+         % MATLAB derping.
+         warning('off', 'MATLAB:mir_warning_maybe_uninitialized_temporary');
       end
       function addMixer(obj, mix)
          add = 1;
