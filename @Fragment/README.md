@@ -71,10 +71,7 @@ P   3   PAR5
 Create a fragment
 -----------------
 
-The matlab command:
-    frag = Fragment('datapath', config);
-
-creates a fragment, with the template and data stored in the 'datapath' directory. The config variable holds the specification for the calculation. The method `Fragment.defaultConfig()` returns a config structure with default values:
+The matlab command `frag = Fragment('datapath', config)` creates a fragment, with the template and data stored in the 'datapath' directory. The config variable holds the specification for the calculation. The method `Fragment.defaultConfig()` returns a config structure with default values:
 
     template: 'template'  % Template file will be template.tpl.
     basisSet: 'STO-3G'    % Basis set keyword (Gaussian format).
@@ -92,3 +89,58 @@ config.basisSet = 'sto-3g ';
 config.par = [1.0 4.0];
 frag = Fragment('c:\dave\apoly\msqc\data4', config);
 ```
+
+What happens underneath
+-----------------------
+
+The datapath directory is searched to see if this calculation has already been done. If it has, the result is loaded. If not, the following is done to generate data. (See end of this section for how this is stored and checked.)
+
+1. Template file is read in and stored in _templateText_ (properties will be italicized).
+2. _natom_ and _npar_ are initialized by counting # of times ATOM and PAR appear in the template.
+3. `initializeData()` is then called. This routine:
+    1. Defines _header_ to be the part of a Gaussian input file that includes everything down to title.
+    2. Full calculation (a normal Gaussian calculation on the entire molecule).
+        1. Replaces ATOM# with a space, for # = 1..natom.
+        2. Replaces PAR# with the values in the `config.par` array.
+        3. Defines _gaussianFile_ as this input file, adding the keyword "charge" (for use by addEnv).
+        4. Writes out the file 'full.gjf'.
+        5. Calls Gaussian on full.gjf, producing files full.out, temp.fch, fort.32.
+        6. Calls formchk on temp.chk, producing temp.fch (a formatted checkpoint file).
+        7. Calls `Fragment.readfchk()` to read data from temp.fch.
+           If this fails, the error 'failed during fchk read' is generated.
+        8. Calls Fragment.readpolyatom() to read data from fort.32.
+           If this fails, the error 'failed during polyatom read' is generated
+        9. Files are cleaned up by deleting fort.32, full.gjf, full.out, temp.chk and temp.fch.
+
+    3. One-nucleus calculations are done in order to get the H1 matrix elements corresponding to interaction with just one nucleus. (Gaussian allows you to specify an element as X-Bq to cause the basis set for that element to be included in the calculation, without having the nucleus present. We set all nuclei except 1 to be a -Bq element, and then H1 gives the interaction of the entire basis set with the nucleus that is not a -Bq).
+        Loop over iatom and do the following:
+        1. Replace all atoms except iatom with a -Bq element.
+        2. To keep the molecule a singlet, decrease the charge by 1 if iatom has an odd Z (this means adding an electron to the system to keep even # electrons).
+        3. Write this Gaussian input file as atom#.gjf.
+        4. Run Gaussian: produces atom#.out, temp.fch, fort.32.
+        5. Call `Fragment.readpolyatom()` to read H1 from fort.32.
+        6. Files are cleaned up by deleting  fort.32, full.gjf, full.out, temp.chk and temp.fch.
+
+4. Two files are then written:
+    * templateName#_cfg.mat holds the config data structure.
+    * templateName#_calc.mat holds the entire Fragment class.
+where templateName is equal to config.template and # is the next number in a sequence of files stored in the datapath.
+Two calculations are considered the same if their config structures are the same, i.e. if they are based on the same *.tpl file and have the same basis set, spin, charge and parameter array. This will work fine, as long as the *.tpl file is not edited. If *.tpl is changed, all data based on the template becomes invalid and should be deleted.
+
+Adding environments
+-------------------
+
+Results for environments are stored in matlab arrays, and pre-dimensioning these to the correct size is a good idea.
+    frag.setEnvSize(n)   % dimensions the arrays to size n
+
+Then you do:
+    frag.addEnv(env)
+
+1. The code replaces the word '!ENV' with the external charges.
+2. Writes the file env.gjf to the dataPath directory.
+3. Calls Gaussian on env.gjf:  generates env.out, temp.chk and fort.32.
+4. Calls formchk on temp.chk to generate temp.fch.
+5. Reads in temp.fch.
+   If this fails, error 'failed during env fchk read' is generated.
+6. Reads in fort.32
+   If this fails, error 'failed during env polyatom read' is generated.
