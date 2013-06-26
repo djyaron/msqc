@@ -9,7 +9,7 @@ function mexCompile(optArgs)
 % Date:
 %   6-4-13
 % Updated:
-%   6-4-13
+%   6-26-13
 %
 % Inputs:
 %   optArgs: Cell array of strings representing additional compilation
@@ -22,10 +22,15 @@ if (nargin < 1)
     optArgs = {};
 end
 
-blaslib = fullfile(matlabroot, ...
-  'extern', 'lib', 'win64', 'microsoft', 'libmwblas.lib');
-lapacklib = fullfile(matlabroot, ...
-  'extern', 'lib', 'win64', 'microsoft', 'libmwlapack.lib');
+if ispc
+   blaslib = fullfile(matlabroot, ...
+      'extern', 'lib', 'win64', 'microsoft', 'libmwblas.lib');
+   lapacklib = fullfile(matlabroot, ...
+      'extern', 'lib', 'win64', 'microsoft', 'libmwlapack.lib');
+else
+   blaslib = '-lmwblas';
+   lapacklib = '-lmwlapack';
+end
 
 compile('twoElecFock.c', optArgs);
 compile('mm.c', [optArgs {blaslib}]);
