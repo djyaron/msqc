@@ -8,7 +8,7 @@ function [res, plotnum, etype, modelnum, envnum] = err(obj, par)
 % Output:
 %   res:
 %   plotnum:
-%   etype:
+%   etype: Operator type. 1->KE, 2->E2, 3->Etot, 10+#->EN for #.
 %   modelnum:
 %   envnum:
 
@@ -66,13 +66,16 @@ if (obj.parallel == 0)
 else
    jobsPerGroup = max([1 ceil(ncalc/(minWorkload * obj.parallel))]);
 end
-groupSize = ncalc/jobsPerGroup;
+groupSize = ceil(ncalc/jobsPerGroup);
 
 calcRes = cell(jobsPerGroup, groupSize);
 calcs = cell(jobsPerGroup, groupSize);
 
 % Write out matlab files that hold each of the models.
 maxEnv = 0;
+if (~isempty(obj.scratchDir) && exist(obj.scratchDir, 'dir') ~= 7)
+   mkdir(obj.scratchDir);
+end
 for imod = 1:nmodels
    fileName = [obj.scratchDir,'fitmeMod',num2str(imod),'.mat'];
    mod = obj.models{imod}; %#ok<NASGU>
