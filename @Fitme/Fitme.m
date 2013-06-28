@@ -13,7 +13,7 @@ classdef Fitme < handle
       includeE2 % include two-elec energy in fit
       includeEtot % include total energy fit
       
-      parHF   % Last parameters for which HF was solved
+      parHF      % Last parameters for which HF was solved
       epsDensity % re-evaluate density matrix if par change > eps
       epsDensity2 % re-set density matrices if par change > eps
                   % this is because odd parameters can lead to odd
@@ -33,7 +33,7 @@ classdef Fitme < handle
       errTest    % error in test set
       
       arms       % (npar,narms): for bandit algorithm
-      parallel   % true to run err in parallel
+      parallel   % store value of matlabpool('size')
       restartFile % place to save intermediate results
       silent     % suppress all displayed output
       

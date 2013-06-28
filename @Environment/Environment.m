@@ -1,11 +1,11 @@
 classdef Environment < handle
-   %ENVIRONMENT Summary of this class goes here
-   %   Detailed explanation goes here
+   %ENVIRONMENT Environment of a Fragment.
+   %   Environments support point charges and 1-4 order Gaussian fields.
    
    properties
       ncharge   % number of charges
-      rho       % (1,ncharges)  value of charge
-      r         % (3,ncharges)  position of charge
+      rho       % (1,ncharge)  value of charge
+      r         % (3,ncharge)  position of charge
       nfield    % number of fields
       fieldType % specify orientation and order of multipole as [X,Y,Z]
                 % multiple fields given by additional rows in matrix
@@ -25,24 +25,15 @@ classdef Environment < handle
    end % static methods
    
    methods
-      function res = Environment()
-         res.ncharge = 0;
-         res.rho = [];
-         res.r = [];
-         res.nfield = 0;
-         res.fieldType = [];
-         res.fieldMag = [];
+      function obj = Environment()
+         % Return an empty environment.
+         obj.ncharge = 0;
+         obj.nfield = 0;
       end
       function obj = addCharge(obj,r,rho)
-         if (obj.ncharge == 0)
-            obj.ncharge = 1;
-            obj.rho = rho;
-            obj.r = r(:);
-         else
-            obj.ncharge = obj.ncharge + 1;
-            obj.rho(obj.ncharge) = rho;
-            obj.r(:,obj.ncharge) = r(:);
-         end
+         obj.ncharge = obj.ncharge + 1;
+         obj.rho(obj.ncharge) = rho;
+         obj.r(:,obj.ncharge) = r(:);
       end
       function plotFig(obj,nfig)
          figure(nfig);
@@ -61,20 +52,25 @@ classdef Environment < handle
          end
       end
       function res = compare(obj1, obj2)
-         if  size( obj1.ncharge, 1 ) == 0 && size(obj2.ncharge, 1 ) == 0
-             chgEq = 1;
-         elseif size( obj1.ncharge, 1 ) == 0 || size(obj2.ncharge, 1 ) == 0
-             chgEq = 0;
+         % First check that we have the same number of charges.
+         % Need compatibility for unset properties.
+         if  size(obj1.ncharge, 1) == 0 && size(obj2.ncharge, 1) == 0
+            chgEq = 1;
+         elseif size(obj1.ncharge, 1) == 0 || size(obj2.ncharge, 1) == 0
+            chgEq = 0;
          else
-             chgEq = obj1.ncharge == obj2.ncharge;
+            chgEq = obj1.ncharge == obj2.ncharge;
          end
-         if  size( obj1.nfield, 1 ) == 0 && size(obj2.nfield, 1 ) == 0
-             fldEq = 1;
-         elseif size( obj1.nfield, 1 ) == 0 || size(obj2.nfield, 1 ) == 0
-             fldEq = 0;
+         
+         % Same for fields.
+         if  size(obj1.nfield, 1) == 0 && size(obj2.nfield, 1) == 0
+            fldEq = 1;
+         elseif size(obj1.nfield, 1) == 0 || size(obj2.nfield, 1) == 0
+            fldEq = 0;
          else
-             fldEq = obj1.nfield == obj2.nfield;
+            fldEq = obj1.nfield == obj2.nfield;
          end
+         
          if (chgEq && fldEq)
             maxdiff = max(max(abs(obj1.r - obj2.r)));
             maxdiff2 = max(max(abs(obj1.rho-obj2.rho)));
@@ -82,13 +78,14 @@ classdef Environment < handle
             if (max2 > 1.0e-11)
                chgEq = false;
             end
-            if (sum(sum(obj1.fieldType == obj2.fieldType)) ~= 3 * obj1.nfield )
-                fldEq = 0;
+            if (any(any(obj1.fieldType ~= obj2.fieldType)))
+               fldEq = 0;
             end
             if(max(abs(obj1.fieldMag - obj2.fieldMag)) > 1.0e-11)
-                fldEq = 0;
+               fldEq = 0;
             end
          end
+         
          res = chgEq && fldEq;
       end
       function res = gaussianText(obj)

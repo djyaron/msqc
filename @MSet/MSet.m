@@ -1,6 +1,6 @@
 classdef MSet < handle
    properties
-      models   % cell array of current models
+      models  % cell array of current models
       envs    % cell array of the envs to include for each model
       pnum    % number used to specify plot, or printEdetails
       HLfrag  % cell array of high level frags corresponding to model
