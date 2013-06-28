@@ -2,7 +2,11 @@ function loadZipData(obj,zipfile)
 
 tempDir = tempname([obj.gaussianPath,filesep,'Scratch']);
 mkdir(tempDir);
-unzip(zipfile,tempDir);
+try
+    unzip(zipfile,tempDir);
+catch
+    return
+end
 origdir = cd(tempDir); % save location so can move back
 % convert checkpoint file to a formatted checkpoint file
 resp1 = system([obj.gaussianPath,'\formchk.exe full.chk full.fch']);
@@ -41,7 +45,8 @@ obj.nbasis = size(obj.H1,1);
 natom = obj.natom;
 obj.H1en = zeros(n1,n2,natom);
 
-for iatom = 1:natom
+if obj.calcEn == 1
+for iatom = start:natom
    jobname = ['atom',num2str(iatom)];
    try
       fid1 = fopen([tempDir,filesep,jobname,'.f32'],'r');%,'b');
@@ -55,6 +60,7 @@ for iatom = 1:natom
       throw(['failed during polyatom read for atom ',num2str(iatom)]);
    end
    obj.H1en(:,:,iatom) = H1atom - KE;
+end
 end
 
 cd(origdir);

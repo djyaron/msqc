@@ -17,7 +17,7 @@ gaussianExe  = obj.gaussianExe;
 % Do the calculation
 jobname = 'full';
 gjf_file = [jobname,'.gjf'];
-tempDir = tempname([gaussianPath,'/','Scratch']);
+tempDir = tempname([gaussianPath,'\','Scratch']);
 mkdir(tempDir);
 origdir = cd(tempDir); % save location so can move back
 fid1 = fopen(gjf_file,'w');
@@ -26,10 +26,12 @@ fclose(fid1);
 
 setenv('GAUSS_EXEDIR', obj.gaussianPath);
 resp1 = 1; 
+counter = 0;
+count_max = 2;
 while ( resp1 ~= 0)
     try
         resp1 = system([gaussianPath,'\',gaussianExe,' ',gjf_file]);
-        %disp( resp1 );
+        disp( resp1 );
         %disp( resp2 );
         if ( resp1 == 2057 )
             disp( '  removing temporary files' );
@@ -37,14 +39,29 @@ while ( resp1 ~= 0)
                     'temp.chk', 'temp.fch', 'temp.rwf' )
         end
     catch
-        disp( 'Failed, retrying...' );
+        disp( 'Failed, retrying...' )
         resp1 = 1; 
     end
+    if resp1 ~= 0
+        counter = counter + 1
+    end
+    if counter >= count_max
+        return
+    end
 end
+
 movefile('temp.chk','full.chk');
 movefile('fort.32','full.f32');
 
 toZip = {'full.gjf','full.chk','full.f32'};
+
+if obj.config.opt == 1
+    cd( origdir );
+    obj.opt_geom( [tempDir, '\full.out'], [tempDir, '\full_opt_config.txt'] );
+    cd( tempDir );
+    toZip = {toZip{:},'full_opt_config.txt'};
+    
+end
 
 % Do calculations with only one nucleus present at a time
 
@@ -62,6 +79,8 @@ header = ['%rwf=temp.rwf',newline,...
 [n1,n2] = size(obj.H1);
 natom = obj.natom;
 obj.H1en = zeros(n1,n2,natom);
+
+if obj.calcEn == 1
 
 for iatom = 1:natom
    disp(['doing calc for atom ',num2str(iatom)]);
@@ -97,7 +116,7 @@ for iatom = 1:natom
       t1 = strrep(t1, ['PAR',num2str(ipar)], num2str(par(ipar),'%23.12f'));
    end
    ctext = [ctext, t1];
-   
+
    % Do the calculation and read in data
    jobname = ['atom',num2str(iatom)];
    gjf_file = [jobname,'.gjf'];
@@ -119,11 +138,13 @@ for iatom = 1:natom
            resp1 = 1;
        end
    end
+   
    movefile('fort.32',[jobname,'.f32']);
    % read in data from the polyatom output file
 
    toZip = {toZip{:},[jobname,'.f32']};
 end
+end    
 zip(zipFileName,toZip);
 
 cd(origdir);
