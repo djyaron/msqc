@@ -45,7 +45,7 @@ obj.nbasis = size(obj.H1,1);
 natom = obj.natom;
 obj.H1en = zeros(n1,n2,natom);
 
-if obj.calcEn == 1
+if obj.config.calcEn == 0
 for iatom = start:natom
    jobname = ['atom',num2str(iatom)];
    try

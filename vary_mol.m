@@ -1,5 +1,6 @@
 function vary_mol( path )
 
+    current_path = pwd;
     zip = ls( [path, '\*.zip'] );
     if isempty( zip )
         return
@@ -14,29 +15,40 @@ function vary_mol( path )
     old_config = [path, '\full_opt_config.txt'];
     
     for i = 1:max_iter
+        cd( current_path );
         new_dir = [base_dir, num2str( i )];
-        if exist( new_dir, 'file' ) ~= 7
-            mkdir( new_dir );
-            new_config = [new_dir, '\config_vary_', num2str( i ), '.txt' ];
-            copyfile( tpl, new_dir );
-            pars = rand_config( old_config, new_config );
-            %run_gaus( new_dir, pars, 'STO-3G' );
-            run_gaus( new_dir, pars, '631-G' );
+        if exist( new_dir, 'file' ) == 7
+            cd( path );
+            rmdir( [ 'vary', num2str( i ) ], 's' );
+            cd( current_path );
         end
+        run_gaus( path, old_config );
     end
 end
 
 
-function run_gaus( path, pars, basisSet )
+function run_gaus( path, old_config )
 
     config = Fragment.defaultConfig();
     config.template = 'ethane';
-    config.par = pars;
-    config.basisSet = basisSet;
-    Fragment( path, config );
+    config.basisSet = '6-31G';
+%    config.timeOut = 60 * 10;
+    catch_gauss( path, old_config, config, 0 );
 end
 
-function varied_nums = rand_config( old_config, new_config )
+function catch_gauss( path, old_config, config, count )
+    
+    try
+    	config.par = rand_config( old_config );
+        Fragment( path, config )
+    catch
+        if count < 2
+            catch_gauss( path, old_config, config, count + 1 );
+        end
+    end
+end
+
+function varied_nums = rand_config( old_config )
     %Varies config file for a molecule from the optimized config
 
     config_ID = fopen( old_config );
@@ -49,11 +61,6 @@ function varied_nums = rand_config( old_config, new_config )
         temp = floor( i/start_ang_i );
         varied_nums(i) = vary_val( nums(i), temp);
     end
-    new_ID = fopen( new_config, 'w' );
-    for i = 1:length(varied_nums)
-        fprintf( new_ID, '%f\n', varied_nums(i) );
-    end
-    fclose( new_ID );
 end
 
 function new = vary_val( num, type )

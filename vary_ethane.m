@@ -1,7 +1,8 @@
-data_loc = 'C:\Users\Zack\Documents\GitHub\msqc\ethaneRs\testdat';
-
+data_loc = 'D:\testdat';
+current = pwd;
 list = ls( data_loc );
-for i = 3:length(list)
+for i = 1:length(list)
+    cd( current );
     i
     dir_name = list( i, 1:end );
     temp_path = strcat(data_loc, '\', dir_name)
