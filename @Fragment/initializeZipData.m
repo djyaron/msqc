@@ -162,30 +162,39 @@ function iterate_atom(obj)
 end
 
 function runGaus(obj)
-
     %Run Gaussain with .bat file and has a timeout built in (when used)
     %Code should be backwards compatible
+    %Need to do something about var named terminated
 
     while 1
         try
             if obj.config.timeOut == -1
+%%
+                %This is temporary to let Fragment work while timeOut does
+                %not.
+                %When it is working, remove the whoel if, leaving only the
+                %contents of the else statment.
                 resp1 = system([gaussianPath,'\',gaussianExe,' ',gjf_file]);
+%%
             else
-                start_time = clock;
-                time_out = obj.config.timeOut; % seconds
+                startTime = clock;
+                timeOut = obj.config.timeOut; % seconds
                 resp1 = system( [origDir, '\@Fragment\runGaus.bat ', tempDir, '\', jobname, ' &'] );
                 terminated = 0;
                 while exist( [tempDir, '\', jobname, '.done'], 'file' ) == 0
                     pause( 10 );
-                    if etime(clock, start_time) > time_out
+                    if timeCheck( startTime, timeOut )
+                        %I don't think this TASKKILL will work... need to
+                        %figure out something that works...  
                         system('TASKKILL /IM g09.exe /F');
                         terminated = 1;
                         break
                     end
                 end
                 disp( resp1 );
-                %disp( resp2 );
                 if ( resp1 == 2057 )
+                    %THIS PART DOES NOT WORK CAUSE resp1 WILL ALWAYS RETURN
+                    %0 BY USING THE & IN THE SYSTEM CALL
                     disp( '  removing temporary files' );
                     delete( 'fort.6', 'gxx.d2e', 'gxx.inp', 'gxx.int', 'gxx.scr', ...
                         'temp.chk', 'temp.fch', 'temp.rwf' )
@@ -195,11 +204,13 @@ function runGaus(obj)
             disp( 'Failed, retrying...' )
             resp1 = 1;
         end
-        %     if resp1 ~= 0
-        %         counter = counter + 1
-        %     end
-        %     if counter >= count_max
-        %         return
-        %     end
     end
+end
+
+function bool = timeCheck( start, timeOut )
+    %Returns 0 or 1 for if the current time (clock) is more than timeOut 
+    %seconds after start
+    if timeOut == -1
+        bool = 0;
+    bool = etime( clock, start ) > timeOut;
 end
