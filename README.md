@@ -3,6 +3,11 @@ MSQC (Molecular Similarity in Quantum Chemistry)
 
 TODO: Add big picture documentation.
 
+Compilation of MEX C Code
+-------------------------
+
+There are a few MEX routines written in C that must be compiled before use. All of the code can be compiled by simply calling `mexCompile`. If you've never used `mex` before, you'll need to choose a compiler on the first run. If none are available, see http://www.mathworks.com/support/compilers/R2012b/win64.html. For 64 bit Windows and MATLAB R2012b, you probably want http://www.microsoft.com/en-us/download/details.aspx?id=8279.
+
 Basic Flow of a Train and Test Run
 ----------------------------------
 
