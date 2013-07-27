@@ -92,14 +92,14 @@ classdef Fragment < handle
     end
     methods
         function res = Fragment(dataPathIn, configIn)
+            %  function comments
             %  dataPath = directory (including c:\ etc) for data storage
             %               do not include a \ at end of paths
             %               [defaults to 'data']
             %  configIn = configuration structure
             %               [defaults to 'Fragment.defaultConfig();
-            
-            
-%%      Num of arguments handling
+                       
+%%          Num of arguments handling
             if (nargin < 1)
                 res.dataPath = 'data';
             else
@@ -129,24 +129,20 @@ classdef Fragment < handle
                 res.templateText = fileread(...
                     [res.dataPath,filesep, res.config.template,'.tpl']);
                 res.natom = size( strfind(res.templateText, 'ATOM'), 2);
-                res.npar = size( strfind(res.templateText, 'PAR'), 2);
-                
+                res.npar = size( strfind(res.templateText, 'PAR'), 2)             
 %%              Pull config vars
                 basisSet = res.config.basisSet;
                 method   = res.config.method;
                 charge   = res.config.charge;
                 spin     = res.config.spin;
-                par      = res.config.par;
-                
+                par      = res.config.par; 
 %%              Error Checks
                 nparIn = size(res.config.par,1) * size(res.config.par,2);
                 if (nparIn ~= res.npar)
                     error(['template has ',num2str(res.npar),' parameters',...
                         ' while config contains ',num2str(nparIn),' pars']);
-                end
-                
-%%              SET HEADER -> Needs more flexibility/expandability
-                % Separate function perhaps?
+                end          
+%%              Build GJF
                 
                 
                 % ___________________________________________________________
@@ -154,27 +150,15 @@ classdef Fragment < handle
                 %  Note: for single atom calcs below, 'scf=conventional' is replaced
                 %        so if this keyword in header is changed, it needs to be changed
                 %        there as well
-                if res.opt == 0
-                    header = ['%rwf=temp.rwf',newline,...
-                        '%nosave',newline,...
-                        '%chk=temp.chk',newline,...
-                        '# ',method,'/',basisSet, newline...
-                        'nosymm int=noraff iop(99/6=1) ',...
-                        'scf=conventional',' symm=noint', newline, newline, ...
-                        'title', newline,newline];
-                else
-                    header = ['%rwf=temp.rwf',newline,...
-                        '%nosave',newline,...
-                        '%chk=temp.chk',newline,...
-                        '# opt ',method,'/',basisSet, newline...
-                        'nosymm int=noraff iop(99/6=1) ',...
-                        'scf=conventional',' symm=noint', newline, newline, ...
-                        'title', newline,newline];
+                headerObj = Header( basisSet, method );
+                headerObj.link0 = {'rwf=temp.rwf' 'nosave' 'chk=temp.chk'}';
+                if obj.config.opt == 1
+                    headerObj.route = {'opt'};
                 end
+                headerObj.output = {'nosymm int=noraff iop(99/6=1)' ...
+                    'scf=conventional' 'symm=noint'};
                 
-%%              Build GJF -> Move to new function?
-                % Perhaps make it use the ZMatrix class
-                % ZMatrix already has print methods made
+%%      THIS PART IS IN ATOM ITER PART. NEEDS OWN FUNCTION
 
                 % ctext will hold the Gaussian job file (input file)
                 % begin with the above header text
