@@ -57,6 +57,9 @@ void mexFunction (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
     if (nlhs > 1)
         mexErrMsgIdAndTxt("mm:nlhs",
                 "Invalid number of output variables for mm.");
+    if (nrhs < 2)
+        mexErrMsgIdAndTxt("mm:nrhs",
+                "Invalid number of input variables for mm.");
     
     /* Pull data out of the input arrays. */
     mS = prhs[0];
