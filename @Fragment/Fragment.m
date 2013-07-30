@@ -86,12 +86,14 @@ classdef Fragment < handle
       [S, H1, KE, H2, Enuc] = readpolyatom(fid1)
    end
    methods
-      function res = Fragment(dataPathIn, configIn)
+      function res = Fragment(dataPathIn, configIn, useCache)
          %  dataPath = directory (including c:\ etc) for data storage
          %               do not include a \ at end of paths
          %               [defaults to 'data']
          %  configIn = configuration structure
          %               [defaults to 'Fragment.defaultConfig();
+         %  useCache = look in dataPathIn for cached result, and save 
+         %             new results in dataPathIn [defaults to true]
          if (nargin < 1)
             res.dataPath = 'data';
          else
@@ -102,9 +104,17 @@ classdef Fragment < handle
          else
             res.config = configIn;
          end
+         if (nargin < 3)
+            useCache = true;
+         end
          newline = char(10);
-         [found,res.fileprefix] = ...
-            Fragment.findCalc(res.dataPath,res.config);
+         if (useCache)
+            [found,res.fileprefix] = ...
+               Fragment.findCalc(res.dataPath,res.config);
+         else
+            found = false;
+            res.fileprefix = '';
+         end
          % Backword compatibility (load mat file)
          if (found && exist([res.fileprefix,'_calc.mat'],'file'))
             ftemp = [res.fileprefix,'_calc.mat'];
@@ -181,6 +191,9 @@ classdef Fragment < handle
              end
              zipFile = [res.fileprefix,'.zip'];
              res.loadZipData(zipFile);
+             if (~useCache)
+                delete(zipFile);
+             end
          end
          res.nenv = 0;
          % Set the environment array to have the correct class type
