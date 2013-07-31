@@ -1,4 +1,4 @@
-function vary_mol( path )
+8function vary_mol( path )
 
     current_path = pwd;
     zip = ls( [path, '\*.zip'] );

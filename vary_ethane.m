@@ -1,7 +1,7 @@
 data_loc = 'D:\testdat';
 current = pwd;
 list = ls( data_loc );
-for i = 1:length(list)
+for i = 3:4%length(list)
     cd( current );
     i
     dir_name = list( i, 1:end );

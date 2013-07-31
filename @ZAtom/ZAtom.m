@@ -63,26 +63,43 @@ classdef ZAtom < handle
             end
         end
         
-        function print_atom( atom, f_ID )
+        function text = atom_text( atom, bq )
             %Outputs line of z matrix for atom
             %Prints according to if there is a bond, ang or dihedral
             
+            text = '';
             str = strcat(atom.type);
-            fprintf( f_ID, ' %sATOM%u', str, atom.num);
+            text = [text, ' ', str];
+            
+            if nargin > 1
+                if bq == 1
+                    text = [text, '-Bq'];
+                end
+            end
             if atom.num > 1
-                fprintf( f_ID, ' %u B%u', atom.bond_ref, atom.num - 1);
+                bond_str = num2str( atom.bond_ref );
+                var_num_str = num2str( atom.num - 1 );
+                text = [text, ' ', bond_str, ' B', var_num_str];
             end
             if atom.num > 2
-                fprintf( f_ID, '    %u A%u', atom.ang_ref, atom.num - 2);
+                ang_str = num2str( atom.ang_ref );
+                var_num_str = num2str( atom.num - 2 );
+                text = [text, '    ', ang_str, ' A', var_num_str];
             end
             if atom.num > 3
-                fprintf( f_ID, '    %u D%u    0', atom.di_ref, atom.num - 3);
+                di_str = num2str( atom.di_ref );
+                var_num_str = num2str( atom.num - 3 );
+                text = [text, '    ', di_str, ' D', var_num_str];
             end
-            fprintf( f_ID, '\n');
+            text = [text, '\n'];
         end
         
         function up_bond_total( atom )
             atom.bond_total = atom.bond_total + 1;
+        end
+        
+        function find_charge( atom )
+            
         end
     end
     

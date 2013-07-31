@@ -51,8 +51,8 @@ classdef ZMatrix < handle
             %and not having overlapping references, not for type checks)
             
             
-            atom_num = length( zmat.atoms );
-            if nargin > 3
+            atom_num = length( zmat.atoms ) + 1;
+            if nargin > 4
                 if di_ref == ang_ref
                     error('di_ref cannot equal ang_ref');
                 end
@@ -66,7 +66,7 @@ classdef ZMatrix < handle
                 di_ref = 0;
             end
             
-            if nargin > 2
+            if nargin > 3
                 if ang_ref == bond_ref
                     error('ang_ref cannot equal bond_ref');
                 end
@@ -77,56 +77,100 @@ classdef ZMatrix < handle
                 ang_ref = 0;
             end
             
-            if nargin > 1
-                if bond_ang > atom_num
+            if nargin > 2
+                if bond_ref > atom_num
                     error('bond_ref must reference an existing atom in zmat.atoms');
                 end
             else
                 bond_ref = 0;
             end
             
-            if ~(nargin > 0)
+            if nargin == 1
                 type = '';
             end
             
             atom = ZAtom( type, atom_num, bond_ref, ang_ref, di_ref );
             zmat.atoms{ atom_num } = atom;
+            
+            if bond_ref ~= 0
+                zmat.atoms{ bond_ref }.up_bond_total()
+            end
         end
         
-        function print_atoms( zmat, f_ID )
+        function text = build_atoms( zmat, bq )
             %Calls print_atom for each atom in the zmat
+            
+            if nargin < 2
+                bq = 0;
+            end
+            
+            text = '';
             for i = 1:length( zmat.atoms )
                 atom = zmat.atoms{i};
-                atom.print_atom( f_ID );
+                if i == bq
+                    text = [text, atom.atom_text( 1 )];
+                else
+                    text = [text, atom.atom_text( 0 )];
+                end
             end
-            fprintf( f_ID, '\n');
+            text = [text, '\n'];
         end
         
-        function print_pars_with_vars( zmat, f_ID)
+        function text = build_pars_with_vars( zmat )
             %Prints B, A, and D vals with the PAR instead of numbers
+            
             num_atoms = length(zmat.atoms);
             num_bonds = num_atoms - 1;
             num_angs = num_atoms - 2;
             num_dis = num_atoms - 3;
+            
             for i = 1:num_bonds
-                fprintf( f_ID, ...
-                    '   B%u             PAR%u\n', i, i);
+                temp = ['   B', i, '             PAR', i, '\n'];
+                text = [text, temp];
             end
             for i = 1:num_angs
-                fprintf( f_ID, ...
-                    '   A%u             PAR%u\n', i, i + num_bonds);
+                temp = ['   A', i, '             PAR', i + num_bonds, '\n'];
+                text = [text, temp];
             end
             for i = 1:num_dis
-                fprintf( f_ID, ...
-                    '   D%u             PAR%u\n', i, i + num_bonds + num_angs);
+                temp = ['   D', i, '             PAR', i + num_bonds + num_angs, '\n'];
+                text = [text, temp];
             end
-            fprintf( f_ID, '\n!ENV' );
+            text = [text, '\n!ENV'];
         end
-                
+        
+        function text = build_pars_with_nums( zmat )
+            %Prints B, A, and D vals with the PAR instead of numbers
+            
+            num_atoms = length(zmat.atoms);
+            num_bonds = num_atoms - 1;
+            num_angs = num_atoms - 2;
+            num_dis = num_atoms - 3;
+            text = '';
+            for i = 1:num_bonds
+                num_str = num2str( zmat.pars.bond_pars(i) );
+                i_str = num2str(i);
+                temp = ['   B', i_str, '             ', num_str, '\n'];
+                text = [text, temp];
+            end
+            for i = 1:num_angs
+                num_str = num2str( zmat.pars.ang_pars(i) );
+                i_str = num2str(i);
+                temp = ['   A', i_str, '             ', num_str, '\n'];
+                text = [text, temp];
+            end
+            for i = 1:num_dis
+                num_str = num2str( zmat.pars.di_pars(i) );
+                i_str = num2str(i);
+                temp = ['   D', i_str, '             ', num_str, '\n'];
+                text = [text, temp];
+            end
+            text = [text, '\n!ENV'];
+        end
+        
         function print_z_to_tpl( zmat, path )
             full_file = fullfile( path, [ zmat.file_name_base, '.tpl' ] );
             f_ID = fopen( full_file, 'w' );
-            %print_header( f_ID ); %THIS NEEDS TO BE DEFINED FOR YOUR PROJECT
             zmat.print_atoms( f_ID );
             zmat.print_pars_with_vars( f_ID );
             fclose( f_ID );
@@ -155,6 +199,15 @@ classdef ZMatrix < handle
                     '%d\n', zmat.pars.di_pars{i});
             end
             fclose( f_ID );
+        end
+        
+        function text = build_gjf( zmat, bq )
+            
+            if nargin < 2
+                bq = 0;
+            end
+            text = zmat.build_atoms( bq );
+            text = [text, zmat.build_pars_with_nums()];
         end
     end
     

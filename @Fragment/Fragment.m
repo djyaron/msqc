@@ -129,7 +129,7 @@ classdef Fragment < handle
                 res.templateText = fileread(...
                     [res.dataPath,filesep, res.config.template,'.tpl']);
                 res.natom = size( strfind(res.templateText, 'ATOM'), 2);
-                res.npar = size( strfind(res.templateText, 'PAR'), 2)             
+                res.npar = size( strfind(res.templateText, 'PAR'), 2);           
 %%              Pull config vars
                 basisSet = res.config.basisSet;
                 method   = res.config.method;
@@ -144,12 +144,6 @@ classdef Fragment < handle
                 end          
 %%              Build GJF
                 
-                
-                % ___________________________________________________________
-                % header for the Gaussian job file (input file)
-                %  Note: for single atom calcs below, 'scf=conventional' is replaced
-                %        so if this keyword in header is changed, it needs to be changed
-                %        there as well
                 headerObj = Header( basisSet, method );
                 headerObj.link0 = {'rwf=temp.rwf' 'nosave' 'chk=temp.chk'}';
                 if obj.config.opt == 1

@@ -15,9 +15,9 @@ r_groups = {
 %Loops through each r group for the 3 r groups
 for i = 1:length(r_groups)
     r1 = r_groups{i};
-    for j = 1:length(r_groups)
+    for j = 1:i
         r2 = r_groups{j};
-        for k = 1:length(r_groups)
+        for k = 1:j
             r3 = r_groups{k};
             zmat = build_ethane_z(r1, r2, r3);
             zmat.file_name_base = 'ethane';

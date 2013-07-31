@@ -32,15 +32,13 @@ function initializeZipData(obj,zipFileName)
 
 %%  1 NUCLEUS CALCULATIONS
 
-    %The header stuff needs to go into a general class to use
-    %here and in the Fragment constructor
     headerObj = Header( basisSet, method );
     headerObj.link0 = {'rwf=temp.rwf' 'nosave' 'chk=temp.chk'}';
     if obj.config.opt == 1
         headerObj.route = {'opt'};
     end
     headerObj.output = {'nosymm int=noraff iop(99/6=1)' ...
-        'scf=conventional' 'symm=noint'};
+        'scf=(conventional,qc)' 'symm=noint'}; %qc to ensure convergence
     header = headerObj.makeHeader();
 
     [n1,n2] = size(obj.H1);
@@ -48,7 +46,7 @@ function initializeZipData(obj,zipFileName)
     obj.H1en = zeros(n1,n2,natom);
 
     if obj.config.calcEn == 1
-        iterateAtom( obj );
+        iterateAtom( obj, header );
     end
     
 %%  ZIP / CLEAN UP
@@ -72,10 +70,6 @@ function iterateAtom(obj, header)
     for iatom = 1:natom
         disp(['doing calc for atom ',num2str(iatom)]);
         ctext = header;
-        % SCF can have trouble converging for these single-atom calculations
-        % so we add a qc keyword, to help ensure convergence
-        ctext = strrep(ctext,'scf=conventional','scf=(conventional,qc)');
-        % charge and spin come next
         % To keep even number of electrons (and so spin 1), add an electron
         % by increasing the charge
         atomChar = char( tt2( iatom ) );
