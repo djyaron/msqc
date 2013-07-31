@@ -151,7 +151,7 @@ classdef Fragment < handle
                 end
                 headerObj.output = {'nosymm int=noraff iop(99/6=1)' ...
                     'scf=conventional' 'symm=noint'};
-                
+                header = headerObj.makeHeader();
 %%      THIS PART IS IN ATOM ITER PART. NEEDS OWN FUNCTION
 
                 % ctext will hold the Gaussian job file (input file)
@@ -159,19 +159,7 @@ classdef Fragment < handle
                 ctext = header;
                 % charge and spin come next
                 ctext = [ctext, num2str(charge), ' ', num2str(spin), newline];
-                % For molecule specification, we first replace all ATOM# with spaces
-                t1 = res.templateText;
-                % Iterate in reverse order, or replacements will not work properly with
-                % more than 10 atoms.
-                for iatom = res.natom:-1:1
-                    t1 = strrep(t1, ['ATOM',num2str(iatom)], ' ');
-                end
-                % And replace all PAR# with the parameter values
-                for ipar = res.npar:-1:1
-                    t1 = strrep(t1, ['PAR',num2str(ipar)], num2str(par(ipar),'%23.12f'));
-                end
-                ctext = [ctext, t1];
-                
+
                 res.gaussianFile = ctext;
 %%                
 
