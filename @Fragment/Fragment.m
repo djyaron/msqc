@@ -81,6 +81,7 @@ classdef Fragment < handle
             res.opt      = 0;
             res.calcEn   = 1;
             res.timeOut  = -1;
+            res.zmat = ZMatrix();
         end
         
         [found,fileprefix] = findCalc(dataPath,config)
@@ -111,8 +112,6 @@ classdef Fragment < handle
                 res.config = configIn;
             end
 %%
-            
-            newline = char(10);
             [found,res.fileprefix] = Fragment.findCalc(res.dataPath,res.config);
             % Backword compatibility (load mat file)
             if (found && exist([res.fileprefix,'_calc.mat'],'file'))
@@ -124,18 +123,12 @@ classdef Fragment < handle
                 res = resFile;
                 res.fileprefix = prefixsave;
                 res.dataPath = dataPathsave;
-            else % load zip file, with generation if needed
-%%              Set res vals
-                res.templateText = fileread(...
-                    [res.dataPath,filesep, res.config.template,'.tpl']);
-                res.natom = size( strfind(res.templateText, 'ATOM'), 2);
-                res.npar = size( strfind(res.templateText, 'PAR'), 2);           
+            else % load zip file, with generation if needed       
 %%              Pull config vars
                 basisSet = res.config.basisSet;
                 method   = res.config.method;
                 charge   = res.config.charge;
                 spin     = res.config.spin;
-                par      = res.config.par; 
 %%              Error Checks
                 nparIn = size(res.config.par,1) * size(res.config.par,2);
                 if (nparIn ~= res.npar)
@@ -151,17 +144,14 @@ classdef Fragment < handle
                 end
                 headerObj.output = {'nosymm int=noraff iop(99/6=1)' ...
                     'scf=conventional' 'symm=noint'};
+                
                 header = headerObj.makeHeader();
-%%      THIS PART IS IN ATOM ITER PART. NEEDS OWN FUNCTION
+                title = [res.config.template, '\n\n'];
+                charge_mult = [num2str(charge), ' ', num2str(spin), '\n'];
+                zmat_body = zmat.build_gjf();
 
-                % ctext will hold the Gaussian job file (input file)
-                % begin with the above header text
-                ctext = header;
-                % charge and spin come next
-                ctext = [ctext, num2str(charge), ' ', num2str(spin), newline];
-
-                res.gaussianFile = ctext;
-%%                
+                res.gaussianFile = [header, title, charge_mult, zmat_body];
+%%              
 
                 if (~found)
                     temp1 = tempname('a'); % makes "a\uniquestring"
