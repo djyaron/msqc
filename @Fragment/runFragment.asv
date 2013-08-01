@@ -1,0 +1,96 @@
+function runFragment( res )
+%UNTITLED4 Summary of this function goes here
+%   Detailed explanation goes here
+            %  function comments
+            %  dataPath = directory (including c:\ etc) for data storage
+            %               do not include a \ at end of paths
+            %               [defaults to 'data']
+            %  configIn = configuration structure
+            %               [defaults to 'Fragment.defaultConfig();
+                       
+%%          Num of arguments handling
+
+            %Needs to be fixed cause of arg changes!!
+            if (nargin < 1)
+                res.dataPath = 'data';
+            else
+                res.dataPath = dataPathIn;
+            end
+            if (nargin < 2)
+                res.config = Fragment.defaultConfig();
+            else
+                res.config = configIn;
+            end
+%%
+            [found,res.fileprefix] = Fragment.findCalc(res.dataPath,res.config);
+            % Backword compatibility (load mat file)
+            if (found && exist([res.fileprefix,'_calc.mat'],'file'))
+%%              Loads mat file
+                ftemp = [res.fileprefix,'_calc.mat'];
+                prefixsave = res.fileprefix;
+                dataPathsave = res.dataPath;
+                load(ftemp, 'resFile' );
+                res = resFile;
+                res.fileprefix = prefixsave;
+                res.dataPath = dataPathsave;
+            else % load zip file, with generation if needed       
+%%              Pull config vars
+                
+                
+                charge   = res.config.charge;
+                spin     = res.config.spin;
+%%              Error Checks
+                nparIn = size(res.config.par,1) * size(res.config.par,2);
+                if (nparIn ~= res.npar)
+                    error(['template has ',num2str(res.npar),' parameters',...
+                        ' while config contains ',num2str(nparIn),' pars']);
+                end          
+%%              Build GJF
+                
+
+%%              
+
+                if (~found)
+                    temp1 = tempname('a'); % makes "a\uniquestring"
+                    uniqueStr = temp1(3:end);
+                    res.fileprefix = [res.dataPath,filesep,res.config.template, ...
+                        '_',uniqueStr];
+                    % save config file, in *.mat format
+                    Cfile = res.config;
+                    save([res.fileprefix,'_cfg.mat'],  'Cfile' );
+                    % create and save zip file
+                    zipFile = [res.fileprefix,'.zip'];
+                    res.initializeZipData(zipFile);
+                end
+                zipFile = [res.fileprefix,'.zip'];
+                res.loadZipData(zipFile);
+            end
+            res.nenv = 0;
+            % Set the environment array to have the correct class type
+            if exist( 'Environment', 'class' ) == 8
+                res.env = Environment.empty(0,0);
+            end
+
+end
+
+function buildGjf( fragment )
+
+    basisSet = fragment.config.basisSet;
+    method   = fragment.config.method;
+    
+    headerObj = Header( basisSet, method );
+    headerObj.link0 = {'rwf=temp.rwf' 'nosave' 'chk=temp.chk'}';
+    if obj.config.opt == 1
+        headerObj.route = {'opt'};
+    end
+    headerObj.output = {'nosymm int=noraff iop(99/6=1)' ...
+        'scf=conventional' 'symm=noint'};
+    fragment.config.header = headerObj;
+
+    headerText = headerObj.makeHeader();
+    title = [fragment.config.template, '\n\n'];
+    charge_mult = [num2str(charge), ' ', num2str(spin), '\n'];
+    zmat_body = zmat.build_gjf();
+
+    fragment.gaussianFile = [headerText, title, charge_mult, zmat_body];
+end
