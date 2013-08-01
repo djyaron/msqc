@@ -1,6 +1,5 @@
 function runFragment( fragment )
-%UNTITLED4 Summary of this function goes here
-%   Detailed explanation goes here
+
             %  function comments
             %  dataPath = directory (including c:\ etc) for data storage
             %               do not include a \ at end of paths
@@ -21,24 +20,15 @@ function runFragment( fragment )
             else
                 fragment.config = configIn;
             end
-%%
             [found,fragment.fileprefix] = Fragment.findCalc(fragment.dataPath,fragment.config);
-            % Backword compatibility (load mat file)
             
-            %%              Pull config vars
-            
-            
-            charge   = fragment.config.charge;
-            spin     = fragment.config.spin;
             %%              Error Checks
             nparIn = size(fragment.config.par,1) * size(fragment.config.par,2);
             if (nparIn ~= fragment.npar)
                 error(['template has ',num2str(fragment.npar),' parameters',...
                     ' while config contains ',num2str(nparIn),' pars']);
             end
-            %%              Build GJF
-            
-            
+
             %%
             
             if (~found)
@@ -64,6 +54,8 @@ function runFragment( fragment )
 end
 
 function buildGjf( fragment )
+    %Builds the gjf text and puts it in the fragment object
+    %IMPORTANT: Needs to check that it works..
 
     basisSet = fragment.config.basisSet;
     method   = fragment.config.method;
