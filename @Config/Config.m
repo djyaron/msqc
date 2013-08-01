@@ -1,12 +1,21 @@
-classdef Config
+classdef Config < handle
     %UNTITLED3 Summary of this class goes here
     %   Detailed explanation goes here
     
     properties
+        title;
+        basisSet;
+        method;
+        charge;
+        spin;
+        opt;
+        calcEn;
+        timeOut;
+        zmat;
     end
     
     methods
-        function res = defaultConfig()
+        function config = Config()
             %  templateFile = name of template file, in dataPathIn
             %               [defaults to 'template.txt']
             %  basisSet = basis set keyword (Gaussian format)
@@ -18,14 +27,15 @@ classdef Config
             %  spin   = spin (multiplicity) of the fragment,
             %             using Gaussian convention
             %             [defaults to 1]
-            res.template = 'template';
-            res.basisSet = 'STO-3G';
-            res.method   = 'hf';
-            res.charge   = 0;
-            res.spin     = 1;
-            res.calcEn   = 1;
-            res.timeOut  = -1;
-            res.zmat = ZMatrix();
+            config.title = 'template';
+            config.basisSet = 'STO-3G';
+            config.method   = 'hf';
+            config.charge   = 0;
+            config.spin     = 1;
+            config.opt      = 0;
+            config.calcEn   = 1;
+            config.timeOut  = -1;
+            config.zmat = ZMatrix();
         end
     end
     
