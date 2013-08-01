@@ -10,6 +10,10 @@ function plotEnvironment(obj, frag, rdisp)
 %           magnitude of charge. Red corresponds to positive charges and
 %           blue to negative charges. The molecule is shown for reference.
 
+if (nargin < 3)
+    rdisp = zeros(1, 3);
+end
+
 [x,y,z] = sphere(12);
 rhoMax = max(abs(obj.rho));
 
