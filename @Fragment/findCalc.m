@@ -25,25 +25,3 @@ while (~found && (ifile <= nfiles))
    end
    ifile = ifile + 1;   
 end
-
-% ifile = 0;
-% found = false;
-% failed = false;
-% while (~failed && ~found)
-%    ifile = ifile + 1;
-%    fileprefix = [dataPath,filesep,Ctarget.template,'_',int2str(ifile)];
-%    %disp(['looking for ',fileprefix]);
-%    cfgfilename = [fileprefix,'_cfg.mat'];
-%    try % try to open the file
-%       load(cfgfilename,'Cfile');
-%    catch
-%       failed = true;
-%       %disp('not found');
-%    end
-%    if (~failed)
-%       if (size(comp_struct(Cfile,Ctarget),1) == 0)
-%          found = true;
-%          %disp('found it');
-%       end
-%    end
-% end

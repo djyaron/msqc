@@ -23,7 +23,8 @@ function initializeZipData(obj,zipFileName)
         
     % Do the calculation
     [origDir, tempDir] = mkScratchDir( gaussianPath );
-    writeGjf( gjf_file, ctext );
+    gjf_text = buildGjf( fragment );
+    writeGjf( gjf_file, gjf_text );
 
     setenv('GAUSS_EXEDIR', obj.gaussianPath);
 
@@ -144,12 +145,6 @@ function [origDir, tempDir] = mkScratchDir( gaussianPath )
     origDir = cd(tempDir); % save location so can move back
 end
 
-function writeGjf( gjf_file, ctext )
-    fid = fopen(gjf_file,'w');
-    fwrite(fid, [ctext,'\n\n'], 'char');
-    fclose(fid);
-end
-
 function moveFiles( obj )
     movefile('temp.chk','full.chk');
     movefile('fort.32','full.f32');
@@ -162,4 +157,34 @@ function moveFiles( obj )
         cd( tempDir );
         toZip = {toZip{:},'full_opt_config.txt'};
     end
+end
+
+function gjf = buildGjf( fragment )
+    %Builds the gjf text and puts it in the fragment object
+    %IMPORTANT: Needs to check that it works..
+
+    basisSet = fragment.config.basisSet;
+    method   = fragment.config.method;
+    
+    headerObj = Header( basisSet, method );
+    headerObj.link0 = {'rwf=temp.rwf' 'nosave' 'chk=temp.chk'}';
+    if obj.config.opt == 1
+        headerObj.route = {'opt'};
+    end
+    headerObj.output = {'nosymm int=noraff iop(99/6=1)' ...
+        'scf=conventional' 'symm=noint'};
+    fragment.config.header = headerObj;
+
+    headerText = headerObj.makeHeader();
+    title = [fragment.config.template, '\n\n'];
+    charge_mult = [num2str(charge), ' ', num2str(spin), '\n'];
+    zmat_body = zmat.build_gjf();
+
+    gjf = [headerText, title, charge_mult, zmat_body];
+end
+
+function writeGjf( gjf_file, gjf_text )
+    fid = fopen(gjf_file,'w');
+    fwrite(fid, [gjf_text,'\n\n'], 'char');
+    fclose(fid);
 end
