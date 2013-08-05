@@ -1,15 +1,18 @@
-function runFragment( fragment, dataPathIn, configIn)
+function runFragment( fragment, dataPathIn, configIn )
 
     if (nargin < 2)
         fragment.dataPath = 'data';
+        dataPath = 'data';
     else
         fragment.dataPath = dataPathIn;
     end
     if (nargin < 3)
-        fragment.config = Fragment.defaultConfig();
+        config = Config();
+        fragment.config = config;
     else
         fragment.config = configIn;
     end
+    
     nparIn = size(fragment.config.par,1) * size(fragment.config.par,2);
     if (nparIn ~= fragment.npar)
         error(['template has ',num2str(fragment.npar),' parameters',...
@@ -17,7 +20,7 @@ function runFragment( fragment, dataPathIn, configIn)
     end
 
     %%
-    [found,fragment.fileprefix] = Fragment.findCalc(fragment.dataPath,fragment.config);
+    [found,fragment.fileprefix] = Fragment.findCalc(dataPath,config);
     if (~found)
         createTempFolder( fragment );
         save([fragment.fileprefix,'_cfg.mat'], 'fragment.config' );

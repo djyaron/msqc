@@ -1,14 +1,14 @@
 clear( 'all' );
 
-path = 'C:\Users\Zack\Documents\GitHub\msqc\ethaneRs';
+path = 'C:\Users\Zack\Documents\ethaneRs';
 r_groups = {
     {'H'}
-    {'F'}
-    {'Cl'}
+%    {'F'}
+%    {'Cl'}
     {'O' 'H'}
-    {'N' 'H' 'H'}
-    {'N' 'O' 'O'}
-    {'C' 'N'}
+%    {'N' 'H' 'H'}
+%    {'N' 'O' 'O'}
+%    {'C' 'N'}
     {'C' 'O' 'H'}
     };
 
@@ -27,6 +27,10 @@ for i = 1:length(r_groups)
             
             config = Config();
             config.opt = 1;
+            config.zmat = zmat;
+            
+            frag = Fragment();
+            frag.runGaus( )
             
             disp( [i, j, k] );
         end

@@ -1,6 +1,6 @@
 clear( 'all' );
 
-path = 'C:\Users\Zack\Documents\GitHub\msqc\ethaneRs';
+path = 'C:\Users\Zack\Documents\ethaneRs';
 r_groups = {
     {'H'}
 %    {'F'}
@@ -30,6 +30,7 @@ for i = 1:length(r_groups)
             config.zmat = zmat;
             
             frag = Fragment();
+            frag.runGaus( temp_path, config )
             
             disp( [i, j, k] );
         end

@@ -1,14 +1,11 @@
-8function vary_mol( path )
+function vary_mol( path, config )
 
     current_path = pwd;
     zip = ls( [path, '\*.zip'] );
     if isempty( zip )
         return
     end
-    
-    tpl = [path, '\ethane.tpl'];
-    base_dir = [path, '\vary'];
-    max_iter = 5;
+        max_iter = 5;
     
 
     unzip( [path, '\', zip], path );
@@ -29,7 +26,7 @@ end
 
 function run_gaus( path, old_config )
 
-    config = Fragment.defaultConfig();
+    config = Config();
     config.template = 'ethane';
     config.basisSet = '6-31G';
 %    config.timeOut = 60 * 10;
