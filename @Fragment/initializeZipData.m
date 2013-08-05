@@ -1,4 +1,4 @@
-function initializeZipData(obj,zipFileName)
+function initializeZipData( fragment,zipFileName )
     % runs gaussian in scratch directories, and puts all relavant files
     % into zipFileName
     
@@ -7,40 +7,40 @@ function initializeZipData(obj,zipFileName)
     jobname = 'full';
     gjf_file = [jobname,'.gjf'];
     
-    basisSet = obj.config.basisSet;
-    method   = obj.config.method;
-    gaussianPath = obj.gaussianPath;
+    basisSet = fragment.config.basisSet;
+    method   = fragment.config.method;
+    gaussianPath = fragment.gaussianPath;
 
 %%  FILE MANAGEMENT / RUN GAUS
 
     disp('initializing the data');
         
     % Do the calculation
-    [origDir, tempDir] = mkScratchDir( gaussianPath );
     gjf_text = buildGjf( fragment );
     writeGjf( gjf_file, gjf_text );
+    [origDir, tempDir] = mkScratchDir( gaussianPath );
 
-    setenv('GAUSS_EXEDIR', obj.gaussianPath);
+    setenv('GAUSS_EXEDIR', fragment.gaussianPath);
 
-    runGaus( obj )
-    moveFiles( obj );
+    runGaus( fragment )
+    moveFiles( fragment );
 
 %%  1 NUCLEUS CALCULATIONS
 
     headerObj = Header( basisSet, method );
     headerObj.link0 = {'rwf=temp.rwf' 'nosave' 'chk=temp.chk'}';
-    if obj.config.opt == 1
+    if fragment.config.opt == 1
         headerObj.route = {'opt'};
     end
     headerObj.output = {'nosymm int=noraff iop(99/6=1)' ...
         'scf=(conventional,qc)' 'symm=noint'}; %qc to ensure convergence
     header = headerObj.makeHeader();
 
-    [n1,n2] = size(obj.H1);
-    natom = obj.natom;
+    [n1,n2] = size(fragment.H1);
+    natom = fragment.natom;
     obj.H1en = zeros(n1,n2,natom);
 
-    if obj.config.calcEn == 1
+    if fragment.config.calcEn == 1
         iterateAtom( obj, header );
     end
     
@@ -139,13 +139,13 @@ function [origDir, tempDir] = mkScratchDir( gaussianPath )
     origDir = cd(tempDir); % save location so can move back
 end
 
-function moveFiles( obj )
+function moveFiles( fragment )
     movefile('temp.chk','full.chk');
     movefile('fort.32','full.f32');
 
     toZip = {'full.gjf','full.chk','full.f32'};
 
-    if obj.config.opt == 1
+    if fragment.config.opt == 1
         cd( origDir );
         obj.opt_geom( [tempDir, '\full.out'], [tempDir, '\full_opt_config.txt'] );
         cd( tempDir );
@@ -153,24 +153,32 @@ function moveFiles( obj )
     end
 end
 
-function gjf = buildGjf( fragment )
-    %Builds the gjf text and puts it in the fragment object
-    %IMPORTANT: Needs to check that it works..
+function gjf = buildGjf( fragment, bq, charge, spin )
+
+    if nargin < 2
+        bq = 0
+    end
+    if nargin < 3
+        charge = fragment.config.charge;
+    end
+    if nargin < 4
+        spin = fragment.config.spin;
+    end
 
     basisSet = fragment.config.basisSet;
     method   = fragment.config.method;
     
+    
     headerObj = Header( basisSet, method );
     headerObj.link0 = {'rwf=temp.rwf' 'nosave' 'chk=temp.chk'}';
-    if obj.config.opt == 1
+    if fragment.config.opt == 1
         headerObj.route = {'opt'};
     end
     headerObj.output = {'nosymm int=noraff iop(99/6=1)' ...
         'scf=conventional' 'symm=noint'};
-    fragment.config.header = headerObj;
 
     headerText = headerObj.makeHeader();
-    title = [fragment.config.template, '\n\n'];
+    title = [fragment.config.title, '\n\n'];
     charge_mult = [num2str(charge), ' ', num2str(spin), '\n'];
     zmat_body = zmat.build_gjf();
 
