@@ -40,6 +40,13 @@ if (found)
       disp(['found env results, loading ',calcfilename]);
       loadMatFileFormat(obj,calcfilename,envTarget);
       return;
+   end 
+   
+   % If the cfg file exists, but not the zip file, delete the cfg
+   % and proceed as though it was not found.
+   if (~exist([fileEnvPrefix, '.zip'], 'file'))
+       delete([fileEnvPrefix, '_cfg.mat']);
+       found = false;
    end
 end
 

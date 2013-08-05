@@ -10,7 +10,7 @@ function res = dipoleEnvironment( frag, cubeExtension, mag, ndipole )
 %       res: Environment object
 
 % Data to be used in determining minimum safe distance for charges.
-load( [ '@Environment', filesep, 'atomicRadii.mat' ] );
+load(fullfile('@Environment', 'atomicRadii.mat'));
 
 rcartAng = frag.rcart; 
 
@@ -83,7 +83,7 @@ rho = rhoParity .* rhoScale .* mag;
 ncharge = 2 * ndipole;
 res.rho = zeros( 1, ncharge );
 res.rho( 1:2:ncharge ) = rho;
-res.rho( 2:2:ncharge ) = rho;
+res.rho( 2:2:ncharge ) = -rho;
 
 res.ncharge = ncharge;
 res.r = r;

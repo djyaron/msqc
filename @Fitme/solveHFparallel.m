@@ -18,7 +18,8 @@ end
 %H1 = cell(ncalcs,1);
 %H2 = cell(ncalcs,1);
 mdata = cell(ncalcs,1);
-S  = cell(ncalcs,1);
+%S  = cell(ncalcs,1);
+X = cell(ncalcs,1);
 Enuc = zeros(ncalcs,1);
 Nelec = zeros(ncalcs,1);
 guessDensity = cell(ncalcs,1);
@@ -34,7 +35,8 @@ for imod = 1:obj.nmodels
       %H1{icalc} = mod.H1(ienv);
       %H2{icalc} = mod.H2(ienv);
       mdata{icalc} = mod.dataForParallel;
-      S{icalc}  = mod.S; % could be optimized since no ienv dependence
+      %S{icalc}  = mod.S; % could be optimized since no ienv dependence
+      X{icalc} = mod.X;
       Enuc(icalc) = mod.Hnuc(ienv);
       Nelec(icalc) = mod.nelec;
       if ((size(mod.densitySave{ienv+1},1) == 0) && ...
@@ -64,7 +66,7 @@ parfor icalc = 1:ncalcs
    H2 = mod.H2(envNumber(icalc));
    %disp('starting HFsolve');
   [P{icalc},orb{icalc},Eorb{icalc},Ehf(icalc),failed(icalc) ] = ...
-   HFsolve(H1,H2, S{icalc}, Enuc(icalc), Nelec(icalc), ...
+   HFsolve(H1,H2, X{icalc}, Enuc(icalc), Nelec(icalc), ...
    guessDensity{icalc});
    %disp('HFsovle over');
 end

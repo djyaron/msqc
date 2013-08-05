@@ -28,7 +28,7 @@ classdef MixerC < handle
          obj.fixed = ones(size(par));
          obj.hybrid = hybrid;
          obj.bonded = true;
-         obj.funcType = validatestring(funcType,{'scale','const','interp'});
+         obj.funcType = validatestring(funcType,{'scale','const'});
          obj.context = [];
       end
       function res = deepCopy(obj)
@@ -77,24 +77,6 @@ classdef MixerC < handle
                error(['Mixer: mixFunctionNormal: unknown functype ',...
                   num2str(obj.funcType)]);
          end
-      end
-      function res = mix(obj, v0, v1, v2, model, ii, jj, ienv)
-         iatom = model.basisAtom(ii(1));
-         jatom = model.basisAtom(jj(1));
-         bond = model.isBonded(iatom,jatom);
-         if ((iatom ~= jatom) && (obj.bonded ~= bond))
-            res = v0;
-            return
-         end
-         if (isempty(obj.context))
-            x = obj.par(1);
-         else
-            contextVars = ...
-               obj.cset.getContext(model,obj,iatom,jatom,ienv);
-            contextPars = obj.par(2:end);
-            x = obj.par(1) + sum(contextPars(:) .* contextVars(:));
-         end
-         res = obj.mixFunction(x,v0,v1,v2, model, ii, jj);
       end
       function res = toString(obj)
          htypes = {'','hyb-sig','hyb-pi'};
