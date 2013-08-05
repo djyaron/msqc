@@ -705,20 +705,20 @@ classdef Model3 < handle
             for jatom = 1:obj.natom
                if (iatom ~= jatom)
                   bondExists = obj.isBonded(iatom,jatom);
-                  %%if (bondExists == mix.bonded)
-                  if ( ((obj.Z(iatom) == Z1) && (obj.Z(jatom) == Z2)) || ...
-                        ((obj.Z(iatom) == Z2) && (obj.Z(jatom) == Z1)) )
-                     mixerAdded = 1;
-                     ilist = [obj.valAtom{iatom,1}',obj.valAtom{iatom,2}'];
-                     jlist = [obj.valAtom{jatom,1}',obj.valAtom{jatom,2}'];
-                     mod.ilist = ilist;
-                     mod.jlist = ilist;
-                     mod.klist = jlist;
-                     mod.llist = jlist;
-                     mod.mixer = mix;
-                     obj.H2mods{1,end+1} = mod;
+                  if (bondExists == mix.bonded)
+                     if ( ((obj.Z(iatom) == Z1) && (obj.Z(jatom) == Z2)) || ...
+                           ((obj.Z(iatom) == Z2) && (obj.Z(jatom) == Z1)) )
+                        mixerAdded = 1;
+                        ilist = [obj.valAtom{iatom,1}',obj.valAtom{iatom,2}'];
+                        jlist = [obj.valAtom{jatom,1}',obj.valAtom{jatom,2}'];
+                        mod.ilist = ilist;
+                        mod.jlist = ilist;
+                        mod.klist = jlist;
+                        mod.llist = jlist;
+                        mod.mixer = mix;
+                        obj.H2mods{1,end+1} = mod;
+                     end
                   end
-                  %end
                end
             end
          end
