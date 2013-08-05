@@ -24,7 +24,6 @@ for i = 1:length(r_groups)
             zmat.pars = Ethane_pars( zmat.atoms );
             temp_path = tempname([path,'\','testdat']);
             mkdir( temp_path );
-            disp( [i, j, k] );
         end
     end
 end

@@ -68,18 +68,18 @@ classdef Fragment < handle
         [S, H1, KE, H2, Enuc] = readpolyatom(fid1)
     end
     methods
-        function res = Fragment(dataPathIn, configIn)
-            if (nargin < 1)
-                res.dataPath = 'data';
-            else
-                res.dataPath = dataPathIn;
-            end
-            if (nargin < 2)
-                res.config = Fragment.defaultConfig();
-            else
-                res.config = configIn;
-            end
-        end
+%         function res = Fragment(dataPathIn, configIn)
+%             if (nargin < 1)
+%                 res.dataPath = 'data';
+%             else
+%                 res.dataPath = dataPathIn;
+%             end
+%             if (nargin < 2)
+%                 res.config = Fragment.defaultConfig();
+%             else
+%                 res.config = configIn;
+%             end
+%         end
         function setEnvSize(obj,nenvIn)
             clear obj.env;
             obj.env(1,nenvIn) = Environment;

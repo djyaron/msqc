@@ -3,12 +3,12 @@ clear( 'all' );
 path = 'C:\Users\Zack\Documents\GitHub\msqc\ethaneRs';
 r_groups = {
     {'H'}
-    {'F'}
-    {'Cl'}
+%    {'F'}
+%    {'Cl'}
     {'O' 'H'}
-    {'N' 'H' 'H'}
-    {'N' 'O' 'O'}
-    {'C' 'N'}
+%    {'N' 'H' 'H'}
+%    {'N' 'O' 'O'}
+%    {'C' 'N'}
     {'C' 'O' 'H'}
     };
 
@@ -24,6 +24,13 @@ for i = 1:length(r_groups)
             zmat.pars = Ethane_pars( zmat.atoms );
             temp_path = tempname([path,'\','testdat']);
             mkdir( temp_path );
+            
+            config = Config();
+            config.opt = 1;
+            config.zmat = zmat;
+            
+            frag = Fragment();
+            
             disp( [i, j, k] );
         end
     end
