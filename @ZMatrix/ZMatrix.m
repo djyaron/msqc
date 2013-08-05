@@ -152,19 +152,19 @@ classdef ZMatrix < handle
             num_dis = num_atoms - 3;
             text = '';
             for i = 1:num_bonds
-                num_str = num2str( zmat.pars.bond_pars(i) );
+                num_str = num2str( zmat.pars.bond_pars{i} );
                 i_str = num2str(i);
                 temp = ['   B', i_str, '             ', num_str, '\n'];
                 text = [text, temp];
             end
             for i = 1:num_angs
-                num_str = num2str( zmat.pars.ang_pars(i) );
+                num_str = num2str( zmat.pars.ang_pars{i} );
                 i_str = num2str(i);
                 temp = ['   A', i_str, '             ', num_str, '\n'];
                 text = [text, temp];
             end
             for i = 1:num_dis
-                num_str = num2str( zmat.pars.di_pars(i) );
+                num_str = num2str( zmat.pars.di_pars{i} );
                 i_str = num2str(i);
                 temp = ['   D', i_str, '             ', num_str, '\n'];
                 text = [text, temp];

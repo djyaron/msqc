@@ -19,10 +19,12 @@ function initializeZipData( fragment,zipFileName )
     gjf_text = buildGjf( fragment );
     writeGjf( gjf_file, gjf_text );
     [origDir, tempDir] = mkScratchDir( gaussianPath );
-
+    gjf_file = [origDir,'\',gjf_file];
+    movefile( gjf_file, tempDir );
+    
     setenv('GAUSS_EXEDIR', fragment.gaussianPath);
 
-    runGaus( fragment )
+    runGaus( fragment, gjf_file )
     moveFiles( fragment );
 
 %%  1 NUCLEUS CALCULATIONS
@@ -79,13 +81,13 @@ function iterateAtom(header)
     end
 end
 
-function runGaus(obj)
+function runGaus(fragment, gjf_file)
     %Run Gaussain with .bat file and has a timeout built in (when used)
     %Code should be backwards compatible
     %Need to do something about var named terminated
 
     try
-        if obj.config.timeOut == -1
+        if fragment.config.timeOut == -1
             %%
             %This is temporary to let Fragment work while timeOut does
             %not.
@@ -108,13 +110,13 @@ function runGaus(obj)
                     break
                 end
             end
-            if ( resp1 == 2057 )
-                %THIS PART DOES NOT WORK CAUSE resp1 WILL ALWAYS RETURN
-                %0 BY USING THE & IN THE SYSTEM CALL
-                disp( '  removing temporary files' );
-                delete( 'fort.6', 'gxx.d2e', 'gxx.inp', 'gxx.int', 'gxx.scr', ...
-                    'temp.chk', 'temp.fch', 'temp.rwf' )
-            end
+        end
+        if ( resp1 == 2057 )
+            %THIS PART DOES NOT WORK CAUSE resp1 WILL ALWAYS RETURN
+            %0 BY USING THE & IN THE SYSTEM CALL
+            disp( '  removing temporary files' );
+            delete( 'fort.6', 'gxx.d2e', 'gxx.inp', 'gxx.int', 'gxx.scr', ...
+                'temp.chk', 'temp.fch', 'temp.rwf' )
         end
     catch
         disp( 'Failed, retrying...' )
@@ -156,7 +158,7 @@ end
 function gjf = buildGjf( fragment, bq, charge, spin )
 
     if nargin < 2
-        bq = 0
+        bq = 0;
     end
     if nargin < 3
         charge = fragment.config.charge;
@@ -180,7 +182,7 @@ function gjf = buildGjf( fragment, bq, charge, spin )
     headerText = headerObj.makeHeader();
     title = [fragment.config.title, '\n\n'];
     charge_mult = [num2str(charge), ' ', num2str(spin), '\n'];
-    zmat_body = zmat.build_gjf();
+    zmat_body = fragment.config.zmat.build_gjf( bq );
 
     gjf = [headerText, title, charge_mult, zmat_body];
 end
