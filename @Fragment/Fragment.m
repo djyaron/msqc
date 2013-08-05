@@ -69,7 +69,16 @@ classdef Fragment < handle
     end
     methods
         function res = Fragment(dataPathIn, configIn)
-
+            if (nargin < 1)
+                res.dataPath = 'data';
+            else
+                res.dataPath = dataPathIn;
+            end
+            if (nargin < 2)
+                res.config = Fragment.defaultConfig();
+            else
+                res.config = configIn;
+            end
         end
         function setEnvSize(obj,nenvIn)
             clear obj.env;

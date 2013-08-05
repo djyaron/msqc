@@ -69,7 +69,7 @@ classdef Fragment < handle
     end
     methods
         function res = Fragment(dataPathIn, configIn)
-
+            
         end
         function setEnvSize(obj,nenvIn)
             clear obj.env;

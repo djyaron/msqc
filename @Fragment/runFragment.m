@@ -9,7 +9,7 @@ function runFragment( fragment )
             %%
             [found,fragment.fileprefix] = Fragment.findCalc(fragment.dataPath,fragment.config);
             if (~found)
-                fragment.createTempFolder();
+                createTempFolder( fragment );
                 save([fragment.fileprefix,'_cfg.mat'], 'fragment.config' );
                 fragment.initializeZipData( [fragment.fileprefix,'.zip'] );
             end
