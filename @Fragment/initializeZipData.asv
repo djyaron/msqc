@@ -20,10 +20,11 @@ function initializeZipData( fragment,zipFileName )
     writeGjf( gjf_file, gjf_text );
     [origDir, tempDir] = mkScratchDir( gaussianPath );
     movefile( [origDir,'\',gjf_file], tempDir );
+    gjf_file = [tempDir,'\',gjf_file];
     
     setenv('GAUSS_EXEDIR', fragment.gaussianPath);
 
-    runGaus( fragment )
+    runGaus( fragment, gjf_file )
     moveFiles( fragment );
 
 %%  1 NUCLEUS CALCULATIONS
@@ -80,28 +81,29 @@ function iterateAtom(header)
     end
 end
 
-function runGaus(fragment)
+function runGaus(fragment, gjf_file)
     %Run Gaussain with .bat file and has a timeout built in (when used)
     %Code should be backwards compatible
     %Need to do something about var named terminated
 
     try
-        if fragment.config.timeOut == -1
-            %%
-            %This is temporary to let Fragment work while timeOut does
-            %not.
-            %When it is working, remove the whole if, leaving only the
-            %contents of the else statment.
-            resp1 = system([gaussianPath,'\',gaussianExe,' ',gjf_file]);
-            %%
-        else
-            startTime = clock;
+%         if fragment.config.timeOut == -1
+%             %%
+%             %This is temporary to let Fragment work while timeOut does
+%             %not.
+%             %When it is working, remove the whole if, leaving only the
+%             %contents of the else statment.
+%             gaussianPath = fragment.gaussianPath;
+%             gaussianExe = fragment.gaussianExe;
+%             resp1 = system([gaussianPath,'\',gaussianExe,' ',gjf_file])
+%         else
+            startTime = clock; 
             timeOut = obj.config.timeOut; % seconds
             system( [origDir, '\@Fragment\runGaus.bat ', tempDir, '\', jobname, ' &'] );
             terminated = 0;
             while exist( [tempDir, '\', jobname, '.done'], 'file' ) == 0
                 pause( 10 );
-                if timeCheck( startTime, timeOut )
+                if timeOut timeCheck( startTime, timeOut )
                     %I don't think this TASKKILL will work... need to
                     %figure out something that works...
                     system('TASKKILL /IM g09.exe /F');
@@ -109,13 +111,13 @@ function runGaus(fragment)
                     break
                 end
             end
-            if ( resp1 == 2057 )
-                %THIS PART DOES NOT WORK CAUSE resp1 WILL ALWAYS RETURN
-                %0 BY USING THE & IN THE SYSTEM CALL
-                disp( '  removing temporary files' );
-                delete( 'fort.6', 'gxx.d2e', 'gxx.inp', 'gxx.int', 'gxx.scr', ...
-                    'temp.chk', 'temp.fch', 'temp.rwf' )
-            end
+%         end
+        if ( resp1 == 2057 )
+            %THIS PART DOES NOT WORK CAUSE resp1 WILL ALWAYS RETURN
+            %0 BY USING THE & IN THE SYSTEM CALL
+            disp( '  removing temporary files' );
+            delete( 'fort.6', 'gxx.d2e', 'gxx.inp', 'gxx.int', 'gxx.scr', ...
+                'temp.chk', 'temp.fch', 'temp.rwf' )
         end
     catch
         disp( 'Failed, retrying...' )

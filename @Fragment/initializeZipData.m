@@ -19,8 +19,8 @@ function initializeZipData( fragment,zipFileName )
     gjf_text = buildGjf( fragment );
     writeGjf( gjf_file, gjf_text );
     [origDir, tempDir] = mkScratchDir( gaussianPath );
-    gjf_file = [origDir,'\',gjf_file];
-    movefile( gjf_file, tempDir );
+    movefile( [origDir,'\',gjf_file], tempDir );
+    gjf_file = [tempDir,'\',gjf_file];
     
     setenv('GAUSS_EXEDIR', fragment.gaussianPath);
 
@@ -87,22 +87,23 @@ function runGaus(fragment, gjf_file)
     %Need to do something about var named terminated
 
     try
-        if fragment.config.timeOut == -1
-            %%
-            %This is temporary to let Fragment work while timeOut does
-            %not.
-            %When it is working, remove the whole if, leaving only the
-            %contents of the else statment.
-            resp1 = system([gaussianPath,'\',gaussianExe,' ',gjf_file]);
-            %%
-        else
-            startTime = clock;
+%         if fragment.config.timeOut == -1
+%             %%
+%             %This is temporary to let Fragment work while timeOut does
+%             %not.
+%             %When it is working, remove the whole if, leaving only the
+%             %contents of the else statment.
+%             gaussianPath = fragment.gaussianPath;
+%             gaussianExe = fragment.gaussianExe;
+%             resp1 = system([gaussianPath,'\',gaussianExe,' ',gjf_file])
+%         else
+            startTime = clock; 
             timeOut = obj.config.timeOut; % seconds
             system( [origDir, '\@Fragment\runGaus.bat ', tempDir, '\', jobname, ' &'] );
             terminated = 0;
             while exist( [tempDir, '\', jobname, '.done'], 'file' ) == 0
                 pause( 10 );
-                if timeCheck( startTime, timeOut )
+                if timeOut ~= -1 && timeCheck( startTime, timeOut )
                     %I don't think this TASKKILL will work... need to
                     %figure out something that works...
                     system('TASKKILL /IM g09.exe /F');
@@ -110,7 +111,7 @@ function runGaus(fragment, gjf_file)
                     break
                 end
             end
-        end
+%         end
         if ( resp1 == 2057 )
             %THIS PART DOES NOT WORK CAUSE resp1 WILL ALWAYS RETURN
             %0 BY USING THE & IN THE SYSTEM CALL
