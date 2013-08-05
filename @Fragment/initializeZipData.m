@@ -9,13 +9,7 @@ function initializeZipData(obj,zipFileName)
     
     basisSet = obj.config.basisSet;
     method   = obj.config.method;
-    charge   = obj.config.charge;
-    spin     = obj.config.spin;
-    par      = obj.config.par;
-    ctext    = obj.gaussianFile;
-    dataPath = obj.dataPath;
     gaussianPath = obj.gaussianPath;
-    gaussianExe  = obj.gaussianExe;
 
 %%  FILE MANAGEMENT / RUN GAUS
 

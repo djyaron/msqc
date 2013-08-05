@@ -53,25 +53,29 @@ classdef ZMatrix < handle
             
             atom_num = length( zmat.atoms ) + 1;
             if nargin > 4
-                if di_ref == ang_ref
-                    error('di_ref cannot equal ang_ref');
-                end
-                if di_ref == bond_ref
-                    error('di_ref cannot equal ang_ref');
-                end
-                if di_ref > atom_num
-                    error('di_ref must reference an existing atom in zmat.atoms');
+                if di_ref ~= 0
+                    if di_ref == ang_ref
+                        error('di_ref cannot equal ang_ref');
+                    end
+                    if di_ref == bond_ref
+                        error('di_ref cannot equal ang_ref');
+                    end
+                    if di_ref > atom_num
+                        error('di_ref must reference an existing atom in zmat.atoms');
+                    end
                 end
             else
                 di_ref = 0;
             end
             
             if nargin > 3
-                if ang_ref == bond_ref
-                    error('ang_ref cannot equal bond_ref');
-                end
-                if ang_ref > atom_num
-                    error('ang_ref must reference an existing atom in zmat.atoms');
+                if ang_ref ~= 0
+                    if ang_ref == bond_ref
+                        error('ang_ref cannot equal bond_ref');
+                    end
+                    if ang_ref > atom_num
+                        error('ang_ref must reference an existing atom in zmat.atoms');
+                    end
                 end
             else
                 ang_ref = 0;

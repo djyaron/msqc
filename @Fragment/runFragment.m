@@ -5,25 +5,21 @@ function runFragment( fragment, dataPathIn, configIn )
         dataPath = 'data';
     else
         fragment.dataPath = dataPathIn;
+        dataPath = dataPathIn;
     end
     if (nargin < 3)
         config = Config();
-        fragment.config = config;
+        fragment.config = configIn;
     else
         fragment.config = configIn;
-    end
-    
-    nparIn = size(fragment.config.par,1) * size(fragment.config.par,2);
-    if (nparIn ~= fragment.npar)
-        error(['template has ',num2str(fragment.npar),' parameters',...
-            ' while config contains ',num2str(nparIn),' pars']);
+        config = configIn;
     end
 
     %%
     [found,fragment.fileprefix] = Fragment.findCalc(dataPath,config);
     if (~found)
         createTempFolder( fragment );
-        save([fragment.fileprefix,'_cfg.mat'], 'fragment.config' );
+        save([fragment.fileprefix,'_cfg.mat'], 'config' );
         fragment.initializeZipData( [fragment.fileprefix,'.zip'] );
     end
     fragment.loadZipData( [fragment.fileprefix,'.zip'] );
@@ -39,6 +35,6 @@ end
 function createTempFolder( fragment )
     temp1 = tempname('a'); % makes "a\uniquestring"
     uniqueStr = temp1(3:end);
-    fragment.fileprefix = [fragment.dataPath,filesep,fragment.config.template, ...
+    fragment.fileprefix = [fragment.dataPath,filesep,fragment.config.title, ...
         '_',uniqueStr];
 end
