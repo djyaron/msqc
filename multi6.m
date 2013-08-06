@@ -1,51 +1,48 @@
 %% Fitting multiple molecules, using makeFitme
-%clear classes;
+clear classes;
 %topDir = 'T:\matdl\yaron\6-22-12\scaleconst\';
-topDir = 'scaleconst/';
-if (Aprocess == 1)
-   ics = [9];
-elseif (Aprocess == 2)
-   ics = [9];
-else
-   ics = [3 7];
-end
-%trainC{1}  = {'h2',2:7,'envs',1:10};
-%testC{1} = {'h2',2:7,'envs',20:30};
-ftype = 1;
-trainC{1}  = {'h2',[],'ch4',1:17,'envs',1:10};
-testC{1} = {'h2',[],'ch4',1:17,'envs',20:30};
+topDir = 'tmp/';
+
+ics = [1 2 4 6];
+
+trainEnv = [1:10 21:25 41:45];
+testEnv  = [11:20 26:30 46:50];
+
+ftype = 2;
+trainC{1}  = {'h2',[],'ch4',1:16,'envs',trainEnv};
+testC{1} = {'h2',[],'ch4',1:16,'envs',testEnv};
 filePrefix{1} = 'ch4';
 
-trainC{2}  = {'h2',[],'ethane',1:7,'envs',1:10};
-testC{2} = {'h2',[],'ethane',1:7,'envs',20:30};
+trainC{2}  = {'h2',[],'ethane',1:7,'envs',trainEnv};
+testC{2} = {'h2',[],'ethane',1:7,'envs',testEnv};
 filePrefix{2} = 'c2h6';
 
-trainC{3}  = {'h2',[],'ethylene',1:7,'envs',1:10};
-testC{3} = {'h2',[],'ethylene',1:7,'envs',20:30};
+trainC{3}  = {'h2',[],'ethylene',1:7,'envs',trainEnv};
+testC{3} = {'h2',[],'ethylene',1:7,'envs',testEnv};
 filePrefix{3} = 'c2h4z2';
 
-trainC{4}  = {'h2',[],'ch4',1:7,'ethane',1:7,'envs',1:10};
-testC{4} = {'h2',[],'ch4',1:7,'ethane',1:7,'envs',20:30};
+trainC{4}  = {'h2',[],'ch4',1:7,'ethane',1:7,'envs',trainEnv};
+testC{4} = {'h2',[],'ch4',1:7,'ethane',1:7,'envs',testEnv};
 filePrefix{4} = 'ch4-c2h6';
 
-trainC{5}  = {'h2',[],'ch4',1:7,'ethane',1:7,'ethylene',1:7,'envs',1:10};
-testC{5} = {'h2',[],'ch4',1:7,'ethane',1:7,'ethylene',1:7,'envs',20:30};
+trainC{5}  = {'h2',[],'ch4',1:7,'ethane',1:7,'ethylene',1:7,'envs',trainEnv};
+testC{5} = {'h2',[],'ch4',1:7,'ethane',1:7,'ethylene',1:7,'envs',testEnv};
 filePrefix{5} = 'ch4-c2h6-c2h4';
 
-trainC{6}  = {'h2',[],'ch4',1:19,'ethane',1:7,'envs',1:10};
-testC{6} = {'h2',[],'ch4',1:19,'ethane',1:7,'envs',20:30};
+trainC{6}  = {'h2',[],'ch4',1:16,'ethane',1:7,'envs',trainEnv};
+testC{6} = {'h2',[],'ch4',1:16,'ethane',1:7,'envs',testEnv};
 filePrefix{6} = 'ch4f-c2h6';
 
-trainC{7}  = {'h2',[],'ch4',1:19,'ethane',1:7,'ethylene',1:7,'envs',1:10};
-testC{7} = {'h2',[],'ch4',1:19,'ethane',1:7,'ethylene',1:7,'envs',20:30};
+trainC{7}  = {'h2',[],'ch4',1:19,'ethane',1:7,'ethylene',1:7,'envs',trainEnv};
+testC{7} = {'h2',[],'ch4',1:19,'ethane',1:7,'ethylene',1:7,'envs',testEnv};
 filePrefix{7} = 'ch4f-c2h6-c2h4';
 
-trainC{8}  = {'h2',[],'propane',1:7,'envs',1:10};
-testC{8} = {'h2',[],'propane',1:7,'envs',20:30};
+trainC{8}  = {'h2',[],'propane',1:7,'envs',trainEnv};
+testC{8} = {'h2',[],'propane',1:7,'envs',testEnv};
 filePrefix{8} = 'c3h8';
 
-trainC{9}  = {'h2',[],'ch4',1:19,'ethane',1:7,'propane',1:7,'envs',1:10};
-testC{9} = {'h2',[],'ch4',1:19,'ethane',1:7,'propane',1:7,'envs',20:30};
+trainC{9}  = {'h2',[],'ch4',1:19,'ethane',1:7,'propane',1:7,'envs',trainEnv};
+testC{9} = {'h2',[],'ch4',1:19,'ethane',1:7,'propane',1:7,'envs',testEnv};
 filePrefix{9} = 'ch4f-c2h6-c3h8';
 
 
@@ -89,14 +86,14 @@ for iC = ics% [1 2 3 4 6 7]
          e2.HH = Mixer(iP,1,'e2.HH',ftype);
          e2.CC = Mixer(iP,1,'e2.CC',ftype);
          e2.CH = Mixer(iP,1,'e2.CH',ftype);
-         %           ftest = makeFitme(testIn{:},commonIn{:},'enstruct1',en, ...
-         %              'kestruct',ke,'e2struct',e2,'plot',2);
-         %           ftest.parallel = 0;
-         %           ftest.plot = 0;
+         ftest = makeFitme(testIn{:},commonIn{:},'enstruct1',en, ...
+             'kestruct',ke,'e2struct',e2);
+         ftest.parallel = 0;
+         ftest.plot = 0;
          f1 = makeFitme(trainIn{:},commonIn{:},'enstruct1',en,'kestruct',ke, ...
             'e2struct',e2);%,'testFitme',ftest);
          f1.plot = 0;
-         f1.parallel = 0;
+         f1.parallel = 1;
          %pst = [ -1.2840    1.4139   -0.9773   -0.1648    2.9684   -1.7791    5.7310   -9.6449    8.0355  12.5867   -0.1876   -0.1118    2.0048   -0.3105];
          %f1.setPars(pst);
          %          f1.parHF = zeros(size(f1.getPars));
@@ -221,6 +218,10 @@ for iC = ics% [1 2 3 4 6 7]
          pt
          resnorm
          f1.printMixers;
+         
+         disp([char(10) 'Calculating error for test data using final pars.']);
+         ftest.err(ftest.getPars);
+         
          save([dataDir,'all.mat']);
          diary off;
          if (f1.plot)

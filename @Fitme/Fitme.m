@@ -13,7 +13,7 @@ classdef Fitme < handle
       includeE2 % include two-elec energy in fit
       includeEtot % include total energy fit
       
-      parHF   % Last parameters for which HF was solved
+      parHF      % Last parameters for which HF was solved
       epsDensity % re-evaluate density matrix if par change > eps
       epsDensity2 % re-set density matrices if par change > eps
                   % this is because odd parameters can lead to odd
@@ -33,7 +33,7 @@ classdef Fitme < handle
       errTest    % error in test set
       
       arms       % (npar,narms): for bandit algorithm
-      parallel   % true to run err in parallel
+      parallel   % store value of matlabpool('size')
       restartFile % place to save intermediate results
       silent     % suppress all displayed output
       
@@ -46,11 +46,6 @@ classdef Fitme < handle
       cost       % parameter multipled by norm(costVector) for err function
       
       operWeights %  has fields KE, EN(1...Zmax), E2 and Etot
-   end
-   methods (Static)
-      [ke, en, e2, newDensity, orb, Eorb, Ehf] = ...
-            modelCalcParallel(imod,ienv,updateDensity,...
-            includeKE,includeEN,includeE2,scratchDir);
    end
    methods
       function res = Fitme
@@ -72,7 +67,7 @@ classdef Fitme < handle
          res.LLEN = cell(0,0);
          res.errCalls = 0;
          res.itcount = 0;
-         res.parallel = 0;
+         res.parallel = matlabpool('size');
          res.silent = 0;
          res.scratchDir = '';
          res.cset = [];
@@ -80,6 +75,9 @@ classdef Fitme < handle
          res.costVector=[]; 
          res.cost = 0.0;
          res.operWeights = [];
+
+         % MATLAB derping.
+         warning('off', 'MATLAB:mir_warning_maybe_uninitialized_temporary');
       end
       function addMixer(obj, mix)
          add = 1;

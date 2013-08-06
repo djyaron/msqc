@@ -1,7 +1,7 @@
 %% Fitting multiple molecules, using makeFitme
 clear classes;
-trainC{1}  = {'h2',[],'ch4',1:19,'envs',1:10};
-testC{1} = {'h2',[],'ch4',1:19,'envs',20:30};
+trainC{1}  = {'h2',[],'ch4',1:16,'envs',1:10};
+testC{1} = {'h2',[],'ch4',1:16,'envs',21:30};
 filePrefix{1} = 'ch4';
 
 trainC{2}  = {'h2',[],'ethane',1:7,'envs',1:10};
@@ -30,8 +30,8 @@ filePrefix{7} = 'ch4f-c2h6-c2h4';
 
 commonIn = {};
 
-for iC = 3:3
-   for iPar = 1:4
+for iC = 1:1
+   for iPar = 1:1
       trainIn = trainC{iC};
       testIn = testC{iC};
       filePre = filePrefix{iC};
@@ -84,6 +84,7 @@ for iC = 3:3
       ftest = makeFitme(trainIn{:},commonIn{:},'enstruct',en,'kestruct',ke);
       f1 = makeFitme(testIn{:},commonIn{:},'enstruct',en,'kestruct',ke, ...
          'testFitme',ftest);
+      %f1.parallel = true;
       limits = [];
       options = optimset('DiffMinChange',1.0e-5,'TolFun',1.0e-4,'TolX',1.0e-3);
       if (exist(dataDir,'dir') ~= 7)
