@@ -24,14 +24,14 @@ function initializeZipData( fragment,zipFileName )
     
     setenv('GAUSS_EXEDIR', fragment.gaussianPath);
 
-    terminated = runGaus( fragment, jobname, origDir, tempDir );
-    moveFiles( fragment );
+%     terminated = runGaus( fragment, jobname, origDir, tempDir );
+%     moveFiles( fragment, origDir, tempDir );
 
 %%  1 NUCLEUS CALCULATIONS
 
     [n1,n2] = size(fragment.H1);
     natom = fragment.natom;
-    obj.H1en = zeros(n1,n2,natom);
+    fragment.H1en = zeros(n1,n2,natom);
 
     if fragment.config.calcEn == 1
         iterateAtom( fragment, origDir, tempDir );
@@ -53,16 +53,22 @@ function initializeZipData( fragment,zipFileName )
 end
 
 function iterateAtom( fragment, origDir, tempDir )
+    natom = length( fragment.config.zmat.atoms );
+    toZip = {};
     for iatom = 1:natom
         disp(['doing calc for atom ',num2str(iatom)]);
 
         jobname = ['atom',num2str(iatom)];
-        atom = fragment.zmat.atoms{iatom};
-        charge = atom.z;
+        atom = fragment.config.zmat.atoms{iatom};
+        charge = atom.z - 1;
+        
+        cd( origDir );
         gjf_text = buildGjf( fragment, iatom, charge, 2 );
         writeGjf( [jobname,'.gjf'], gjf_text );
+        movefile( [origDir,'\',jobname,'.gjf'], tempDir );
+        cd( tempDir );
 
-        runGaus( fragment, jobname, origDir, tempDir );
+        terminated = runGaus( fragment, jobname, origDir, tempDir );
 
         movefile('fort.32',[jobname,'.f32']);
         % read in data from the polyatom output file
@@ -115,7 +121,7 @@ function [origDir, tempDir] = mkScratchDir( gaussianPath )
     origDir = cd(tempDir); % save location so can move back
 end
 
-function moveFiles( fragment )
+function moveFiles( fragment, origDir, tempDir )
     movefile('temp.chk','full.chk');
     movefile('fort.32','full.f32');
 
@@ -123,7 +129,7 @@ function moveFiles( fragment )
 
     if fragment.config.opt == 1
         cd( origDir );
-        obj.opt_geom( [tempDir, '\full.out'], [tempDir, '\full_opt_config.txt'] );
+        fragment.opt_geom( [tempDir, '\full.out'], [tempDir, '\full_opt_config.txt'] );
         cd( tempDir );
         toZip = {toZip{:},'full_opt_config.txt'};
     end

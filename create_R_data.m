@@ -26,7 +26,7 @@ for i = 1:length(r_groups)
             mkdir( temp_path );
             
             config = Config();
-            config.opt = 1;
+%             config.opt = 1;
             config.zmat = zmat;
             
             frag = Fragment();
