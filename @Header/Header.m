@@ -42,37 +42,43 @@ classdef Header < handle
         end
         
         function text = makeHeader( obj )
+            newLine = char(10);
             head0 = obj.linkHeader();
             head1 = obj.routeHeader();
             head2 = obj.outputHeader();
             
-            text = strcat( head0, head1, head2, '\n', obj.title, '\n\n' );
+            text = [head0, head1, head2, newLine, obj.title, newLine, newLine];
         end
         
         function text = linkHeader( obj )
             %outputs header section for link0 commands
+            newLine = char(10);
+            
             text = '';
             for i = 1:length( obj.link0 )
-                text = strcat( text, '%', obj.link0{i}, '\n' );
+                text = [text, '%', obj.link0{i}, newLine];
             end
         end
         
         function text = routeHeader( obj )
             %outputs header section for route selection
+            newLine = char(10);
+            
             text = ['# ', obj.method, '/', obj.basisSet, ' '];
             for i = 1:length( obj.route )
-                text = strcat( text, obj.route{i}, ' ');
+                text = [text, obj.route{i}, ' '];
             end
-            text = strcat( text, '\n' );
+            text = [text, newLine];
         end
         
         function text = outputHeader( obj )
             %outputs header section for stuff below route selection
+            newLine = char(10);
             text = '';
             for i = 1:length( obj.output )
-                text = strcat( text, obj.output{i}, ' ');
+                text = [text, obj.output{i}, ' '];
             end
-            text = strcat( text, '\n' );
+            text = [text, newLine];
         end
         
     end

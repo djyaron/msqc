@@ -34,7 +34,7 @@ function initializeZipData( fragment,zipFileName )
     obj.H1en = zeros(n1,n2,natom);
 
     if fragment.config.calcEn == 1
-        iterateAtom( obj, header );
+        iterateAtom( fragment, origDir, tempDir );
     end
     
 %%  ZIP / CLEAN UP
@@ -52,15 +52,13 @@ function initializeZipData( fragment,zipFileName )
     end
 end
 
-function iterateAtom( fragment )
+function iterateAtom( fragment, origDir, tempDir )
     for iatom = 1:natom
         disp(['doing calc for atom ',num2str(iatom)]);
 
         jobname = ['atom',num2str(iatom)];
-        gjf_file = [jobname,'.gjf'];
-        fwrite(fid, [ctext,newline,newline], 'char');
-        fclose(fid);
-        resp1 = 1;
+        gjf_text = buildGjf( fragment );
+        writeGjf( [jobname,'.gjf'], gjf_text );
 
         runGaus( fragment, jobname, origDir, tempDir );
 
@@ -76,39 +74,28 @@ function terminated = runGaus(fragment, jobname, origDir, tempDir)
     %Code should be backwards compatible
     %Need to do something about var named terminated
 
-%    try
-%         if fragment.config.timeOut == -1
-%             %%
-%             %This is temporary to let Fragment work while timeOut does
-%             %not.
-%             %When it is working, remove the whole if, leaving only the
-%             %contents of the else statment.
-%             gaussianPath = fragment.gaussianPath;
-%             gaussianExe = fragment.gaussianExe;
-%             resp1 = system([gaussianPath,'\',gaussianExe,' ',gjf_file])
-%         else
-            startTime = clock; 
-            timeOut = fragment.config.timeOut; % seconds
-            system( [origDir, '\@Fragment\runGaus.bat ', tempDir, '\', jobname, ' &'] );
-            terminated = 0;
-            while exist( [tempDir, '\', jobname, '.done'], 'file' ) == 0
-                pause( 10 );
-                if timeOut ~= -1 && timeCheck( startTime, timeOut )
-                    %I don't think this TASKKILL will work... need to
-                    %figure out something that works...
-                    system('TASKKILL /IM g09.exe /F');
-                    terminated = 1;
-                    break
-                end
-            end
-%         end
-        if ( resp1 == 2057 )
-            %THIS PART DOES NOT WORK CAUSE resp1 WILL ALWAYS RETURN
-            %0 BY USING THE & IN THE SYSTEM CALL
-            disp( '  removing temporary files' );
-            delete( 'fort.6', 'gxx.d2e', 'gxx.inp', 'gxx.int', 'gxx.scr', ...
-                'temp.chk', 'temp.fch', 'temp.rwf' )
+    startTime = clock;
+    timeOut = fragment.config.timeOut; % seconds
+    system( [origDir, '\@Fragment\runGaus.bat ', tempDir, '\', jobname, ' &'] );
+    terminated = 0;
+    while exist( [tempDir, '\', jobname, '.done'], 'file' ) == 0
+        pause( 10 );
+        if timeOut ~= -1 && timeCheck( startTime, timeOut )
+            %I don't think this TASKKILL will work... need to
+            %figure out something that works...
+            system('TASKKILL /IM g09.exe /F');
+            terminated = 1;
+            break
         end
+    end
+    %         end
+    if ( resp1 == 2057 )
+        %THIS PART DOES NOT WORK CAUSE resp1 WILL ALWAYS RETURN
+        %0 BY USING THE & IN THE SYSTEM CALL
+        disp( '  removing temporary files' );
+        delete( 'fort.6', 'gxx.d2e', 'gxx.inp', 'gxx.int', 'gxx.scr', ...
+            'temp.chk', 'temp.fch', 'temp.rwf' )
+    end
 %     catch
 %         disp( 'Failed, retrying...' )
 %         resp1 = 1;
@@ -147,7 +134,7 @@ function moveFiles( fragment )
 end
 
 function gjf = buildGjf( fragment, bq, charge, spin )
-
+    newLine = char(10);
     if nargin < 2
         bq = 0;
     end
@@ -162,7 +149,7 @@ function gjf = buildGjf( fragment, bq, charge, spin )
     method   = fragment.config.method;
     
     
-    headerObj = Header( basisSet, method );
+    headerObj = Header( basisSet, method, fragment.config.title );
     headerObj.link0 = {'rwf=temp.rwf' 'nosave' 'chk=temp.chk'}';
     if fragment.config.opt == 1
         headerObj.route = {'opt'};
@@ -171,15 +158,14 @@ function gjf = buildGjf( fragment, bq, charge, spin )
         'scf=conventional' 'symm=noint'};
 
     headerText = headerObj.makeHeader();
-    title = [fragment.config.title, '\n\n'];
-    charge_mult = [num2str(charge), ' ', num2str(spin), '\n'];
+    charge_mult = [num2str(charge), ' ', num2str(spin), newLine];
     zmat_body = fragment.config.zmat.build_gjf( bq );
 
-    gjf = [headerText, title, charge_mult, zmat_body];
+    gjf = [headerText, charge_mult, zmat_body];
 end
 
 function writeGjf( gjf_file, gjf_text )
     fid = fopen(gjf_file,'w');
-    fwrite(fid, [gjf_text,'\n\n'], 'char');
+    fwrite(fid, gjf_text);
     fclose(fid);
 end

@@ -91,7 +91,7 @@ classdef ZAtom < handle
                 var_num_str = num2str( atom.num - 3 );
                 text = [text, '    ', di_str, ' D', var_num_str];
             end
-            text = [text, '\n'];
+            text = [text, char(10)];
         end
         
         function up_bond_total( atom )

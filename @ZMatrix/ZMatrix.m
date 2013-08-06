@@ -103,7 +103,7 @@ classdef ZMatrix < handle
         
         function text = build_atoms( zmat, bq )
             %Calls print_atom for each atom in the zmat
-            
+            newLine = char(10);
             if nargin < 2
                 bq = 0;
             end
@@ -117,34 +117,37 @@ classdef ZMatrix < handle
                     text = [text, atom.atom_text( 0 )];
                 end
             end
-            text = [text, '\n'];
+            text = [text, newLine];
         end
         
         function text = build_pars_with_vars( zmat )
             %Prints B, A, and D vals with the PAR instead of numbers
-            
+            newLine = char(10);
             num_atoms = length(zmat.atoms);
             num_bonds = num_atoms - 1;
             num_angs = num_atoms - 2;
             num_dis = num_atoms - 3;
             
             for i = 1:num_bonds
-                temp = ['   B', i, '             PAR', i, '\n'];
+                temp = ['   B', i, '             PAR', i, newLine];
                 text = [text, temp];
             end
             for i = 1:num_angs
-                temp = ['   A', i, '             PAR', i + num_bonds, '\n'];
+                temp = ['   A', i, '             PAR', i + num_bonds, newLine];
                 text = [text, temp];
             end
             for i = 1:num_dis
-                temp = ['   D', i, '             PAR', i + num_bonds + num_angs, '\n'];
+                temp = ['   D', i, '             PAR', ...
+                    i + num_bonds + num_angs, newLine];
                 text = [text, temp];
             end
-            text = [text, '\n!ENV'];
+            text = [text, newLine, '!ENV'];
         end
         
         function text = build_pars_with_nums( zmat )
             %Prints B, A, and D vals with the PAR instead of numbers
+            newLine = char(10);
+            formSpec = '%10.5e';
             
             num_atoms = length(zmat.atoms);
             num_bonds = num_atoms - 1;
@@ -152,24 +155,24 @@ classdef ZMatrix < handle
             num_dis = num_atoms - 3;
             text = '';
             for i = 1:num_bonds
-                num_str = num2str( zmat.pars.bond_pars{i} );
+                num_str = num2str( zmat.pars.bond_pars{i}, formSpec );
                 i_str = num2str(i);
-                temp = ['   B', i_str, '             ', num_str, '\n'];
+                temp = ['   B', i_str, '             ', num_str, newLine];
                 text = [text, temp];
             end
             for i = 1:num_angs
-                num_str = num2str( zmat.pars.ang_pars{i} );
+                num_str = num2str( zmat.pars.ang_pars{i}, formSpec );
                 i_str = num2str(i);
-                temp = ['   A', i_str, '             ', num_str, '\n'];
+                temp = ['   A', i_str, '             ', num_str, newLine];
                 text = [text, temp];
             end
             for i = 1:num_dis
-                num_str = num2str( zmat.pars.di_pars{i} );
+                num_str = num2str( zmat.pars.di_pars{i}, formSpec );
                 i_str = num2str(i);
-                temp = ['   D', i_str, '             ', num_str, '\n'];
+                temp = ['   D', i_str, '             ', num_str, newLine];
                 text = [text, temp];
             end
-            text = [text, '\n!ENV'];
+            text = [text, newLine, '!ENV'];
         end
         
         function print_z_to_tpl( zmat, path )
