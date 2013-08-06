@@ -81,12 +81,12 @@ function iterateAtom(header)
     end
 end
 
-function runGaus(fragment, gjf_file)
+function runGaus(fragment, jobname)
     %Run Gaussain with .bat file and has a timeout built in (when used)
     %Code should be backwards compatible
     %Need to do something about var named terminated
 
-    try
+%    try
 %         if fragment.config.timeOut == -1
 %             %%
 %             %This is temporary to let Fragment work while timeOut does
@@ -98,12 +98,12 @@ function runGaus(fragment, gjf_file)
 %             resp1 = system([gaussianPath,'\',gaussianExe,' ',gjf_file])
 %         else
             startTime = clock; 
-            timeOut = obj.config.timeOut; % seconds
+            timeOut = fragment.config.timeOut; % seconds
             system( [origDir, '\@Fragment\runGaus.bat ', tempDir, '\', jobname, ' &'] );
             terminated = 0;
             while exist( [tempDir, '\', jobname, '.done'], 'file' ) == 0
                 pause( 10 );
-                if timeOut timeCheck( startTime, timeOut )
+                if timeOut ~= -1 && timeCheck( startTime, timeOut )
                     %I don't think this TASKKILL will work... need to
                     %figure out something that works...
                     system('TASKKILL /IM g09.exe /F');
@@ -119,10 +119,10 @@ function runGaus(fragment, gjf_file)
             delete( 'fort.6', 'gxx.d2e', 'gxx.inp', 'gxx.int', 'gxx.scr', ...
                 'temp.chk', 'temp.fch', 'temp.rwf' )
         end
-    catch
-        disp( 'Failed, retrying...' )
-        resp1 = 1;
-    end
+%     catch
+%         disp( 'Failed, retrying...' )
+%         resp1 = 1;
+%     end
     
 end
 
