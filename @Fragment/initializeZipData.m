@@ -29,21 +29,12 @@ function initializeZipData( fragment,zipFileName )
 
 %%  1 NUCLEUS CALCULATIONS
 
-    headerObj = Header( basisSet, method );
-    headerObj.link0 = {'rwf=temp.rwf' 'nosave' 'chk=temp.chk'}';
-    if fragment.config.opt == 1
-        headerObj.route = {'opt'};
-    end
-    headerObj.output = {'nosymm int=noraff iop(99/6=1)' ...
-        'scf=(conventional,qc)' 'symm=noint'}; %qc to ensure convergence
-    header = headerObj.makeHeader();
-
     [n1,n2] = size(fragment.H1);
     natom = fragment.natom;
     obj.H1en = zeros(n1,n2,natom);
 
     if fragment.config.calcEn == 1
-        iterateAtom( obj, header );
+        iterateAtom( fragment, origDir, tempDir );
     end
     
 %%  ZIP / CLEAN UP
@@ -61,18 +52,15 @@ function initializeZipData( fragment,zipFileName )
     end
 end
 
-function iterateAtom(header)
+function iterateAtom( fragment, origDir, tempDir )
     for iatom = 1:natom
         disp(['doing calc for atom ',num2str(iatom)]);
 
         jobname = ['atom',num2str(iatom)];
-        gjf_file = [jobname,'.gjf'];
-        fid = fopen(gjf_file,'w');
-        fwrite(fid, [ctext,newline,newline], 'char');
-        fclose(fid);
-        resp1 = 1;
+        gjf_text = buildGjf( fragment );
+        writeGjf( [jobname,'.gjf'], gjf_text );
 
-        runGaus( boj, header );
+        runGaus( fragment, jobname, origDir, tempDir );
 
         movefile('fort.32',[jobname,'.f32']);
         % read in data from the polyatom output file
