@@ -1,15 +1,15 @@
 clear( 'all' );
 
 path = 'C:\Users\Zack\Documents\ethaneRs';
-r_groups = {
-    {'H'}
-%    {'F'}
+r_groups = [
+    {1}
+%    {9}
 %    {'Cl'}
-    {'O' 'H'}
+    {8 1}
 %    {'N' 'H' 'H'}
 %    {'N' 'O' 'O'}
 %    {'C' 'N'}
-    {'C' 'O' 'H'}
+    {6 8 1}
     };
 
 %Loops through each r group for the 3 r groups
@@ -30,7 +30,7 @@ for i = 1:length(r_groups)
             config.zmat = zmat;
             
             frag = Fragment();
-            frag.runGaus( )
+            frag.runFragment( temp_path, config )
             
             disp( [i, j, k] );
         end

@@ -43,14 +43,14 @@ classdef ZMatrix < handle
             end
         end
         
-        function make_atom( zmat, type, bond_ref, ang_ref, di_ref )
-            %type should be a string
-            %All inputs after type should be nonnegative integers
+        function make_atom( zmat, z, bond_ref, ang_ref, di_ref )
+            %z should be an int
+            %All inputs after z should be nonnegative integers
             %None of those inputs should be larger than the length of atoms
             %Has error messages for if conditions are not met (for range
             %and not having overlapping references, not for type checks)
             
-            
+            %% Num of args and error handling
             atom_num = length( zmat.atoms ) + 1;
             if nargin > 4
                 if di_ref ~= 0
@@ -90,10 +90,10 @@ classdef ZMatrix < handle
             end
             
             if nargin == 1
-                type = '';
+                z = 0;
             end
-            
-            atom = ZAtom( type, atom_num, bond_ref, ang_ref, di_ref );
+            %%
+            atom = ZAtom( z, atom_num, bond_ref, ang_ref, di_ref );
             zmat.atoms{ atom_num } = atom;
             
             if bond_ref ~= 0

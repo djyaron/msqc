@@ -57,7 +57,9 @@ function iterateAtom( fragment, origDir, tempDir )
         disp(['doing calc for atom ',num2str(iatom)]);
 
         jobname = ['atom',num2str(iatom)];
-        gjf_text = buildGjf( fragment );
+        atom = fragment.zmat.atoms{iatom};
+        charge = atom.z;
+        gjf_text = buildGjf( fragment, iatom, charge, 2 );
         writeGjf( [jobname,'.gjf'], gjf_text );
 
         runGaus( fragment, jobname, origDir, tempDir );

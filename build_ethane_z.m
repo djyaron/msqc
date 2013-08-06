@@ -4,11 +4,11 @@ function zmat = build_ethane_z( r1, r2, r3 )
     zmat = ZMatrix({});
     
     %Build static parts of ethane molecule
-    zmat.make_atom( 'C', 0, 0, 0 );
-    zmat.make_atom( 'C', 1, 0, 0 );
-    zmat.make_atom( 'H', 1, 2, 0 );
-    zmat.make_atom( 'H', 1, 2, 3 );
-    zmat.make_atom( 'H', 1, 2, 3 );
+    zmat.make_atom( 6, 0, 0, 0 );
+    zmat.make_atom( 6, 1, 0, 0 );
+    zmat.make_atom( 1, 1, 2, 0 );
+    zmat.make_atom( 1, 1, 2, 3 );
+    zmat.make_atom( 1, 1, 2, 3 );
     
     %Build variable parts of ethane molecule
     add_group( zmat, r1 );
@@ -41,7 +41,7 @@ function bool = is_cyano( r )
    if length(r) ~= 2
        bool = false;
    else
-       if  r{1} == 'C' && r{2} == 'N'
+       if  r{1} == 6 && r{2} == 7
            bool = true;
        else
            bool = false;

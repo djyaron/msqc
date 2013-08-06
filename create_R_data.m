@@ -2,14 +2,14 @@ clear( 'all' );
 
 path = 'C:\Users\Zack\Documents\ethaneRs';
 r_groups = {
-    {'H'}
-%    {'F'}
-%    {'Cl'}
-    {'O' 'H'}
-%    {'N' 'H' 'H'}
-%    {'N' 'O' 'O'}
-%    {'C' 'N'}
-    {'C' 'O' 'H'}
+    {1}
+%    {9}
+%    {17}
+    {8 1}
+%    {7 1 1}
+%    {7 8 8}
+%    {6 7}
+    {6 8 1}
     };
 
 %Loops through each r group for the 3 r groups

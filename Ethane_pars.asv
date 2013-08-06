@@ -9,17 +9,15 @@ classdef Ethane_pars < handle
         di_pars = {};
         
         %Estimate values that are used to fill pars
-        %bond_vals is in the form:
-                    %Z Z bond_length
-        bond_vals = {6 6 1.54
-                     6 1 1.14
-                     6 8 1.43
-                     6 7 1.47
-                     6 9 1.35
-                     6 17 1.77
-                     7 1 1.001
-                     7 8 1.25
-                     8 1 0.958
+        bond_vals = {'C' 'C' 1.54
+                     'C' 'H' 1.14
+                     'C' 'O' 1.43
+                     'C' 'N' 1.47
+                     'C' 'F' 1.35
+                     'C' 'Cl' 1.77
+                     'N' 'H' 1.001
+                     'N' 'O' 1.25
+                     'O' 'H' 0.958
                     };
         ang_vals = {120.00001   %Bent
                     120.00001   %Tri

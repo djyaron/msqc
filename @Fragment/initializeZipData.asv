@@ -57,7 +57,9 @@ function iterateAtom( fragment, origDir, tempDir )
         disp(['doing calc for atom ',num2str(iatom)]);
 
         jobname = ['atom',num2str(iatom)];
-        gjf_text = buildGjf( fragment );
+        atom = fragment.zmat.atoms{iatom};
+        charge = atom.z - 1;
+        gjf_text = buildGjf( fragment, iatom, charge, 2 );
         writeGjf( [jobname,'.gjf'], gjf_text );
 
         runGaus( fragment, jobname, origDir, tempDir );
@@ -88,14 +90,8 @@ function terminated = runGaus(fragment, jobname, origDir, tempDir)
             break
         end
     end
-    %         end
-    if ( resp1 == 2057 )
-        %THIS PART DOES NOT WORK CAUSE resp1 WILL ALWAYS RETURN
-        %0 BY USING THE & IN THE SYSTEM CALL
-        disp( '  removing temporary files' );
-        delete( 'fort.6', 'gxx.d2e', 'gxx.inp', 'gxx.int', 'gxx.scr', ...
-            'temp.chk', 'temp.fch', 'temp.rwf' )
-    end
+%   Need cleanup files if fails
+
 %     catch
 %         disp( 'Failed, retrying...' )
 %         resp1 = 1;

@@ -25,9 +25,7 @@ classdef ZAtom < handle
     end
     
     properties (SetAccess = private)
-        atom_list = {'H','He','Li','Be','B','C','N','O','F','Ne','Na',...
-            'Mg','Al','Si','P','S','Cl','Ar'};
-        %Expand atom_list as needed
+        atom_list = {'H','He','Li','B','N','C','O','F','};
     end
     
     methods
@@ -73,7 +71,9 @@ classdef ZAtom < handle
             %Outputs line of z matrix for atom
             %Prints according to if there is a bond, ang or dihedral
             
-            text = [' ', atom.get_atom_name()];
+            text = '';
+            str = strcat(atom.type);
+            text = [text, ' ', str];
             
             if nargin > 1
                 if bq == 1
