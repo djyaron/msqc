@@ -1,11 +1,15 @@
-function opt_geom( frag, file )
+function opt_geom( frag, file, outfile)
 %   Takes file from running Gaussian and outputs a file that stores
 %   the parameters, keeping the same base for the file name
     
     file_contents = fileread( file );
     raw_nums = raw_num_list( file_contents );
-    nums = process_nums( raw_nums );
-    frag.config.zmat.pull_opt_pars( nums )
+    text_nums = process_nums( raw_nums );
+    config_ID = fopen( outfile, 'w');
+    for i = 1:length(nums)
+        fprintf( config_ID, '%s\n', nums{i}{1} );
+    end
+    fclose( config_ID );
 end
 
 function list = raw_num_list( raw )

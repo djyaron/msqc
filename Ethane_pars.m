@@ -133,6 +133,34 @@ classdef Ethane_pars < handle
             end
             fclose( f_ID );
         end
+        
+        function vary_pars( eth )
+            for i = 1:length(eth.bond_pars)
+                eth.bond_pars{i} = eth.vary_val( eth.bond_pars{i}, 0);
+            end
+            for i = 1:length(eth.ang_pars)
+                eth.ang_pars{i} = eth.vary_val( eth.ang_pars{i}, 1);
+            end
+            for i = 1:length(eth.di_pars)
+                eth.di_pars{i} = eth.vary_val( eth.di_pars{i}, 1);
+            end
+        end
+        
+        function new = vary_val( eth, num, type )
+            %Outputs varied value for bond or angle
+            %num is value to be varied
+            %type must be 0 for bond and 1 for angle
+            
+            new = (-1)^randi(2) * rand(); %random number between [-1, 1]
+            bond_vary = 0.3;
+            ang_vary = 10;
+            
+            if type
+                new = num + new * ang_vary;
+            else
+                new = num + new * bond_vary;
+            end
+        end
     end
     
 end

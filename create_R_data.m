@@ -30,7 +30,11 @@ for i = 1:length(r_groups)
             config.zmat = zmat;
             
             frag = Fragment();
-            frag.runFragment( temp_path, config )
+            bool = frag.runFragment( temp_path, config );
+            
+            if bool == 1
+                vary_mol( temp_path, frag );
+            end
             
             disp( [i, j, k] );
         end

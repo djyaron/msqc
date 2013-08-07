@@ -28,10 +28,10 @@ function bool = initializeZipData( fragment,zipFileName )
     end
     
     cd( origDir );
-    fragment.opt_geom( [tempDir, '\full.out'], [tempDir, '\full_opt_config.txt'] );
+    fragment.opt_geom( [tempDir, '\full.out'] );
     cd( tempDir );
     toZip = moveFiles( jobname, 1, 1 );
-    toZip = [toZip {[jobname,'.gjf'], 'full_opt_config.txt'}];
+    toZip = [toZip {[jobname,'.gjf']}];%, 'full_opt_config.txt'}];
 
 
 %%  1 NUCLEUS CALCULATIONS

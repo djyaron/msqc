@@ -1,4 +1,4 @@
-function runFragment( fragment, dataPathIn, configIn )
+function bool = runFragment( fragment, dataPathIn, configIn )
 
     if (nargin < 2)
         fragment.dataPath = 'data';
@@ -20,7 +20,10 @@ function runFragment( fragment, dataPathIn, configIn )
     if (~found)
         createTempFolder( fragment );
         save([fragment.fileprefix,'_cfg.mat'], 'config' );
-        fragment.initializeZipData( [fragment.fileprefix,'.zip'] );
+        bool = fragment.initializeZipData( [fragment.fileprefix,'.zip'] );
+        if bool == 0
+            return
+        end
     end
     fragment.loadZipData( [fragment.fileprefix,'.zip'] );
 
@@ -29,7 +32,7 @@ function runFragment( fragment, dataPathIn, configIn )
     if exist( 'Environment', 'class' ) == 8
         fragment.env = Environment.empty(0,0);
     end
-
+    bool = 1;
 end
 
 function createTempFolder( fragment )

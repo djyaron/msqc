@@ -16,8 +16,8 @@ while (~found && (ifile <= nfiles))
    fileName = allFiles(ifile).name;
    if (~isempty(regexp(fileName,'_cfg.mat','once')))
       %disp(['found ',fileName]);
-      load([dataPath,filesep,fileName],'Cfile');
-      if (size(comp_struct(Cfile,Ctarget),1) == 0)
+      load([dataPath,filesep,fileName],'config');
+      if (size(comp_struct(config,Ctarget),1) == 0)
         found = true;
         fullName = [dataPath,filesep,fileName];
         fileprefix = strrep(fullName,'_cfg.mat','');

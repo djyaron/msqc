@@ -223,16 +223,15 @@ classdef ZMatrix < handle
             num_bonds = num_atoms - 1;
             num_angs = num_atoms - 2;
             num_dis = num_atoms - 3;
+            text = '';
             for i = 1:num_bonds
-                zmat.pars.bond_pars{i} = nums( i );
+                i_str = num2str(i);
             end
             for i = 1:num_angs
-                pos = i + num_bonds;
-                zmat.pars.ang_pars{i} = nums( pos );
+                i_str = num2str(i);
             end
             for i = 1:num_dis
-                pos = i + num_bonds + num_angs;
-                zmat.pars.di_pars{i} = nums( pos );
+                i_str = num2str(i);
             end
         end
     end
