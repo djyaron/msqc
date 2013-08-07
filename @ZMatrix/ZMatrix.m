@@ -244,6 +244,25 @@ classdef ZMatrix < handle
                         return
                     end
                 end
+                for i = 1:length(zmat.pars.bond_pars)
+                    if zmat.pars.bond_pars{i} ~= test_zmat.pars.bond_pars{i}
+                        return
+                    end
+                end
+                for i = 1:length(zmat.pars.ang_pars)
+                    if zmat.pars.ang_pars{i} ~= test_zmat.pars.ang_pars{i}
+                        return
+                    end
+                end
+                for i = 1:length(zmat.pars.di_pars)
+                    if zmat.pars.di_pars{i} ~= test_zmat.pars.di_pars{i}
+                        return
+                    end
+                end
+                if ~strcmp( zmat.file_name_base, test_mat.file_name_base )
+                    return
+                end
+                bool = 1;
             catch exception
                 exception.stack
             end

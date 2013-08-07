@@ -1,4 +1,4 @@
-function [found,fileprefix] = findCalc(dataPath,Ctarget)
+function [found,fileprefix] = findCalc(dataPath, targetConfig)
 % looks to see if a file exists for this Ctarget
 % if it does exist, it returns the file number
 % if it does not exist, it returns the number that should be used to store
@@ -17,7 +17,7 @@ while (~found && (ifile <= nfiles))
    if (~isempty(regexp(fileName,'_cfg.mat','once')))
       %disp(['found ',fileName]);
       load([dataPath,filesep,fileName],'config');
-      if (size(comp_struct(config,Ctarget),1) == 0)
+      if targetConfig.compareConfigs( config )
         found = true;
         fullName = [dataPath,filesep,fileName];
         fileprefix = strrep(fullName,'_cfg.mat','');

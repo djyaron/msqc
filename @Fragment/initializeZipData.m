@@ -27,9 +27,11 @@ function bool = initializeZipData( fragment,zipFileName )
         return
     end
     
-    cd( origDir );
-    fragment.opt_geom( [tempDir, '\full.out'] );
-    cd( tempDir );
+    if fragment.config.opt == 1
+        cd( origDir );
+        fragment.opt_geom( [tempDir, '\full.out'] );
+        cd( tempDir );
+    end
     toZip = moveFiles( jobname, 1, 1 );
     toZip = [toZip {[jobname,'.gjf']}];%, 'full_opt_config.txt'}];
 
@@ -67,7 +69,7 @@ end
 
 function toZip = iterateAtom( fragment, origDir, tempDir )
     natom = length( fragment.config.zmat.atoms );
-    toZip = cell( natom, 1 );
+    toZip = cell( 1, natom );
     for iatom = 1:natom
         disp(['doing calc for atom ',num2str(iatom)]);
 
@@ -87,7 +89,7 @@ function toZip = iterateAtom( fragment, origDir, tempDir )
             return
         end
         tempZip = moveFiles( jobname, 0, 1 );
-        toZip{ iatom } = tempZip{1};
+        toZip{ 1, iatom } = tempZip{1};
     end
 end
 
