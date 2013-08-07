@@ -1,4 +1,4 @@
-function initializeZipData( fragment,zipFileName )
+function bool = initializeZipData( fragment,zipFileName )
     % runs gaussian in scratch directories, and puts all relavant files
     % into zipFileName
     
@@ -7,8 +7,6 @@ function initializeZipData( fragment,zipFileName )
     jobname = 'full';
     gjf_file = [jobname,'.gjf'];
     
-    basisSet = fragment.config.basisSet;
-    method   = fragment.config.method;
     gaussianPath = fragment.gaussianPath;
 
 %%  FILE MANAGEMENT / RUN GAUS
@@ -20,12 +18,21 @@ function initializeZipData( fragment,zipFileName )
     writeGjf( gjf_file, gjf_text );
     [origDir, tempDir] = mkScratchDir( gaussianPath );
     movefile( [origDir,'\',gjf_file], tempDir );
-%     gjf_file = [tempDir,'\',gjf_file];
     
     setenv('GAUSS_EXEDIR', fragment.gaussianPath);
 
-%     terminated = runGaus( fragment, jobname, origDir, tempDir );
-%     moveFiles( fragment, origDir, tempDir );
+    terminated = runGaus( fragment, jobname, origDir, tempDir );
+    if terminated || ~normalTermination( [tempDir,'\',jobname,'.out'] )
+        bool = 0;
+        return
+    end
+    
+    cd( origDir );
+    fragment.opt_geom( [tempDir, '\full.out'], [tempDir, '\full_opt_config.txt'] );
+    cd( tempDir );
+    toZip = moveFiles( jobname, 1, 1 );
+    toZip = [toZip {[jobname,'.gjf'], 'full_opt_config.txt'}];
+
 
 %%  1 NUCLEUS CALCULATIONS
 
@@ -33,8 +40,13 @@ function initializeZipData( fragment,zipFileName )
     natom = fragment.natom;
     fragment.H1en = zeros(n1,n2,natom);
 
-    if fragment.config.calcEn == 1
-        iterateAtom( fragment, origDir, tempDir );
+    if fragment.config.calcEn == 1 && fragment.config.opt ~= 1
+        tempZip = iterateAtom( fragment, origDir, tempDir );
+        if isempty( tempZip )
+            bool = 0;
+            return
+        end
+        toZip = [toZip tempZip];
     end
     
 %%  ZIP / CLEAN UP
@@ -50,11 +62,12 @@ function initializeZipData( fragment,zipFileName )
         pause(0.1);
         status = rmdir(tempDir,'s');
     end
+    bool = 1;
 end
 
-function iterateAtom( fragment, origDir, tempDir )
+function toZip = iterateAtom( fragment, origDir, tempDir )
     natom = length( fragment.config.zmat.atoms );
-    toZip = {};
+    toZip = cell( natom, 1 );
     for iatom = 1:natom
         disp(['doing calc for atom ',num2str(iatom)]);
 
@@ -69,11 +82,12 @@ function iterateAtom( fragment, origDir, tempDir )
         cd( tempDir );
 
         terminated = runGaus( fragment, jobname, origDir, tempDir );
-
-        movefile('fort.32',[jobname,'.f32']);
-        % read in data from the polyatom output file
-
-        toZip = {toZip{:},[jobname,'.f32']};
+        if terminated || ~normalTermination( [tempDir,'\',jobname,'.out'] )
+            toZip = {};
+            return
+        end
+        tempZip = moveFiles( jobname, 0, 1 );
+        toZip{ iatom } = tempZip{1};
     end
 end
 
@@ -121,17 +135,15 @@ function [origDir, tempDir] = mkScratchDir( gaussianPath )
     origDir = cd(tempDir); % save location so can move back
 end
 
-function moveFiles( fragment, origDir, tempDir )
-    movefile('temp.chk','full.chk');
-    movefile('fort.32','full.f32');
-
-    toZip = {'full.gjf','full.chk','full.f32'};
-
-    if fragment.config.opt == 1
-        cd( origDir );
-        fragment.opt_geom( [tempDir, '\full.out'], [tempDir, '\full_opt_config.txt'] );
-        cd( tempDir );
-        toZip = {toZip{:},'full_opt_config.txt'};
+function toZip = moveFiles( jobname, moveChk, moveF32 )
+    toZip = {};
+    if moveChk == 1
+        movefile('temp.chk', [jobname,'.chk']);
+        toZip = [toZip{:} {[jobname,'.chk']}];
+    end
+    if moveF32 == 1
+        movefile('fort.32', [jobname,'.f32']);
+        toZip = [toZip{:} {[jobname,'.f32']}];
     end
 end
 
@@ -153,7 +165,7 @@ function gjf = buildGjf( fragment, bq, charge, spin )
     
     headerObj = Header( basisSet, method, fragment.config.title );
     headerObj.link0 = {'rwf=temp.rwf' 'nosave' 'chk=temp.chk'}';
-    if fragment.config.opt == 1
+    if fragment.config.opt == 1 && bq == 0
         headerObj.route = {'opt'};
     end
     headerObj.output = {'nosymm int=noraff iop(99/6=1)' ...
@@ -170,4 +182,12 @@ function writeGjf( gjf_file, gjf_text )
     fid = fopen(gjf_file,'w');
     fwrite(fid, gjf_text);
     fclose(fid);
+end
+
+function bool = normalTermination( out_loc )
+    % Opens out file and searches for "Normal termination"
+    
+    out_text = fileread( out_loc );
+    exp = 'Normal termination';
+    bool = length(regexp( out_text, exp, 'once' ));
 end

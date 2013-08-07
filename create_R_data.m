@@ -1,6 +1,6 @@
 clear( 'all' );
 
-path = 'C:\Users\Zack\Documents\ethaneRs';
+path = 'D:\small_test_data';
 r_groups = {
     {1}
 %    {9}
@@ -26,7 +26,7 @@ for i = 1:length(r_groups)
             mkdir( temp_path );
             
             config = Config();
-%             config.opt = 1;
+            config.opt = 1;
             config.zmat = zmat;
             
             frag = Fragment();
