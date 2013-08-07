@@ -223,15 +223,29 @@ classdef ZMatrix < handle
             num_bonds = num_atoms - 1;
             num_angs = num_atoms - 2;
             num_dis = num_atoms - 3;
-            text = '';
             for i = 1:num_bonds
-                i_str = num2str(i);
+                zmat.pars.bond_pars{i} = nums( i );
             end
             for i = 1:num_angs
-                i_str = num2str(i);
+                pos = i + num_bonds;
+                zmat.pars.ang_pars{i} = nums( pos );
             end
             for i = 1:num_dis
-                i_str = num2str(i);
+                pos = i + num_bonds + num_angs;
+                zmat.pars.di_pars{i} = nums( pos );
+            end
+        end
+        
+        function bool = compare_ZMatrices( zmat, test_zmat )
+            bool = 0;
+            try
+                for i = 1:length(zmat.atoms)
+                    if ~zmat.atoms{i}.comapare_atoms( test_zmat.atoms{i} )
+                        return
+                    end
+                end
+            catch exception
+                exception.stack
             end
         end
     end

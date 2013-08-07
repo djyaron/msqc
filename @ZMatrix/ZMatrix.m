@@ -235,6 +235,19 @@ classdef ZMatrix < handle
                 zmat.pars.di_pars{i} = nums( pos );
             end
         end
+        
+        function bool = compare_ZMatrices( zmat, test_zmat )
+            bool = 0;
+            try
+                for i = 1:length(zmat.atoms)
+                    if ~zmat.atoms{i}.comapare_atoms( test_zmat.atoms{i} )
+                        return
+                    end
+                end
+            catch exception
+                exception.stack
+            end
+        end
     end
     
 end

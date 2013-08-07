@@ -41,11 +41,11 @@ classdef Config < handle
         function bool = compareConfigs( config, testConfig )
             bool = 0;
             try
-                if ~strcmp( config.title, testConfig.title )
+                if strcmp( config.title, testConfig.title )
                     return
-                elseif ~strcmp( config.basisSet, testConfig.basisSet )
+                elseif strcmp( config.basisSet, testConfig.basisSet )
                     return
-                elseif ~strcmp( config.method, testConfig.method )
+                elseif strcmp( config.method, testConfig.method )
                     return
                 elseif (config.charge ~= testConfig.charge)
                     return
@@ -57,14 +57,8 @@ classdef Config < handle
                     return
                 elseif (config.timeOut ~= testConfig.timeOut)
                     return
-                elseif ~config.zmat.compare_ZMatrices( testConfig.zmat )
-                    return
-                else
-                    bool = 1;
-                end
-            catch exception
-                exception.stack
-            end 
+                elseif zmat.
+                
         end
     end
     

@@ -110,6 +110,10 @@ classdef ZAtom < handle
             name = atom.atom_list{ atom.z };
         end
         
+        function find_charge( atom )
+            
+        end
+        
         function bool = compare_atoms( atom, test_atom )
             bool = 0;
             try
@@ -127,9 +131,11 @@ classdef ZAtom < handle
                     return
                 else
                     bool = 1;
+                    return
                 end
             catch exception
-                exception.stack
+                
+                return
             end
         end
     end
