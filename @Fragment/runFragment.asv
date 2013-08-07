@@ -22,7 +22,7 @@ function bool = runFragment( fragment, dataPathIn, configIn )
         save([fragment.fileprefix,'_cfg.mat'], 'config' );
         bool = fragment.initializeZipData( [fragment.fileprefix,'.zip'] );
         if bool == 0
-            disp('initializeZipData failed')
+            
             return
         end
     end

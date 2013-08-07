@@ -16,7 +16,7 @@ function bool = initializeZipData( fragment,zipFileName )
     % Do the calculation
     gjf_text = buildGjf( fragment );
     writeGjf( gjf_file, gjf_text );
-    [origDir, tempDir] = mkScratchDir( gaussianPath );
+    [origDir, tempDir] = mkScratchDir( gaussianPath ); %cd's to tempDir
     movefile( [origDir,'\',gjf_file], tempDir );
     
     setenv('GAUSS_EXEDIR', fragment.gaussianPath);
@@ -24,6 +24,7 @@ function bool = initializeZipData( fragment,zipFileName )
     terminated = runGaus( fragment, jobname, origDir, tempDir );
     if terminated || ~normalTermination( [tempDir,'\',jobname,'.out'] )
         bool = 0;
+        cd( origDir );
         return
     end
     

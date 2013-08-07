@@ -45,22 +45,22 @@ frag.nbasis = size(frag.H1,1);
 natom = frag.natom;
 frag.H1en = zeros(n1,n2,natom);
 
-if frag.config.calcEn == 0
-for iatom = start:natom
-   jobname = ['atom',num2str(iatom)];
-   try
-      fid1 = fopen([tempDir,filesep,jobname,'.f32'],'r');%,'b');
-      if (fid1 == -1)
-         error(['could not find ',tempDir,filesep,jobname,'.f32']);
-      end
-      [junk, H1atom, KE, junk2, junk3] = Fragment.readpolyatom(fid1);
-      fclose(fid1);
-   catch
-      %fclose(fid1);
-      throw(['failed during polyatom read for atom ',num2str(iatom)]);
-   end
-   frag.H1en(:,:,iatom) = H1atom - KE;
-end
+if frag.config.calcEn == 1 && frag.config.opt == 0
+    for iatom = 1:natom
+       jobname = ['atom',num2str(iatom)];
+       try
+          fid1 = fopen([tempDir,filesep,jobname,'.f32'],'r');%,'b');
+          if (fid1 == -1)
+             error(['could not find ',tempDir,filesep,jobname,'.f32']);
+          end
+          [~, H1atom, KE, ~, ~] = Fragment.readpolyatom(fid1);
+          fclose(fid1);
+       catch
+          %fclose(fid1);
+          throw(['failed during polyatom read for atom ',num2str(iatom)]);
+       end
+       frag.H1en(:,:,iatom) = H1atom - KE;
+    end
 end
 
 cd(origdir);

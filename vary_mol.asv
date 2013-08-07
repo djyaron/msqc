@@ -1,10 +1,17 @@
-function vary_mol( frag )
+function vary_mol( path, frag )
 
     max_iter = 5;
+    base_zmat = frag.config.zmat;
+    origDir = pwd;
     
     for i = 1:max_iter
-        frag = Fragment();
+        config = Config();
+        config.basisSet = '6-31G';
+        config.zmat = base_zmat;
+        config.zmat.pars.vary_pars();
         
+        frag = Fragment();
+        frag.runFragment( path, config )
     end
 end
 
