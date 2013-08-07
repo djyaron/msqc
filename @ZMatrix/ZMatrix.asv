@@ -111,10 +111,10 @@ classdef ZMatrix < handle
             text = '';
             for i = 1:length( zmat.atoms )
                 atom = zmat.atoms{i};
-                if i == bq || bq == 0
-                    text = [text, atom.atom_text( 0)];
-                else
+                if i == bq
                     text = [text, atom.atom_text( 1 )];
+                else
+                    text = [text, atom.atom_text( 0 )];
                 end
             end
             text = [text, newLine];
@@ -213,7 +213,7 @@ classdef ZMatrix < handle
             if nargin < 2
                 bq = 0;
             end
-            text = zmat.build_atoms( bq );
+            text = zmat.build_atoms( (bq + 1)%2 );
             text = [text, zmat.build_pars_with_nums()];
         end
         

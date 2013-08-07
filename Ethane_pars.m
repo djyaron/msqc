@@ -3,7 +3,7 @@ classdef Ethane_pars < handle
     %
     
     properties
-        %Where the par values are stored in the form of key value pairs
+        %Where the par values are stored in the form of a list
         bond_pars = {};
         ang_pars = {};
         di_pars = {};

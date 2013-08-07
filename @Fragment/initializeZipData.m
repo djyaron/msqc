@@ -71,6 +71,8 @@ end
 function toZip = iterateAtom( fragment, origDir, tempDir )
     natom = length( fragment.config.zmat.atoms );
     toZip = cell( 1, natom );
+    cd( origDir );
+    cd( tempDir );
     for iatom = 1:natom
         disp(['doing calc for atom ',num2str(iatom)]);
 
@@ -87,6 +89,7 @@ function toZip = iterateAtom( fragment, origDir, tempDir )
         terminated = runGaus( fragment, jobname, origDir, tempDir );
         if terminated || ~normalTermination( [tempDir,'\',jobname,'.out'] )
             toZip = {};
+            cd(origDir);
             return
         end
         tempZip = moveFiles( jobname, 0, 1 );
