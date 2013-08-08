@@ -240,7 +240,9 @@ classdef ZMatrix < handle
             bool = 0;
             try
                 for i = 1:length(zmat.atoms)
-                    if ~zmat.atoms{i}.comapare_atoms( test_zmat.atoms{i} )
+                    atom = zmat.atoms{i};
+                    test_atom = test_zmat.atoms{i};
+                    if ~atom.compare_atoms( test_atom )
                         return
                     end
                 end
@@ -259,7 +261,7 @@ classdef ZMatrix < handle
                         return
                     end
                 end
-                if ~strcmp( zmat.file_name_base, test_mat.file_name_base )
+                if ~strcmp( zmat.file_name_base, test_zmat.file_name_base )
                     return
                 end
                 bool = 1;
