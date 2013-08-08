@@ -5,7 +5,6 @@ classdef Fragment < handle
         templateText;  % text from the template file
         gaussianFile;  % gaussian job (i.e. input) file (with charge keyword)
         fileprefix;    % prefix for files, without environment numbers
-        opt;           % bool for if should be run for optimizing geometry
         
         natom   % number of atoms in fragment
         nelec   % number of electrons in the fragment

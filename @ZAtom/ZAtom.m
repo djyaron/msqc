@@ -129,6 +129,7 @@ classdef ZAtom < handle
                     bool = 1;
                 end
             catch exception
+                disp( 'Error caught, stach below:' )
                 exception.stack
             end
         end

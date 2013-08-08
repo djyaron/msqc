@@ -266,6 +266,7 @@ classdef ZMatrix < handle
                 end
                 bool = 1;
             catch exception
+                disp( 'Error caught, stach below:' )
                 exception.stack
             end
         end
