@@ -21,20 +21,31 @@ if (updateDensity)
    end
 else
    newDensity = [];
+   orb = [];
+   Eorb = [];
+   Ehf = [];
 end
 if (includeKE == 1)
    ke = obj.EKE(ienv);
 else
    ke = [];
 end
-en = zeros(obj.natom,1);
-for iatom = 1:obj.natom
-   if (includeEN(obj.Z(iatom)))
-      en(iatom) = obj.Een(iatom,ienv);
+if (includeEN==1)
+   en = zeros(obj.natom,1);
+   for iatom = 1:obj.natom
+      if (includeEN(obj.Z(iatom)))
+         en(iatom) = obj.Een(iatom,ienv);
+      end
    end
+else
+   en = [];
 end
 if (includeE2)
-   e2 = obj.E2(ienv);
+   if (updateDensity)
+      e2 = obj.E2fast(ienv);
+   else
+      e2 = obj.E2(ienv);
+   end
 else
    e2 = 0.0;
 end
