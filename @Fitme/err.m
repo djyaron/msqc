@@ -155,6 +155,7 @@ if (redoDensity)
          obj.models{imod}.EhfEnv(1,ienv)   = calcRes{icalc}.Ehf;
       end
    end
+   obj.parHF = par;
 end
 
 % To allow control-C to stop the job.
