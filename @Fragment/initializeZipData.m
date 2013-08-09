@@ -58,7 +58,6 @@ function bool = initializeZipData( fragment,zipFileName )
 
     cd(origDir);
     % cleanup files
-    %[status message messageid] = rmdir(tempDir,'s');
     status = rmdir(tempDir,'s');
     while status ~= 1
         disp('  rmdir failed. Retrying...');
@@ -116,13 +115,6 @@ function terminated = runGaus(fragment, jobname, origDir, tempDir)
             break
         end
     end
-%   Need cleanup files if fails
-
-%     catch
-%         disp( 'Failed, retrying...' )
-%         resp1 = 1;
-%     end
-    
 end
 
 function bool = timeCheck( start, timeOut )
