@@ -18,6 +18,7 @@ classdef Fitme < handle
       epsDensity2 % re-set density matrices if par change > eps
                   % this is because odd parameters can lead to odd
                   % densities, that should be reset.
+      epsDerivative % step used for the derivative (defaults to 1e-4)
       
       plot       % Plot results on every call to err()
       LLKE       % {1,nmodels}(1,nenv) used only for plots
@@ -37,6 +38,10 @@ classdef Fitme < handle
       restartFile % place to save intermediate results
       silent     % suppress all displayed output
       
+      HFeps      % convergence criterion for HF
+      HFmaxit    % maximum number of HF iterations
+      HFminit    % minimum number of HF iterations
+      
       hftime
       scratchDir % used to hold scratch files
       cset       % CSet holding context variables
@@ -55,6 +60,7 @@ classdef Fitme < handle
          res.HLEN   = cell(0,0);
          res.epsDensity = 0.0;
          res.epsDensity2 = 0.01;
+         res.epsDerivative = 1e-4;
          res.includeKE = 1;
          res.includeEN = zeros(1,6);
          res.includeE2 = 0;
@@ -69,6 +75,9 @@ classdef Fitme < handle
          res.itcount = 0;
          res.parallel = matlabpool('size');
          res.silent = 0;
+         res.HFeps    = 1e-10;  % convergence criterion for HF
+         res.HFmaxit  = 5000;   % maximum number of HF iterations
+         res.HFminit  = 5;      % minimum number of HF iterations
          res.scratchDir = '';
          res.cset = [];
          res.mixerCost=[];
@@ -107,7 +116,9 @@ classdef Fitme < handle
          obj.plotNumber(1,end+1) = plotnumber;
       end
       function setEnvs(obj,envsIn)
-         % currently assumes same environments for every frag/model
+         % if envsIn is not a cell, every frag/model gets same env
+         % envsIn can also be a cell array {1,nmodel} holding a list
+         % of the environments for each model.
          if (~iscell(envsIn))
             obj.envs = cell(1,obj.nmodels);
             for i=1:obj.nmodels
@@ -165,7 +176,7 @@ classdef Fitme < handle
          end
       end
       function setPars(obj,par)
-         % sets parameters, and updates densities
+         % sets parameters
          if (size(par,2) ~= obj.npar)
             error(['Fitme.SetPars called with ',num2str(size(par,2)), ...
                ' parameters when ',num2str(obj.npar),' are needed ']);

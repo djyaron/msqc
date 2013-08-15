@@ -60,6 +60,16 @@ classdef Model3 < handle
       atomContextNSaved % {iatom}
       bondContextXSaved % {iatom,jatom,ienv}
       bondContextNSaved % {iatom,jatom}
+      
+      % cached operators
+      cacheValid % {ienv} 
+      cachedPars % {ienv} vector holding all parameters in mixers (in same order
+                 %   as fixed pars are on 
+      cachedKE   % {ienv}(nbasis, nbasis)
+      cachedEN   % {iatom,ienv}(nbasis,nbasis)
+      cachedH1   % {ienv}(nbasis,nbasis)
+      cachedH2   % {ienv}(nbasis,nbasis,nbasis,nbasis)
+
       index % used and managed externally
    end
    methods (Static)
@@ -135,7 +145,46 @@ classdef Model3 < handle
             res.atomContextNSaved = {};
             res.bondContextXSaved = {};
             res.bondContextNSaved = {};
+            
+            res.cacheValid = [];
+            res.cachedPars = cell(0,0);
+            res.cachedKE = cell(0,0);
+            res.cachedEN = cell(0,0);
+            res.cachedH1 = cell(0,0);
+            res.cachedH2 = cell(0,0);
          end
+      end
+      function res = cached(obj,ienv)
+         res = 0;
+         if ((ienv+1) <= length(obj.cacheValid))
+            res = obj.cacheValid(ienv+1);
+         end
+      end
+      function clearCache(obj,ienv)
+         obj.cacheValid(ienv+1) = 0;
+         obj.cachedPars{ienv+1} = [];
+         obj.cachedH1{ienv+1} = [];
+         obj.cachedKE{ienv+1} = [];
+         for iatom = 1:obj.natom
+            obj.cachedEN{iatom,ienv} = [];
+         end
+         obj.cachedH2{ienv+1} = [];
+      end
+      function res = getCache(obj)
+         res.cacheValid = obj.cacheValid;
+         res.cachedPars = obj.cachedPars;
+         res.cachedH1   = obj.cachedH1;
+         res.cachedKE   = obj.cachedKE;
+         res.cachedEN   = obj.cachedEN;
+         res.cachedH2   = obj.cachedH2;
+      end
+      function setCache(obj,res)
+         obj.cacheValid = res.cacheValid;
+         obj.cachedPars = res.cachedPars;
+         obj.cachedH1   = res.cachedH1;
+         obj.cachedKE   = res.cachedKE;
+         obj.cachedEN   = res.cachedEN;
+         obj.cachedH2   = res.cachedH2;
       end
       function clearModifiers(obj)
          obj.KEmods = cell(0,0);
@@ -179,6 +228,10 @@ classdef Model3 < handle
          if (nargin < 2)
             ienv = 0;
          end
+         if (obj.cached(ienv))
+            res = obj.cachedH1{ienv+1};
+            return
+         end
          res = obj.KE(ienv);
          for iatom = 1:obj.natom
             res = res + obj.H1en(iatom,ienv);
@@ -188,6 +241,14 @@ classdef Model3 < handle
          end
       end
       function res = KE(obj,ienv)
+         global shouldCache;
+         if (obj.cached(ienv))
+            res = obj.cachedKE{ienv+1};
+            return
+         end
+         if (shouldCache)
+            disp('help me   why no you cache me');
+         end
          % start with H1 matrix of unmodified STO-3G
          res   = obj.frag.KE;
          for imod = 1:size(obj.KEmods,2)
@@ -388,6 +449,10 @@ classdef Model3 < handle
          end
       end
       function res = H1en(obj, iatom, ienv)
+         if (obj.cached(ienv))
+            res = obj.cachedEN{iatom,ienv+1};
+            return
+         end
          % start with H1 matrix of unmodified STO-3G
          res   = obj.frag.H1en(:,:,iatom);
          
@@ -732,6 +797,10 @@ classdef Model3 < handle
       function res = H2(obj,ienv)
          if (nargin < 2)
             ienv = 0;
+         end
+         if (obj.cached(ienv))
+            res = obj.cachedH2{ienv+1};
+            return
          end
          res = obj.frag.H2;
          for imod = 1:length(obj.H2mods)

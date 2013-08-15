@@ -56,110 +56,89 @@ else
    redoDensity = 0;
 end
 
-nmodels = obj.nmodels;
-ncalc = length([obj.envs{:}]);
-
-% Decide how to distribute the work among the pool of workers.
-minWorkload = 10;  % Want many jobs per worker.
+% How many H1,H2 matrices to save before entering the parfor loop
+obj.parallel = 2;
 if (obj.parallel == 0)
-   jobsPerGroup = ncalc;
-else
-   jobsPerGroup = max([1 ceil(ncalc/(minWorkload * obj.parallel))]);
-end
-groupSize = ceil(ncalc/jobsPerGroup);
-
-calcRes = cell(jobsPerGroup, groupSize);
-calcs = cell(jobsPerGroup, groupSize);
-
-% Write out matlab files that hold each of the models.
-maxEnv = 0;
-if (~isempty(obj.scratchDir) && exist(obj.scratchDir, 'dir') ~= 7)
-   mkdir(obj.scratchDir);
-end
-for imod = 1:nmodels
-   fileName = [obj.scratchDir,'fitmeMod',num2str(imod),'.mat'];
-   mod = obj.models{imod}; %#ok<NASGU>
-   save(fileName,'mod');
-   maxEnv = max([maxEnv, length(obj.envs{1,imod})]);
-end
-
-% Create structure saying which calcs to do.
-calcsInv = zeros(nmodels, maxEnv);
-icalc = 1;
-for imod = 1:obj.nmodels
-   envs = obj.envs{1,imod};
-   for ienv = 1:length(envs)
-      t1.imod = imod;
-      t1.ienv = envs(ienv);
-      calcs{icalc} = t1;
-      calcsInv(imod, ienv) = icalc;
-      icalc = icalc + 1;
+   for imod = 1:obj.nmodels
+      envs = obj.envs{1,imod};
+      for ienv = 1:length(envs)
+         obj.models{imod}.solveHF(obj.envs{1,imod}, ...
+            obj.HFeps,obj.HFmaxit,obj.HFminit);
+      end
    end
-end
-
-% Do the calcs and save results.
-% If Etot is fit, need all operators.
-if (~obj.includeEtot)
-   includeKE = obj.includeKE;
-   includeEN = obj.includeEN;
-   includeE2 = obj.includeE2;
 else
-   includeKE = 1;
-   includeEN = ones(1,20);
-   includeE2 = 1;
-end
-scratchDir = obj.scratchDir;
-
-% disp('starting parfor loop');
-parfor j = 1:groupSize
-   lastmod = -1;
-   for i = 1:jobsPerGroup
-      if (~isempty(calcs{i, j}))
-         imod = calcs{i, j}.imod;
-         ienv = calcs{i, j}.ienv;
-         if (imod ~= lastmod)
-            % Retrieve model from save file.
-            fileName = [scratchDir,'fitmeMod',num2str(imod),'.mat'];
-            saveData = load(fileName);
-            data = saveData.mod;
+   saveForParallel = 500 * obj.parallel;
+   whichCalc = cell(1,saveForParallel);
+   H1p  = cell(1,saveForParallel);
+   H2p  = cell(1,saveForParallel);
+   Sp  = cell(1,saveForParallel);
+   Enucp  = cell(1,saveForParallel);
+   Nelecp  = cell(1,saveForParallel);
+   guessDensity = cell(1,saveForParallel);
+   orbp  = cell(1,saveForParallel);
+   Eorbp = cell(1,saveForParallel);
+   Ehfp  = cell(1,saveForParallel);
+   HFeps = obj.HFeps;
+   HFmaxit = obj.HFmaxit;
+   HFminit = obj.HFminit;
+   istore = 0;
+   for imod = 1:obj.nmodels
+      mod1 = obj.models{imod};
+      envs = obj.envs{1,imod};
+      for indexEnv = 1:length(envs)
+         ienv = envs(indexEnv);
+         istore = istore +1;
+         whichCalc{istore}.imod = imod;
+         whichCalc{istore}.ienv = ienv;
+         H1p{istore} = obj.models{imod}.H1(ienv);
+         H2p{istore} = obj.models{imod}.H2(ienv);
+         Sp{istore} = obj.models{imod}.S;
+         Enucp{istore} = obj.models{imod}.Hnuc(ienv);
+         Nelecp{istore} = obj.models{imod}.frag.nelec;
+         % copied directly from Model3.HartreeFock
+         if ((size(mod1.densitySave{ienv+1},1) == 0) && ...
+               (size(mod1.densitySave{1},1) == 0))
+            guessDensity{istore} = mod1.frag.density(ienv);
+         elseif (size(mod1.densitySave{ienv+1},1) == 0)
+            guessDensity{istore} = mod1.densitySave{1};
+         else
+            guessDensity{istore} = mod1.densitySave{ienv+1};
          end
-         lastmod = imod;
-         [ke, en, e2, newDensity, orb, Eorb, Ehf] = ...
-            data.modelCalcParallel(ienv,redoDensity,...
-            includeKE,includeEN,includeE2);
-         t1 = struct;
-         t1.ke = ke;
-         t1.en = en;
-         t1.e2 = e2;
-         t1.density = newDensity;
-         t1.orb  = orb;
-         t1.Eorb = Eorb;
-         t1.Ehf  = Ehf;
-         calcRes{i, j} = t1;
+         % do calculations if we reach saveForParallel, loop is terminating
+         if (istore == saveForParallel)
+            doCalcs = saveForParallel;
+         elseif ((imod == obj.nmodels) && (indexEnv == length(envs)))
+            doCalcs = istore;
+         else
+            doCalcs = 0;
+         end
+         if (doCalcs > 0)
+            parfor ip = 1:doCalcs
+               [orbp{ip},Eorbp{ip},Ehfp{ip}] = parallelHF(H1p{ip},H2p{ip} ...
+                  ,Sp{ip},Enucp{ip},Nelecp{ip} ...
+                  ,guessDensity{ip},HFeps,HFmaxit,HFminit);
+            end
+            for ip = 1:doCalcs
+               smod = obj.models{whichCalc{ip}.imod};
+               senv = whichCalc{ip}.ienv;
+               if (senv == 0)
+                  smod.orb = orbp{ip};
+                  smod.Eorb = Eorbp{ip};
+                  smod.Ehf = Ehfp{ip};
+               else
+                  smod.orbEnv(:,:,senv) = orbp{ip};
+                  smod.EorbEnv(:,senv) = Eorbp{ip};
+                  smod.EhfEnv(1,senv) = Ehfp{ip};
+               end
+               smod.densitySave{senv+1} = smod.density(senv);
+            end
+            istore = 0;
+         end
       end
    end
 end
-
-if (redoDensity)
-   for icalc = 1:ncalc
-      imod = calcs{icalc}.imod;
-      ienv = calcs{icalc}.ienv;
-      obj.models{imod}.densitySave{ienv+1} = calcRes{icalc}.density;
-      if (ienv == 0)
-         obj.models{imod}.orb  = calcRes{icalc}.orb;
-         obj.models{imod}.Eorb = calcRes{icalc}.Eorb;
-         obj.models{imod}.Ehf  = calcRes{icalc}.Ehf;
-      else
-         obj.models{imod}.orbEnv(:,:,ienv) = calcRes{icalc}.orb;
-         obj.models{imod}.EorbEnv(:,ienv)  = calcRes{icalc}.Eorb;
-         obj.models{imod}.EhfEnv(1,ienv)   = calcRes{icalc}.Ehf;
-      end
-   end
-   obj.parHF = par;
-end
-
 % To allow control-C to stop the job.
-pause(0.1);
+pause(0.01);
 
 doPlots = obj.plot && (dpar > 1.0e-4);
 
@@ -195,12 +174,7 @@ end
 for imod = 1:obj.nmodels
    if (calcKE)
       hlevel = obj.HLKE{1,imod};
-      nenvs = length(obj.envs{1,imod});
-      modpred = zeros(1,nenvs);
-      for i=1:nenvs
-         icalc = calcsInv(imod,i);
-         modpred(i) = calcRes{icalc}.ke;
-      end
+      modpred = obj.models{imod}.EKE(obj.envs{imod});
       t1 = hlevel - modpred;
       n = size(t1,2);
       if (obj.includeKE)
@@ -237,12 +211,7 @@ for imod = 1:obj.nmodels
    for iatom = 1:obj.models{imod}.natom
       if (calcEN(obj.models{imod}.Z(iatom)))
          hlevel = obj.HLEN{imod}(iatom,:);
-         nenvs = length(obj.envs{1,imod});
-         modpred = zeros(1,nenvs);
-         for i=1:nenvs
-            icalc = calcsInv(imod,i);
-            modpred(i) = calcRes{icalc}.en(iatom);
-         end
+         modpred = obj.models{imod}.Een(iatom,obj.envs{imod});
          t1 = hlevel - modpred;
          if (obj.includeEN(obj.models{imod}.Z(iatom) ))
             n = size(t1,2);
@@ -287,12 +256,7 @@ for imod = 1:obj.nmodels
    end
    if (calcE2)
       hlevel = obj.HLE2{1,imod};
-      nenvs = length(obj.envs{1,imod});
-      modpred = zeros(1,nenvs);
-      for i=1:nenvs
-         icalc = calcsInv(imod,i);
-         modpred(i) = calcRes{icalc}.e2;
-      end
+      modpred = obj.models{imod}.E2fast(obj.envs{imod});
       t1 = hlevel - modpred;
       if (obj.includeE2)
          n = size(t1,2);

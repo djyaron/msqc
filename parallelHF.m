@@ -1,10 +1,9 @@
-function [orb,Eorb,Ehf] = hartreeFock(obj,ienv,eps,maxIter,minIter)
+function [orb,Eorb,Ehf] = parallelHF(H1,H2,S,Enuc,Nelec,guessDensity,eps,maxIter,minIter)
 % Solve Hartree Fock equations
 % Input:
-%   obj:  Holds hamiltonian information (H1,H2,S,nelec,Hnuc,H1env,HnucEnv)
-%          [see Fragment class for definitions of these properties]
-%   ienv:   environment number (uses H1env(:,:,env) and HnucEnv(env))
-%          [defaults to 0, with 0 meaning isolated fragment]
+%   H1:    H1 matrix
+%   H2:    H2 matrix
+%   guessDensity:  starting density
 %   eps:   convergence criteria
 %          [defaults to 1e-8]
 % Output:
@@ -13,9 +12,6 @@ function [orb,Eorb,Ehf] = hartreeFock(obj,ienv,eps,maxIter,minIter)
 %   Eorb:  (nbasis,1)  molecular orbital energies
 %   Ehf:    total Hartree-Fock energy
 
-if (nargin < 2)
-    ienv = 0;
-end
 if (nargin < 3)
     eps = 1.0e-10;
 end
@@ -26,50 +22,30 @@ if (nargin < 5)
     minIter = 5;
 end
 
-H1 = obj.H1(ienv);
-H2 = obj.H2(ienv);
+nbasis = size(H1,1);
 % H2j {nbasis,nbasis} cell array of coulomb integrals
 % H2k {nbasis,nbasis} cell array of exchange integrals
-H2j = cell(obj.nbasis,obj.nbasis);
-H2k = cell(obj.nbasis,obj.nbasis);
-for i=1:obj.nbasis
-    for j=1:obj.nbasis
-        H2j{i,j} = reshape(H2(i,j,:,:), obj.nbasis, obj.nbasis);
-        H2k{i,j} = reshape(H2(i,:,:,j), obj.nbasis, obj.nbasis);
+H2j = cell(nbasis,nbasis);
+H2k = cell(nbasis,nbasis);
+for i=1:nbasis
+    for j=1:nbasis
+        H2j{i,j} = reshape(H2(i,j,:,:), nbasis, nbasis);
+        H2k{i,j} = reshape(H2(i,:,:,j), nbasis, nbasis);
     end
 end
 
-S = obj.S;
-Enuc = obj.Hnuc(ienv);
-Nelec = obj.frag.nelec;
-
-Nbasis = size(H1,1);  % Getting size of basis set
 
 % Step 3 -- Calculate transformation matrix (eq. 3.167).
 X = inv(sqrtm(S));
 
 % Step 4 -- Guess at density matrix -- all zeros right now.
-if ((size(obj.densitySave{ienv+1},1) == 0) && ...
-        (size(obj.densitySave{1},1) == 0))
-    Pn = obj.frag.density(ienv);
-elseif (size(obj.densitySave{ienv+1},1) == 0)
-    Pn = obj.densitySave{1};
-else
-    Pn = obj.densitySave{ienv+1};
-end
-
+Pn = guessDensity;
 Plast = Pn;  % previous density matrix
 iter = 0;
 finished = false;
 
-% For use in updating charges.
-arange = cell(obj.natom,1);
-for iatom = 1:obj.natom
-    arange{iatom} = find(obj.basisAtom == iatom);
-end
-
-changeInDensityForCaution = sqrt(eps);
-changeInDensity = 10 * changeInDensityForCaution;
+%changeInDensityForCaution = sqrt(eps);
+%changeInDensity = 10 * changeInDensityForCaution;
 % Begin iteration through.
 while (~finished)  % Step 11 -- Test convergence
     
@@ -97,22 +73,6 @@ while (~finished)  % Step 11 -- Test convergence
     % Step 5 -- Build 2-electron components of Fock matrix.
     G = twoElecFock(P, H2j, H2k);
     
-    if (obj.verify)
-        Gv = zeros(Nbasis);
-        for i=1:Nbasis
-            for j=i:Nbasis
-                t1 = sum(sum( P'.* H2j{i,j} ));
-                t2 = sum(sum( P'.* H2k{i,j} ));
-                Gv(i,j) = t1 - t2/2;
-                Gv(j,i) = Gv(i,j);
-            end
-        end
-        if (~verifyMatrixContents(G, Gv, 10^-5))
-            disp(G);
-            disp(Gv);
-            error('Model3:verify', 'C code failed to match MATLAB code.');
-        end
-    end
     
     % Step 6 -- Obtain F (fock matrix).
     F = H1 + G;
@@ -159,7 +119,6 @@ end
 % End of iteration of steps 5-11.
 
 P = Pn;  % For convenience.
-obj.densitySave{ienv+1} = P;
 
 % Step 12: Output.
 
@@ -180,9 +139,9 @@ Eorb = e;
 % Molecular orbital components.
 orb = C;
 
-if (iter+1 > maxIter)
-    disp('You are living on the edge.. hartree fock didn''t converge');
-end
+% if (iter+1 > maxIter)
+%     disp('You are living on the edge.. hartree fock didn''t converge');
+% end
 %{
 Adapted from "Modern quantum chemistry", by Attila Szabó, Neil S. Ostlund
 Numbered equations also adapted from here.
