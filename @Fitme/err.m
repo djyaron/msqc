@@ -57,7 +57,7 @@ else
 end
 
 % How many H1,H2 matrices to save before entering the parfor loop
-obj.parallel = 2;
+obj.parallel = matlabpool('size');
 if (obj.parallel == 0)
    for imod = 1:obj.nmodels
       envs = obj.envs{1,imod};
@@ -67,7 +67,7 @@ if (obj.parallel == 0)
       end
    end
 else
-   saveForParallel = 500 * obj.parallel;
+   saveForParallel = 20 * obj.parallel;
    whichCalc = cell(1,saveForParallel);
    H1p  = cell(1,saveForParallel);
    H2p  = cell(1,saveForParallel);
