@@ -1,6 +1,6 @@
 clear classes;
 close all;
-topDir = 'd:/matdl/yaron/aug13/iter10/';
+topDir = 'd:/matdl/yaron/aug13/errNoJac/';
 maxIter = 10;
 epsTest = -1;
 updateContext = 0;
@@ -40,7 +40,7 @@ fname{end+1} = 'ethylenerDat'; dname1{end+1}=fname{end};
 gTrain{end+1}=1:10;  eTrain{end+1}=1:2:20;
 gTest{end+1} =11:20; eTest{end+1} =2:2:20; pnn(end+1) = 793;
 
-toFit = {[ethaner]};%{[ch4r], [ethaner], [ch4r,ethaner]};
+toFit = {[h2]};%{[ch4r], [ethaner], [ch4r,ethaner]};
 
 dsets = cell(1,2);
 dname = cell(1,1);
@@ -58,7 +58,7 @@ for ifit = 1:length(toFit)
    mtrain = MSet;
    mtest  = MSet;
    for idata = toFit{ifit}
-      dfile = ['datasets/',fname{idata},'.mat'];
+      dfile = ['d:/dave/apoly/msqcData/datasets/',fname{idata},'.mat'];
       mtrain.addData(dfile, gTrain{idata}, eTrain{idata} ,1,pnn(idata));
       mtest.addData(dfile,  gTest{idata},  eTest{idata}  ,1,pnn(idata));
    end
@@ -68,7 +68,11 @@ for ifit = 1:length(toFit)
 end
 
 % set policies
-pname = {'hybridslater1'}; %{'h2fits'};
+if (toFit{1} == h2)
+   pname = {'h2fits'};
+else
+   pname = {'hybridslater2'}; 
+end
 %
 for ipol = 1:length(pname)
    for idata = 1:size(dsets,1)
