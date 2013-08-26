@@ -2,20 +2,20 @@
 function factoryUse()
 %diffEnv;
 %testEDetails();
-%bigPlotsGenData();
+bigPlotsGenData();
 %bigPlot1(); % each molecule gets own window
 %bigPlot2(); % ethane train and test in one window
 %bigPlot3(); % all molecules in one window
 %bigTable(); % Print table of all results
 %weightPlotGenData();
-weightPlotGenData2();
+%weightPlotGenData2();
 %weightPlot1();
 %weightPlot2();
 %weightPlot3();
 end
 %% bigPlot2
 function bigPlot2()
-load('C:\matdl\yaron\dec12e\bigplot.mat');
+load('D:\matdl\yaron\dec12e\bigplot.mat');
 ethTrain = 1; ethTest = 2; meth = 3; prop = 4; nbut = 5; tbut = 6;
 toplot = {'ke','H','C','e2','etot','all'};
 pcol = {'g','c','b','m','r','k'};
@@ -278,7 +278,7 @@ end
 %% bigPlotsGenData
 function bigPlotsGenData()
 dataroot = ...
-   'C:\matdl\yaron\dec12e\iter100\w1\hybridslater1\ethanerDat';
+   'd:\matdl\yaron\dec12e\iter100\w1\hybridslater1\ethanerDat';
 %dataroot = 'C:\matdl\yaron\dec12e\c1\w1\h2fits\h2Dat';
 lfiles = {'start.mat', 'all-1.mat', 'all-2.mat', 'all-3.mat'};
 
@@ -334,7 +334,7 @@ for i = 1:length(lfiles)
      end
   end
 end
-save([dataroot, '\bigplot3.mat'],'errs','iterSig'); %,'emeth','smeth');
+save([dataroot, '\bigplot.mat'],'errs','iterSig'); %,'emeth','smeth');
 disp('done');
 end
 %% bigPlot1

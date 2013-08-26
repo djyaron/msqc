@@ -61,6 +61,7 @@ kestructh = checkForInput(varargin,'kestructh',[]);
 e2struct = checkForInput(varargin,'e2struct',[]);
 testFitme = checkForInput(varargin,'testFitme',[]);
 silent = checkForInput(varargin,'silent',0);
+verify = checkForInput(varargin,'verify',0);
 
 if (~isempty(enstruct) && ~isempty(enstruct1))
    error('Do not set both enstruct and enstruct1');
@@ -278,7 +279,9 @@ if (~isempty(e2struct) > 0)
    end
 end
 
-
+for ipar = params
+    m{ipar}.verify = verify;
+end
 
 if (useDeltaCharges)
    for ipar = params

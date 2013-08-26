@@ -1,5 +1,22 @@
-function [res plotnum etype modelnum envnum] = err(obj,par)
-flip = 0; % to handle fit routines that pass row or column
+function [res, plotnum, etype, modelnum, envnum] = err(obj, par)
+% Description:
+%   Gateway error routine.
+%
+% Input:
+%   par:
+%
+% Output:
+%   res:
+%   plotnum:
+%   etype: Operator type. 1->KE, 2->E2, 3->Etot, 10+#->EN for #.
+%   modelnum:
+%   envnum:
+
+if (nargin < 2)
+   par = obj.getPars;
+end
+
+flip = 0;  % To handle fit routines that pass row or column.
 if (size(par,1)>size(par,2))
    par = par';
    flip = 1;
@@ -7,114 +24,121 @@ end
 if (~obj.silent)
    disp(['Fitme.err called with par = ',num2str(par)]);
 end
-
 if (~isempty(obj.cset))
    obj.cset.saveIndices;
 end
 
 obj.setPars(par);
-if (~obj.parallel)
-   dpar = obj.updateDensity();
+if ((size(obj.parHF,1) == 0) || ...
+      (length(obj.parHF) ~= length(par) ) )
+   dpar = 1e10;
 else
-   if ((size(obj.parHF,1) == 0) || ...
-         (length(obj.parHF) ~= length(par) ) )
-      dpar = 1e10;
-   else
-      dpar = max(abs(obj.parHF-par));
-   end
-   % need to reset saved densities if changes are bigger than epsDensity2
-   if (dpar > obj.epsDensity2)
-      message1 = 'Densities reset';
-      for imod = 1:obj.nmodels
-         obj.models{imod}.densitySave = ...
-            cell(1,obj.models{imod}.nenv+1);
-      end
-   else
-      message1 = '';
-   end
+   dpar = max(abs(obj.parHF-par));
+end
 
-   if (dpar > obj.epsDensity)
-      if (~obj.silent)
-         disp(['density matrices will be recalculated ',message1]);
-      end
-      redoDensity = 1;
-   else
-      redoDensity = 0;
-   end
-   
-   % Write out matlab files that hold each of the models
-   maxEnv = 0;
+% Need to reset saved densities if changes are bigger than epsDensity2.
+if (dpar > obj.epsDensity2)
+   message1 = 'Densities reset';
    for imod = 1:obj.nmodels
-      fileName = [obj.scratchDir,'fitmeMod',num2str(imod),'.mat'];
-      mod = obj.models{imod};
-      save(fileName,'mod');
-      maxEnv = max([maxEnv, length(obj.envs{1,imod})]);
+      obj.models{imod}.densitySave = ...
+         cell(1,obj.models{imod}.nenv+1);
    end
-   
-   % create structure saying which calcs to do
-   calcs = {};
-   calcsInv = zeros(obj.nmodels,maxEnv);
+else
+   message1 = '';
+end
+
+if (dpar > obj.epsDensity)
+   if (~obj.silent)
+      disp(['density matrices will be recalculated ',message1]);
+   end
+   redoDensity = 1;
+else
+   redoDensity = 0;
+end
+
+% How many H1,H2 matrices to save before entering the parfor loop
+obj.parallel = matlabpool('size');
+if (obj.parallel == 0)
    for imod = 1:obj.nmodels
       envs = obj.envs{1,imod};
       for ienv = 1:length(envs)
-         t1.imod = imod;
-         t1.ienv = envs(ienv);
-         calcs{end+1} = t1;
-         calcsInv(imod,ienv) = length(calcs);
+         obj.models{imod}.solveHF(obj.envs{1,imod}, ...
+            obj.HFeps,obj.HFmaxit,obj.HFminit);
       end
    end
-   
-   % Do the calcs and save results
-   ncalc = length(calcs);
-   calcRes = cell(ncalc,1);
-   % if Etot is fit, need all operators
-   if (~obj.includeEtot)
-      includeKE = obj.includeKE;
-      includeEN = obj.includeEN;
-      includeE2 = obj.includeE2;
-   else
-      includeKE = 1;
-      includeEN = ones(1,20);
-      includeE2 = 1;
-   end
-   scratchDir = obj.scratchDir;
-   % disp('starting parfor loop');
-   parfor icalc = 1:ncalc
-      imod = calcs{icalc}.imod;
-      ienv = calcs{icalc}.ienv;
-      [ke, en, e2, newDensity, orb, Eorb, Ehf] = ...
-         Fitme.modelCalcParallel(imod,ienv,redoDensity,...
-         includeKE,includeEN,includeE2,scratchDir);
-      t1 = [];
-      t1.ke = ke;
-      t1.en = en;
-      t1.e2 = e2;
-      t1.density = newDensity;
-      t1.orb  = orb;
-      t1.Eorb = Eorb;
-      t1.Ehf  = Ehf;
-      calcRes{icalc} = t1;
-   end
-   
-   if (redoDensity)
-      for icalc = 1:ncalc
-         imod = calcs{icalc}.imod;
-         ienv = calcs{icalc}.ienv;
-         obj.models{imod}.densitySave{ienv+1} = calcRes{icalc}.density;
-         if (ienv == 0)
-            obj.models{imod}.orb  = calcRes{icalc}.orb;
-            obj.models{imod}.Eorb = calcRes{icalc}.Eorb;
-            obj.models{imod}.Ehf  = calcRes{icalc}.Ehf;
+else
+   saveForParallel = 20 * obj.parallel;
+   whichCalc = cell(1,saveForParallel);
+   H1p  = cell(1,saveForParallel);
+   H2p  = cell(1,saveForParallel);
+   Sp  = cell(1,saveForParallel);
+   Enucp  = cell(1,saveForParallel);
+   Nelecp  = cell(1,saveForParallel);
+   guessDensity = cell(1,saveForParallel);
+   orbp  = cell(1,saveForParallel);
+   Eorbp = cell(1,saveForParallel);
+   Ehfp  = cell(1,saveForParallel);
+   HFeps = obj.HFeps;
+   HFmaxit = obj.HFmaxit;
+   HFminit = obj.HFminit;
+   istore = 0;
+   for imod = 1:obj.nmodels
+      mod1 = obj.models{imod};
+      envs = obj.envs{1,imod};
+      for indexEnv = 1:length(envs)
+         ienv = envs(indexEnv);
+         istore = istore +1;
+         whichCalc{istore}.imod = imod;
+         whichCalc{istore}.ienv = ienv;
+         H1p{istore} = obj.models{imod}.H1(ienv);
+         H2p{istore} = obj.models{imod}.H2(ienv);
+         Sp{istore} = obj.models{imod}.S;
+         Enucp{istore} = obj.models{imod}.Hnuc(ienv);
+         Nelecp{istore} = obj.models{imod}.frag.nelec;
+         % copied directly from Model3.HartreeFock
+         if ((size(mod1.densitySave{ienv+1},1) == 0) && ...
+               (size(mod1.densitySave{1},1) == 0))
+            guessDensity{istore} = mod1.frag.density(ienv);
+         elseif (size(mod1.densitySave{ienv+1},1) == 0)
+            guessDensity{istore} = mod1.densitySave{1};
          else
-            obj.models{imod}.orbEnv(:,:,ienv) = calcRes{icalc}.orb;
-            obj.models{imod}.EorbEnv(:,ienv)  = calcRes{icalc}.Eorb;
-            obj.models{imod}.EhfEnv(1,ienv)   = calcRes{icalc}.Ehf;
+            guessDensity{istore} = mod1.densitySave{ienv+1};
+         end
+         % do calculations if we reach saveForParallel, loop is terminating
+         if (istore == saveForParallel)
+            doCalcs = saveForParallel;
+         elseif ((imod == obj.nmodels) && (indexEnv == length(envs)))
+            doCalcs = istore;
+         else
+            doCalcs = 0;
+         end
+         if (doCalcs > 0)
+            parfor ip = 1:doCalcs
+               [orbp{ip},Eorbp{ip},Ehfp{ip}] = parallelHF(H1p{ip},H2p{ip} ...
+                  ,Sp{ip},Enucp{ip},Nelecp{ip} ...
+                  ,guessDensity{ip},HFeps,HFmaxit,HFminit);
+            end
+            for ip = 1:doCalcs
+               smod = obj.models{whichCalc{ip}.imod};
+               senv = whichCalc{ip}.ienv;
+               if (senv == 0)
+                  smod.orb = orbp{ip};
+                  smod.Eorb = Eorbp{ip};
+                  smod.Ehf = Ehfp{ip};
+               else
+                  smod.orbEnv(:,:,senv) = orbp{ip};
+                  smod.EorbEnv(:,senv) = Eorbp{ip};
+                  smod.EhfEnv(1,senv) = Ehfp{ip};
+               end
+               smod.densitySave{senv+1} = smod.density(senv);
+            end
+            istore = 0;
          end
       end
    end
 end
-% to allow control-C to stop the job
-pause(0.1);
+% To allow control-C to stop the job.
+pause(0.01);
 
 doPlots = obj.plot && (dpar > 1.0e-4);
 
@@ -134,7 +158,7 @@ if (obj.includeEtot)
    calcKE = 1;
    calcEN = ones(1,20);
    calcE2 = 1;
-   % hold pointer to start of this model in resTot
+   % Hold pointer to start of this model in resTot.
    rangeMod = cell(1,obj.nmodels);
    ntot = 0;
    for imod = 1:obj.nmodels
@@ -150,16 +174,7 @@ end
 for imod = 1:obj.nmodels
    if (calcKE)
       hlevel = obj.HLKE{1,imod};
-      if (~obj.parallel)
-         modpred = obj.models{imod}.EKE(obj.envs{1,imod});
-      else
-         nenvs = length(obj.envs{1,imod});
-         modpred = zeros(1,nenvs);
-         for i=1:nenvs
-            icalc = calcsInv(imod,i);
-            modpred(i) = calcRes{icalc}.ke;
-         end
-      end
+      modpred = obj.models{imod}.EKE(obj.envs{imod});
       t1 = hlevel - modpred;
       n = size(t1,2);
       if (obj.includeKE)
@@ -194,18 +209,9 @@ for imod = 1:obj.nmodels
       end
    end
    for iatom = 1:obj.models{imod}.natom
-      if (calcEN( obj.models{imod}.Z(iatom) ))
+      if (calcEN(obj.models{imod}.Z(iatom)))
          hlevel = obj.HLEN{imod}(iatom,:);
-         if (~obj.parallel)
-            modpred = obj.models{imod}.Een(iatom,obj.envs{1,imod});
-         else
-            nenvs = length(obj.envs{1,imod});
-            modpred = zeros(1,nenvs);
-            for i=1:nenvs
-               icalc = calcsInv(imod,i);
-               modpred(i) = calcRes{icalc}.en(iatom);
-            end
-         end
+         modpred = obj.models{imod}.Een(iatom,obj.envs{imod});
          t1 = hlevel - modpred;
          if (obj.includeEN(obj.models{imod}.Z(iatom) ))
             n = size(t1,2);
@@ -250,16 +256,7 @@ for imod = 1:obj.nmodels
    end
    if (calcE2)
       hlevel = obj.HLE2{1,imod};
-      if (~obj.parallel)
-         modpred = obj.models{imod}.E2(obj.envs{1,imod});
-      else
-         nenvs = length(obj.envs{1,imod});
-         modpred = zeros(1,nenvs);
-         for i=1:nenvs
-            icalc = calcsInv(imod,i);
-            modpred(i) = calcRes{icalc}.e2;
-         end
-      end
+      modpred = obj.models{imod}.E2fast(obj.envs{imod});
       t1 = hlevel - modpred;
       if (obj.includeE2)
          n = size(t1,2);
@@ -306,8 +303,8 @@ if (obj.includeEtot)
       ic = ic + n;
    end
 end
-% for backwards compatability with fitme saved before this variable
-% was added
+% For backwards compatability with fitme saved before this variable
+% was added.
 if (isempty(obj.cost))
    obj.cost = 0;
 end
@@ -326,7 +323,7 @@ if (~obj.silent)
       wc = res(ic-1);
       disp(['RMS err/ndata = ',num2str(sqrt(nc*nc')/ndat), ...
          ' kcal/mol err = ',num2str(sqrt(nc*nc'/ndat)*627.509) ...
-         ' kcal/mol cost = ',num2str(wc*627.509/ndat)]);      
+         ' kcal/mol cost = ',num2str(wc*627.509/ndat)]);
    else
       disp(['RMS err/ndata = ',num2str(sqrt(res*res')/ndat), ...
          ' kcal/mol err = ',num2str(sqrt(res*res'/ndat)*627.509)]);
@@ -339,10 +336,10 @@ if (size(obj.testFitme,1) > 0)
    obj.errTest(obj.itcount) = norm(err1);
 end
 if (~isempty(obj.operWeights))
-   %  has fields KE, EN(1...Zmax), E2 and Etot
+   % Has fields KE, EN(1...Zmax), E2 and Etot.
    ike = (etype==1);
    res(ike) = res(ike) * obj.operWeights.KE;
-   % find all atom types
+   % Find all atom types.
    atypes = unique(etype(etype>10));
    for atype = atypes
       iz = (etype==atype);
@@ -353,8 +350,8 @@ if (~isempty(obj.operWeights))
    itot = (etype==3);
    res(itot) = res(itot) * obj.operWeights.Etot;
    if (~obj.silent)
-   disp(['Weighted RMS err/ndata = ',num2str(sqrt(res*res')/ndat), ...
-      ' kcal/mol err = ',num2str(sqrt(res*res'/ndat)*627.509)]);
+      disp(['Weighted RMS err/ndata = ',num2str(sqrt(res*res')/ndat), ...
+         ' kcal/mol err = ',num2str(sqrt(res*res'/ndat)*627.509)]);
    end
 end
 

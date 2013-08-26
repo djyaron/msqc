@@ -95,7 +95,6 @@ fitme.includeE2 = 1;
 fitme.includeEtot = 1;
 fitme.silent = 0;
 fitme.plot = 0;
-fitme.parallel = 1;
 if (HLfromF1)
    fitme.envs = f1.envs;
    fitme.HLKE = f1.HLKE;

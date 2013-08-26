@@ -1,4 +1,4 @@
-classdef Datagen
+classdef Datagen < handle
     %DATAGEN Summary of this class goes here
     %   Detailed explanation goes here
     
@@ -27,7 +27,7 @@ classdef Datagen
                         % need to be in the data folder.
         
         % Environment Vars
-        envType;        % 'charge' or 'field'.
+        envType;        % 'charge', 'field', or 'mixed'.
         envFilename;    % Name of .mat file of envs.
         envFile;        % Path to .mat file.
         nenv;           % Number of environments.
@@ -53,7 +53,7 @@ classdef Datagen
             
             % Set options.
             res.msqcRoot = checkForInput(varargin, 'msqcRoot', ...
-                'D:\Users\Alex\Programming\msqc\');
+                'C:\Users\Alex\Programming\msqc\');
             res.dataPath = checkForInput(varargin, 'dataPath', ...
                 ['data', filesep]);
             res.templatePath = checkForInput(varargin, 'templatePath', ...
@@ -131,7 +131,7 @@ classdef Datagen
             %     cubSize        Cube size.
             %     cent           1 x 3 displacement vector for center of
             %                    molecule.
-            % envType = 'field:'
+            % envType = 'field':
             %     fieldType      Available field directions.
             %     fieldMethod    'random' or 'systematic'.
             %     magMin         Minimum field strength to use.
@@ -139,6 +139,9 @@ classdef Datagen
             % fieldMethod = 'systematic'
             %     magStep        Amount to increment field strength each
             %                    time.
+            % envType = 'mixed':
+            %     varargin is passed along in calls to makeChargeEnv 
+            %     and makeFieldEnv.
             
             newEnv = checkForInput(varargin, 'newEnv', 0);
             
@@ -147,25 +150,28 @@ classdef Datagen
                 disp(['Environments already exist. Pass in "''', ...
                     'newEnv''', ', 1" to overwrite.']);
                 load(obj.envFile);
-            else
-                obj.nenv = checkForInput(varargin, 'nenv', 100);
-                
+            else                
                 % Do charged environments.
                 if strncmpi(obj.envType, 'charge', 6)
-                    obj.makeChargeEnv(varargin);
+                    env = obj.makeChargeEnv(varargin);
                 
                 % Do fields.
                 elseif strncmpi(obj.envType, 'field', 5)
-                    obj.makeFieldEnv(varargin);
+                    env = obj.makeFieldEnv(varargin);
+                    
+                % Do mixed.
+                elseif strncmpi(obj.envType, 'mixed', 5)
+                    env = obj.makeMixedEnv(varargin);
                     
                 % Catch bad input.
                 else
                     error('Invalid environment type.');
                 end
+                save(obj.envFile,'env');
             end
         end
         
-        function makeChargeEnv(obj, varargin)
+        function env = makeChargeEnv(obj, varargin)
             mag = checkForInput(varargin, 'mag', 15.0);
             cubSize = checkForInput(varargin, 'cubSize', [6,6,6]);
             cent = checkForInput(varargin, 'cent', [0.77; 0; 0]);
@@ -175,10 +181,9 @@ classdef Datagen
                 temp.displace(cent);
                 env{ienv} = temp;
             end
-            save(obj.envfile,'env');
         end
         
-        function makeFieldEnv(obj, varargin)
+        function env = makeFieldEnv(obj, varargin)
             fieldOpt = [ 1 0 0; 0 1 0; 0 0 1; 2 0 0; 0 2 0; 0 0 2; ...
                 1 1 0; 1 0 1; 0 1 1; 3 0 0; 0 3 0; 0 0 3; 2 1 0; ...
                 1 2 0; 2 0 1; 1 0 2; 0 2 1; 0 1 2; 1 1 1; 4 0 0; ...
@@ -202,8 +207,11 @@ classdef Datagen
                         tmp = int16(rand * size(fieldType,1));
                     end
                     new.fieldType = fieldType(tmp, :);
-                    new.fieldMag = int16(rand * (magMin - magMax)) ...
+                    new.fieldMag = int16(rand * (magMax - magMin)) ...
                         + magMin;
+                    if rand > 0.5
+                        new.fieldMag = -1 * new.fieldMag;
+                    end
                     new.ncharge = 0; new.rho = 0; new.r = 0;
                     env{ifield} = new;
                 end
@@ -225,7 +233,37 @@ classdef Datagen
                     end
                 end
             end
-            save(obj.envFile, 'env');
+        end
+        
+        function env = makeMixedEnv(obj, varargin)
+            % Make a mixture of charge and field envs.
+            % IMPORTANT: obj.nenv describes the number of each of the 
+            %            following to generate.
+            % * Charged cube envs.
+            % * Dipole field envs.
+            % * Quadrupole field envs.
+            % * Octupole field envs.
+            % * Hexadecapole field envs.
+            % varargin is passed along to calls to makeChargeEnv and
+            % makeFieldEnv, but be careful, since not all options would
+            % work.
+            varargin = varargin{1};
+            env = cell(1, 5 * obj.nenv);
+            env(1:obj.nenv) = obj.makeChargeEnv(varargin);
+            fieldOpt = [ 1 0 0; 0 1 0; 0 0 1; 2 0 0; 0 2 0; 0 0 2; ...
+                1 1 0; 1 0 1; 0 1 1; 3 0 0; 0 3 0; 0 0 3; 2 1 0; ...
+                1 2 0; 2 0 1; 1 0 2; 0 2 1; 0 1 2; 1 1 1; 4 0 0; ...
+                0 4 0; 0 0 4; 3 1 0; 1 3 0; 3 0 1; 1 0 3; 0 3 1; ...
+                0 1 3; 2 2 0; 2 0 2; 0 2 2 ];
+            fieldOrder = sum(fieldOpt, 2);
+            env(obj.nenv+1:2*obj.nenv) = obj.makeFieldEnv('fieldType', ...
+                fieldOpt(fieldOrder == 1,:), varargin);
+            env(2*obj.nenv+1:3*obj.nenv) = obj.makeFieldEnv('fieldType', ...
+                fieldOpt(fieldOrder == 2,:), varargin);
+            env(3*obj.nenv+1:4*obj.nenv) = obj.makeFieldEnv('fieldType', ...
+                fieldOpt(fieldOrder == 3,:), varargin);
+            env(4*obj.nenv+1:5*obj.nenv) = obj.makeFieldEnv('fieldType', ...
+                fieldOpt(fieldOrder == 4,:), varargin);
         end
     
         function [HL, LL] = runData(obj, varargin)
@@ -238,6 +276,9 @@ classdef Datagen
                 if (exist(obj.envFile, 'file'))
                     disp('loading existing environments');
                     load(obj.envFile, 'env');
+                    if strcmpi(obj.envType, 'mixed')
+                        obj.nenv = 5 * obj.nenv;
+                    end
                 else
                     error('No environments found. Aborting...');
                 end
